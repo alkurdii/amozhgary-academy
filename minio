@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Black Bear - Menu</title>
+    <!-- Premium Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #0f0f0f;
+            --card-bg: #161616;
+            --text-main: #e0e0e0;
+            --text-gold: #c5a059; /* Classic Gold */
+            --text-muted: #888888;
+            --border-color: #333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-print-color-adjust: exact;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at center, #1f1f1f 0%, #0f0f0f 100%);
+            color: var(--text-main);
+            font-family: 'Lato', sans-serif;
+            height: 100vh;
+            width: 100vw;
+            padding: 15px;
+            overflow: hidden; /* Lock screen for iPad */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* The Main Menu Card */
+        .menu-wrapper {
+            width: 100%;
+            height: 100%;
+            border: 2px solid var(--text-gold);
+            padding: 20px;
+            position: relative;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Decorative Corners */
+        .corner {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: var(--bg-dark);
+            border: 2px solid var(--text-gold);
+            z-index: 2;
+        }
+        .tl { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+        .tr { top: -2px; right: -2px; border-left: none; border-bottom: none; }
+        .bl { bottom: -2px; left: -2px; border-right: none; border-top: none; }
+        .br { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+
+        /* Header */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .logo-box {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 1px solid var(--text-gold);
+            overflow: hidden;
+            background: #000;
+        }
+        
+        .logo-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .header-text h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            color: var(--text-gold);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .header-text p {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--text-muted);
+        }
+
+        /* Grid Layout */
+        .menu-grid {
+            flex-grow: 1;
+            column-count: 4; /* Perfect for iPad Landscape */
+            column-gap: 25px;
+            padding-top: 15px;
+        }
+
+        /* Category Box */
+        .category {
+            break-inside: avoid;
+            margin-bottom: 20px;
+        }
+
+        .cat-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            color: var(--text-gold);
+            border-bottom: 1px solid #333;
+            margin-bottom: 10px;
+            padding-bottom: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Items */
+        ul { list-style: none; }
+        
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 6px;
+            font-size: 0.8rem; /* Adjusted for density */
+        }
+
+        .item-info {
+            display: flex;
+            flex-direction: column;
+            width: 80%;
+        }
+
+        .name {
+            font-weight: 700;
+            color: #ececec;
+        }
+
+        .sub {
+            font-size: 0.65rem;
+            color: #999;
+            font-style: italic;
+            font-weight: 300;
+        }
+
+        .dots {
+            flex-grow: 1;
+            border-bottom: 1px dotted #444;
+            margin: 0 5px 4px 5px;
+        }
+
+        .price {
+            font-family: 'Playfair Display', serif;
+            color: var(--text-gold);
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #444;
+            margin-top: auto;
+            padding-top: 5px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="menu-wrapper">
+        <!-- Corners -->
+        <div class="corner tl"></div><div class="corner tr"></div>
+        <div class="corner bl"></div><div class="corner br"></div>
+
+        <header>
+            <div class="logo-box">
+                <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhmXrZfrZyGSA0u_0PQnDO4YWBHolW7Ldd-wZ_LpcZtdw6quoKUp8wmlkY7tLWKImkxQDKqBWuToUgxBfz83f7CaY4IuimL-pdUzJURr_75vId6NWwV2HEhzha90EKc4wW5N1LTWxWLTcWBmR4KQK_cPlvl_w1DiSd3jUBvtdrlD0hMiHuFN2cc9SMZQig/s683/F94E17C2-ED64-4D72-9B9C-81F27BE3A13E.png" alt="Logo">
+            </div>
+            <div class="header-text">
+                <h1>Black Bear</h1>
+                <p>Premium Takeaway Menu</p>
+            </div>
+        </header>
+
+        <div class="menu-grid" id="menuContainer">
+            <!-- Content Injected via JS -->
+        </div>
+
+        <div class="footer">
+            Premium Quality Coffee & Beverages
+        </div>
+    </div>
+
+    <script>
+        const menuData = [
+            {
+                category: "Hot Drinks",
+                items: [
+                    { n: "Latte", p: "3,000" },
+                    { n: "Flavored Latte", s: "Caramel, Vanilla, Coconut, Pistachio", p: "3,500" },
+                    { n: "Special Latte", s: "Rose, Hazelnut, Lotus, Spanish", p: "3,500" },
+                    { n: "Mocha", p: "3,500" },
+                    { n: "Espresso Macchiato", p: "2,500" },
+                    { n: "Ristretto", p: "1,500" },
+                    { n: "Longo", p: "2,500" },
+                    { n: "Turkish Coffee", p: "2,000" },
+                    { n: "Single Espresso", p: "1,500" },
+                    { n: "Double Espresso", p: "2,000" },
+                    { n: "Affogato", p: "2,500" },
+                    { n: "Cappuccino", p: "3,000" },
+                    { n: "Hot Chocolate", p: "3,500" },
+                    { n: "Nescafe", p: "2,000" },
+                    { n: "Milk & Honey", p: "1,500" },
+                    { n: "Americano", p: "3,000" },
+                    { n: "Karak Tea", p: "2,500" },
+                    { n: "V60 Coffee", p: "3,500" }
+                ]
+            },
+            {
+                category: "Ice Drinks",
+                items: [
+                    { n: "Iced Latte", p: "3,000" },
+                    { n: "Iced Flavored Latte", s: "Caramel, Vanilla, Coconut, Pistachio", p: "3,500" },
+                    { n: "Iced Rose / Hazelnut", p: "3,500" },
+                    { n: "Iced Spanish Latte", p: "3,500" },
+                    { n: "Iced Americano", p: "3,000" },
+                    { n: "Iced Mocha / White", p: "3,500" },
+                    { n: "Dalgona Coffee", p: "3,500" },
+                    { n: "Golden Crown Choco", p: "3,500" },
+                    { n: "Iced V60", p: "3,000" }
+                ]
+            },
+            {
+                category: "Smoothies",
+                items: [
+                    { n: "Berry Mix", s: "Strawberry, Blueberry", p: "4,000" },
+                    { n: "Tropical & Mango", p: "4,000" },
+                    { n: "Banana / Pineapple", p: "4,000" }
+                ]
+            },
+            {
+                category: "Milkshakes",
+                items: [
+                    { n: "Classic Shake", s: "Chocolate, Vanilla, Caramel", p: "3,500" },
+                    { n: "Oreo / Lotus / Kinder", p: "3,500" },
+                    { n: "Fruit Shake", s: "Strawberry, Blueberry", p: "3,500" }
+                ]
+            },
+            {
+                category: "Mocktails & Mojito",
+                items: [
+                    { n: "Classic & Berry", s: "Classic, Strawberry, Blueberry, Coconut", p: "3,000" },
+                    { n: "Fruit Mojito I", s: "Pomegranate, Peach, Mango, Raspberry", p: "3,000" },
+                    { n: "Fruit Mojito II", s: "Pineapple, Blue Curacao, Blackberry", p: "3,000" },
+                    { n: "B.F.F Mixed Berries", p: "3,000" },
+                    { n: "Lemonade Mix", p: "3,000" },
+                    { n: "Mix Tiger", p: "3,000" },
+                    { n: "Pina Colada", p: "3,000" },
+                    { n: "Strawberry Daiquiri", p: "3,000" },
+                    { n: "Mint Coolness", p: "3,000" },
+                    { n: "Summer Dream", p: "3,000" },
+                    { n: "Black Bear Special", p: "3,000" },
+                    { n: "Energy Peach Berry", p: "3,500" },
+                    { n: "Blue Cocktail", p: "3,500" },
+                    { n: "Mint Pomegranate", p: "3,500" },
+                    { n: "Orange Mango", p: "3,500" },
+                    { n: "Pomegranate Beach", p: "3,500" },
+                    { n: "Mix Amigo", p: "2,000" }
+                ]
+            },
+            {
+                category: "Frappe",
+                items: [
+                    { n: "Vanilla / Chocolate", p: "3,500" },
+                    { n: "White Chocolate", p: "3,500" },
+                    { n: "Oreo / Caramel", p: "3,500" },
+                    { n: "Kinder / Nutella", p: "3,500" }
+                ]
+            },
+            {
+                category: "Ice Tea",
+                items: [
+                    { n: "Berry Ice Tea", s: "Strawberry, Blueberry", p: "3,000" },
+                    { n: "Fruit Ice Tea", s: "Peach, Mango, Orange, Pineapple", p: "3,000" },
+                    { n: "Classic Ice Tea", p: "3,000" }
+                ]
+            },
+            {
+                category: "Food & Energy",
+                items: [
+                    { n: "Classic Toast", p: "2,000" },
+                    { n: "Sandwich", p: "3,000" },
+                    { n: "Redbull", p: "3,000" }
+                ]
+            }
+        ];
+
+        const container = document.getElementById('menuContainer');
+
+        menuData.forEach(section => {
+            const catDiv = document.createElement('div');
+            catDiv.className = 'category';
+            
+            let listHtml = '';
+            section.items.forEach(item => {
+                const subText = item.s ? `<span class="sub">${item.s}</span>` : '';
+                listHtml += `
+                    <li>
+                        <div class="item-info">
+                            <span class="name">${item.n}</span>
+                            ${subText}
+                        </div>
+                        <span class="dots"></span>
+                        <span class="price">${item.p}</span>
+                    </li>
+                `;
+            });
+
+            catDiv.innerHTML = `
+                <h3 class="cat-title">${section.category}</h3>
+                <ul>${listHtml}</ul>
+            `;
+            container.appendChild(catDiv);
+        });
+    </script>
+</body>
+</html>
