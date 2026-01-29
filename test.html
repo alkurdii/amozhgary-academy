@@ -1,0 +1,392 @@
+
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>أقسام الفعل - Arabic Verb Types</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+
+        :root {
+            --bg-color: #f8fafc;
+            --line-color: #cbd5e1;
+            --root-bg: #0f172a;
+            --root-text: #ffffff;
+            --node-bg: #ffffff;
+            --node-text: #1e293b;
+            --hover-color: #3b82f6;
+            --accent-color: #0ea5e9;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 10px;
+            direction: rtl;
+            display: flex;
+            justify-content: center;
+        }
+
+        .tab-container {
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            background: var(--bg-color);
+            padding: 10px 0;
+            z-index: 1000;
+        }
+
+        .tab-button {
+            padding: 8px 16px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            border: 2px solid var(--line-color);
+            background-color: var(--node-bg);
+            color: var(--node-text);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .tab-button.active {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Tree Styling */
+        .tree ul {
+            padding-top: 20px; 
+            position: relative;
+            display: flex;
+            justify-content: center;
+            padding-right: 0;
+        }
+
+        .tree li {
+            text-align: center;
+            list-style-type: none;
+            position: relative;
+            padding: 20px 5px 0 5px;
+        }
+
+        .tree li::before, .tree li::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 50%;
+            border-top: 2px solid var(--branch-color, var(--line-color));
+            width: 50%;
+            height: 20px;
+        }
+
+        .tree li::after {
+            left: 50%;
+            border-left: 2px solid var(--branch-color, var(--line-color));
+        }
+
+        .tree li:only-child::after, .tree li:only-child::before { display: none; }
+        .tree li:only-child { padding-top: 0; }
+        .tree li:first-child::before, .tree li:last-child::after { border: 0; }
+        .tree li:last-child::before { border-left: 2px solid var(--branch-color, var(--line-color)); border-radius: 0 5px 0 0; }
+        .tree li:first-child::after { border-radius: 5px 0 0 0; }
+
+        .tree ul ul::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            border-left: 2px solid var(--branch-color, var(--line-color));
+            width: 0;
+            height: 20px;
+        }
+
+        .node {
+            border: 2px solid var(--branch-color, var(--line-color));
+            padding: 6px 10px;
+            color: var(--node-text);
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: inline-block;
+            border-radius: 8px;
+            background: var(--node-bg);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            min-width: 80px;
+        }
+
+        .tree > ul > li > .node {
+            background-color: var(--root-bg);
+            color: white;
+            font-size: 1.1rem;
+            padding: 10px 20px;
+        }
+
+        /* Branch Colors */
+        /* Level 1 */
+        .tree > ul > li > ul > li:nth-child(1) { --branch-color: #ef4444; } /* Red */
+        .tree > ul > li > ul > li:nth-child(2) { --branch-color: #3b82f6; } /* Blue */
+        .tree > ul > li > ul > li:nth-child(3) { --branch-color: #10b981; } /* Green */
+        .tree > ul > li > ul > li:nth-child(4) { --branch-color: #f59e0b; } /* Orange */
+
+        /* Level 2 */
+        .tree > ul > li > ul > li > ul > li:nth-child(1) { --branch-color: #ec4899; } /* Pink */
+        .tree > ul > li > ul > li > ul > li:nth-child(2) { --branch-color: #8b5cf6; } /* Violet */
+        .tree > ul > li > ul > li > ul > li:nth-child(3) { --branch-color: #06b6d4; } /* Cyan */
+
+        /* Level 3 */
+        .tree > ul > li > ul > li > ul > li > ul > li:nth-child(1) { --branch-color: #be185d; } /* Dark Pink */
+        .tree > ul > li > ul > li > ul > li > ul > li:nth-child(2) { --branch-color: #4338ca; } /* Dark Indigo */
+
+        /* Responsive / Mobile View */
+        @media (max-width: 768px) {
+            .tree, .tree ul, .tree li {
+                display: block;
+                text-align: right;
+            }
+
+            .tree li {
+                padding: 5px 8px 0 0;
+                margin-right: 8px;
+                border-right: 2px solid var(--branch-color, var(--line-color));
+            }
+
+            .tree li::before, .tree li::after, .tree ul ul::before {
+                display: none;
+            }
+
+            .tree li::after {
+                content: '';
+                position: absolute;
+                right: 0;
+                top: 17px;
+                width: 8px;
+                height: 2px;
+                background: var(--branch-color, var(--line-color));
+                display: block;
+            }
+
+            .node {
+                width: auto;
+                max-width: 95%;
+                font-size: 0.75rem;
+                padding: 4px 8px;
+                min-width: auto;
+            }
+
+            .tree > ul > li > .node {
+                font-size: 0.9rem;
+                padding: 6px 12px;
+            }
+
+            .tree > ul > li {
+                border-right: none;
+                padding-right: 0;
+                margin-right: 0;
+            }
+
+            .tree > ul > li::after { display: none; }
+
+            /* Collapsible Logic for Mobile (Accordion Style) */
+            .tree ul ul {
+                display: none; /* Hide sub-branches by default */
+            }
+
+            .tree li.expanded > ul {
+                display: block; /* Show when expanded */
+                animation: fadeIn 0.3s ease;
+            }
+
+            .node.has-children {
+                cursor: pointer;
+                position: relative;
+                padding-left: 30px; /* Space for the +/- icon */
+            }
+
+            .node.has-children::after {
+                content: '+';
+                position: absolute;
+                left: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-weight: bold;
+                font-size: 1.2em;
+            }
+
+            .tree li.expanded > .node.has-children::after {
+                content: '-';
+            }
+
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="tab-container">
+        <div class="tab-buttons">
+            <button class="tab-button" data-target="madi">ماضٍ</button>
+            <button class="tab-button" data-target="mudari">مضارع</button>
+            <button class="tab-button" data-target="amr">أمر</button>
+        </div>
+
+        <!-- الماضي -->
+        <div id="madi" class="tab-content">
+            <div class="tree">
+                <ul>
+                    <li>
+                        <div class="node">ماضٍ مبني على</div>
+                        <ul>
+                            <li><div class="node">الفتح لأنه لم يتصل بآخره شيء</div></li>
+                            <li>
+                                <div class="node">السكون لاتصاله بـ</div>
+                                <ul>
+                                    <li><div class="node">تاء الفاعل</div></li>
+                                    <li><div class="node">نا الفاعلين</div></li>
+                                    <li><div class="node">نون النسوة</div></li>
+                                </ul>
+                            </li>
+                            <li><div class="node">الضم لاتصاله بواو الجماعة</div></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- المضارع -->
+        <div id="mudari" class="tab-content">
+            <div class="tree">
+                <ul>
+                    <li>
+                        <div class="node">مضارع</div>
+                        <ul>
+                            <li>
+                                <div class="node">مبني على</div>
+                                <ul>
+                                    <li><div class="node">السكون لاتصاله بنون النسوة</div></li>
+                                    <li>
+                                        <div class="node">الفتح لاتصاله بنون التوكيد</div>
+                                        <ul>
+                                            <li><div class="node">الثقيلة</div></li>
+                                            <li><div class="node">الخفيفة</div></li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="node">مرفوع وعلامة رفعه</div>
+                                <ul>
+                                    <li>
+                                        <div class="node">الضمة</div>
+                                        <ul>
+                                            <li><div class="node">الظاهرة</div></li>
+                                            <li>
+                                                <div class="node">المقدرة على</div>
+                                                <ul>
+                                                    <li><div class="node">الألف للتعذر</div></li>
+                                                    <li><div class="node">(الواو) أو (الياء) للثقل</div></li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li><div class="node">ثبوت النون</div></li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="node">منصوب وعلامة نصبه</div>
+                                <ul>
+                                    <li>
+                                        <div class="node">الفتحة</div>
+                                        <ul>
+                                            <li><div class="node">الظاهرة</div></li>
+                                            <li><div class="node">المقدرة على الألف للتعذر</div></li>
+                                        </ul>
+                                    </li>
+                                    <li><div class="node">حذف النون</div></li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="node">مجزوم وعلامة جزمه</div>
+                                <ul>
+                                    <li><div class="node">السكون</div></li>
+                                    <li><div class="node">حذف حرف العلة</div></li>
+                                    <li><div class="node">حذف النون</div></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- الأمر -->
+        <div id="amr" class="tab-content">
+            <div class="tree">
+                <ul>
+                    <li>
+                        <div class="node">أمر مبني على</div>
+                        <ul>
+                            <li><div class="node">السكون</div></li>
+                            <li><div class="node">حذف حرف العلة</div></li>
+                            <li><div class="node">حذف النون</div></li>
+                            <li><div class="node">الفتح</div></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            function switchTab(targetId) {
+                tabButtons.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.target === targetId);
+                });
+                tabContents.forEach(content => {
+                    content.classList.toggle('active', content.id === targetId);
+                });
+            }
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => switchTab(button.dataset.target));
+            });
+
+            // Default
+            switchTab('madi');
+
+            // Collapsible Tree Script (Mobile Interaction)
+            const nodes = document.querySelectorAll('.node');
+            nodes.forEach(node => {
+                if (node.nextElementSibling && node.nextElementSibling.tagName === 'UL') {
+                    node.classList.add('has-children');
+                    node.addEventListener('click', function(e) {
+                        this.parentElement.classList.toggle('expanded');
+                    });
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
