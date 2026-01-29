@@ -354,6 +354,28 @@
         }
         .report-title { text-align: center; font-weight: bold; margin-bottom: 20px; font-size: 1.2rem; border-bottom: 2px solid var(--line-color); padding-bottom: 10px; }
         
+        /* Floating Report Button (FAB) */
+        #show-report-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 2500;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        #show-report-btn:active { transform: scale(0.95); }
+        
         /* Advanced Report Summary */
         .report-summary {
             background: #f1f5f9;
@@ -426,9 +448,6 @@
     <div class="tab-container">
         <div class="search-container">
             <input type="text" id="search-input" placeholder="بگەڕێ... (نموونە: السكون)">
-            <button id="show-report-btn" style="width:100%; margin-top:10px; padding:10px; background:var(--node-text); color:white; border:none; border-radius:10px; cursor:pointer; font-family:inherit;">
-                📊 نیشاندانا راپورتی (Show Report)
-            </button>
         </div>
         <div class="tab-buttons">
             <button class="tab-button" data-target="madi">ماضٍ</button>
@@ -573,6 +592,9 @@
             <div id="report-body"></div>
         </div>
     </div>
+
+    <!-- Floating Report Button -->
+    <button id="show-report-btn" title="راپورتا قوتابی">📊</button>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
