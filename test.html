@@ -353,6 +353,28 @@
             z-index: 10;
         }
         .report-title { text-align: center; font-weight: bold; margin-bottom: 20px; font-size: 1.2rem; border-bottom: 2px solid var(--line-color); padding-bottom: 10px; }
+        
+        /* Advanced Report Summary */
+        .report-summary {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #cbd5e1;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 5px;
+        }
+        .summary-row:last-child { border-bottom: none; }
+        .summary-label { font-weight: bold; color: var(--node-text); }
+        .summary-value { font-weight: bold; color: var(--accent-color); }
+        .progress-bar { width: 100%; height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; margin-top: 5px; }
+        .progress-fill { height: 100%; background: #10b981; width: 0%; transition: width 0.5s ease; }
+        .summary-header { text-align: center; margin-bottom: 15px; }
 
         @media (max-width: 768px) {
             .leaf-input-container {
@@ -690,6 +712,44 @@
                 reportBody.innerHTML = '';
                 const inputs = document.querySelectorAll('.leaf-input');
                 
+                // Statistics Calculation
+                let stats = {
+                    total: 0,
+                    answered: 0,
+                    madi: { total: 0, answered: 0, label: 'ماضٍ' },
+                    mudari: { total: 0, answered: 0, label: 'مضارع' },
+                    amr: { total: 0, answered: 0, label: 'أمر' }
+                };
+
+                inputs.forEach(input => {
+                    stats.total++;
+                    const hasAnswer = input.value.trim().length > 0;
+                    if (hasAnswer) stats.answered++;
+
+                    const tab = input.closest('.tab-content');
+                    if (tab && stats[tab.id]) {
+                        stats[tab.id].total++;
+                        if (hasAnswer) stats[tab.id].answered++;
+                    }
+                });
+
+                const percentage = stats.total === 0 ? 0 : Math.round((stats.answered / stats.total) * 100);
+
+                // Add Summary Section
+                const summaryHTML = `
+                    <div class="report-summary">
+                        <div class="summary-header">
+                            <div style="font-size:1.1rem; font-weight:bold;">رێژەیا گشتی (Total Progress)</div>
+                            <div class="progress-bar"><div class="progress-fill" style="width: ${percentage}%"></div></div>
+                            <div style="margin-top:5px; color:#64748b;">${percentage}% (${stats.answered} ژ ${stats.total})</div>
+                        </div>
+                        <div class="summary-row"><span class="summary-label">ماضٍ</span><span class="summary-value">${stats.madi.answered} / ${stats.madi.total}</span></div>
+                        <div class="summary-row"><span class="summary-label">مضارع</span><span class="summary-value">${stats.mudari.answered} / ${stats.mudari.total}</span></div>
+                        <div class="summary-row"><span class="summary-label">أمر</span><span class="summary-value">${stats.amr.answered} / ${stats.amr.total}</span></div>
+                    </div>
+                `;
+                reportBody.innerHTML = summaryHTML;
+
                 inputs.forEach((input, index) => {
                     // Build Path
                     let current = input.closest('li').querySelector('.node');
