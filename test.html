@@ -312,6 +312,48 @@
             outline: none;
         }
 
+        /* Report Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(3px);
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .report-item {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 15px 0;
+        }
+        .report-path { font-weight: 700; color: var(--accent-color); font-size: 0.9rem; margin-bottom: 8px; }
+        .report-answer { background: #f8fafc; padding: 10px; border-radius: 8px; color: #334155; border: 1px solid #e2e8f0; }
+        .report-empty { color: #ef4444; font-style: italic; background: #fef2f2; border-color: #fee2e2; }
+        .close-modal {
+            position: sticky;
+            top: 0;
+            float: left;
+            background: #ef4444; color: white;
+            border: none; padding: 8px 15px;
+            border-radius: 8px; cursor: pointer;
+            font-family: inherit;
+            z-index: 10;
+        }
+        .report-title { text-align: center; font-weight: bold; margin-bottom: 20px; font-size: 1.2rem; border-bottom: 2px solid var(--line-color); padding-bottom: 10px; }
+
         @media (max-width: 768px) {
             .leaf-input-container {
                 display: block;
@@ -362,6 +404,9 @@
     <div class="tab-container">
         <div class="search-container">
             <input type="text" id="search-input" placeholder="بگەڕێ... (نموونە: السكون)">
+            <button id="show-report-btn" style="width:100%; margin-top:10px; padding:10px; background:var(--node-text); color:white; border:none; border-radius:10px; cursor:pointer; font-family:inherit;">
+                📊 نیشاندانا راپورتی (Show Report)
+            </button>
         </div>
         <div class="tab-buttons">
             <button class="tab-button" data-target="madi">ماضٍ</button>
@@ -483,6 +528,15 @@
         <button class="reset-btn" id="reset-btn">
             ↺ دەستپێکرنەوە
         </button>
+    </div>
+
+    <!-- Report Modal -->
+    <div class="modal-overlay" id="report-modal">
+        <div class="modal-content">
+            <button class="close-modal" id="close-report">داخستن (Close)</button>
+            <div class="report-title">راپورتا قوتابی (Student Report)</div>
+            <div id="report-body"></div>
+        </div>
     </div>
 
     <script>
@@ -613,6 +667,47 @@
                     container.appendChild(textarea);
                     li.appendChild(container);
                 }
+            });
+
+            // Report Logic
+            const reportModal = document.getElementById('report-modal');
+            const reportBody = document.getElementById('report-body');
+            
+            document.getElementById('show-report-btn').addEventListener('click', () => {
+                reportBody.innerHTML = '';
+                const inputs = document.querySelectorAll('.leaf-input');
+                
+                inputs.forEach((input, index) => {
+                    // Build Path
+                    let current = input.closest('li').querySelector('.node');
+                    let textParts = [];
+                    while (current) {
+                        textParts.unshift(current.innerText.trim());
+                        let parentLi = current.closest('li').parentElement.closest('li');
+                        current = parentLi ? parentLi.querySelector('.node') : null;
+                    }
+                    const fullPath = textParts.join(' ');
+                    const answer = input.value.trim();
+
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'report-item';
+                    
+                    let answerHtml = answer 
+                        ? `<div class="report-answer">✍️ ${answer}</div>` 
+                        : `<div class="report-answer report-empty">❌ نەهاتیە چارەسەرکرن (Not Answered)</div>`;
+
+                    itemDiv.innerHTML = `
+                        <div class="report-path">🔹 ${fullPath}</div>
+                        ${answerHtml}
+                    `;
+                    reportBody.appendChild(itemDiv);
+                });
+
+                reportModal.classList.add('active');
+            });
+
+            document.getElementById('close-report').addEventListener('click', () => {
+                reportModal.classList.remove('active');
             });
 
         });
