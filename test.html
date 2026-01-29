@@ -515,6 +515,26 @@
         }
         .share-btn:hover { background-color: #1b8ac0; }
 
+        .action-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .export-btn, .clear-all-btn {
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: bold;
+            flex: 1;
+            transition: opacity 0.2s;
+        }
+        .export-btn { background-color: #10b981; }
+        .clear-all-btn { background-color: #ef4444; }
+        .export-btn:hover, .clear-all-btn:hover { opacity: 0.9; }
+
         @media (max-width: 768px) {
             .leaf-input-container {
                 display: block;
@@ -1090,6 +1110,44 @@
                     window.open(telegramUrl, '_blank');
                 });
                 reportBody.appendChild(shareBtn);
+
+                // Action Buttons Container
+                const actionContainer = document.createElement('div');
+                actionContainer.className = 'action-btn-group';
+
+                // Export Button (Backup)
+                const exportBtn = document.createElement('button');
+                exportBtn.className = 'export-btn';
+                exportBtn.innerHTML = '📥 پاراستن (Backup)';
+                exportBtn.onclick = () => {
+                    const data = localStorage.getItem('arabicVerbNotes');
+                    if (!data) { alert('هیچ داتایەک نینە بۆ پاراستنێ.'); return; }
+                    const blob = new Blob([data], {type: 'application/json'});
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `arabic_verbs_backup_${new Date().toISOString().slice(0,10)}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                };
+
+                // Clear All Button
+                const clearBtn = document.createElement('button');
+                clearBtn.className = 'clear-all-btn';
+                clearBtn.innerHTML = '🗑️ ژێبرنا هەمیێ';
+                clearBtn.onclick = () => {
+                    if (confirm('ئەرێ تۆ پشتڕاستی؟ هەمی تێبینی دێ ژێچن و زڤڕاندن نینە!')) {
+                        localStorage.removeItem('arabicVerbNotes');
+                        document.querySelectorAll('.saved-notes-list').forEach(el => el.remove());
+                        alert('هەمی داتا هاتنە ژێبرن.');
+                        reportModal.classList.remove('active');
+                    }
+                };
+
+                actionContainer.appendChild(exportBtn);
+                actionContainer.appendChild(clearBtn);
+                reportBody.appendChild(actionContainer);
 
                 reportModal.classList.add('active');
             });
