@@ -287,6 +287,57 @@
             line-height: 1.6;
         }
 
+        /* Leaf Node Input Box (Writing Box) */
+        .leaf-input-container {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .leaf-input {
+            width: 140px;
+            height: 50px;
+            padding: 8px;
+            border: 2px solid var(--line-color);
+            border-radius: 8px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.8rem;
+            resize: none;
+            transition: border-color 0.3s;
+            background-color: #ffffff;
+        }
+
+        .leaf-input:focus {
+            border-color: var(--accent-color);
+            outline: none;
+        }
+
+        @media (max-width: 768px) {
+            .leaf-input-container {
+                display: block;
+                padding-right: 0;
+            }
+            .leaf-input {
+                width: 95%;
+                height: 60px;
+                margin-top: 5px;
+            }
+        }
+        
+        .reset-btn {
+            margin-top: 10px;
+            background: var(--bg-color);
+            border: 1px solid var(--line-color);
+            padding: 5px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
         .node.selected {
             background-color: var(--accent-color) !important;
             color: white !important;
@@ -429,6 +480,9 @@
     <div id="irab-box">
         <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 5px;">النتيجة (ئەنجام):</div>
         <div id="irab-text"></div>
+        <button class="reset-btn" id="reset-btn">
+            ↺ دەستپێکرنەوە
+        </button>
     </div>
 
     <script>
@@ -505,19 +559,60 @@
                     // Build the sentence path
                     let current = this;
                     let textParts = [];
+                    let pathNodes = []; // To store the active path
                     
                     while (current) {
                         textParts.unshift(current.innerText.trim());
+                        pathNodes.push(current);
                         // Traverse up: Node -> LI -> UL -> Parent LI -> Parent Node
                         let parentLi = current.closest('li').parentElement.closest('li');
                         current = parentLi ? parentLi.querySelector('.node') : null;
                     }
+
+                    // Focus Mode: Dim all other nodes
+                    nodes.forEach(n => {
+                        if (!pathNodes.includes(n)) {
+                            n.classList.add('dimmed');
+                        } else {
+                            n.classList.remove('dimmed');
+                        }
+                    });
 
                     // Show result
                     irabText.innerText = textParts.join(' ');
                     irabBox.classList.add('visible');
                     document.body.classList.add('has-irab-box');
                 });
+            });
+
+            // Reset Button
+            document.getElementById('reset-btn').addEventListener('click', () => {
+                nodes.forEach(n => {
+                    n.classList.remove('selected', 'dimmed', 'highlight-search');
+                });
+                document.getElementById('irab-box').classList.remove('visible');
+                document.body.classList.remove('has-irab-box');
+                document.getElementById('search-input').value = '';
+            });
+
+            // Add Input Boxes to Leaf Nodes (End of branches)
+            const allLis = document.querySelectorAll('.tree li');
+            allLis.forEach(li => {
+                // If li does not have a child UL, it is a leaf node
+                if (!li.querySelector('ul')) {
+                    const container = document.createElement('div');
+                    container.className = 'leaf-input-container';
+                    
+                    const textarea = document.createElement('textarea');
+                    textarea.className = 'leaf-input';
+                    textarea.placeholder = 'اكتب الإعراب...';
+                    
+                    // Prevent click from triggering node selection
+                    textarea.addEventListener('click', (e) => e.stopPropagation());
+                    
+                    container.appendChild(textarea);
+                    li.appendChild(container);
+                }
             });
 
         });
