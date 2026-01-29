@@ -337,7 +337,13 @@
             margin-top: 10px;
             width: 100%;
             align-items: center;
+            max-height: 100px; /* Limit height to keep UI clean */
+            overflow-y: auto;  /* Enable scrolling for many verbs */
+            padding-bottom: 5px;
         }
+        .saved-notes-list::-webkit-scrollbar { width: 4px; }
+        .saved-notes-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
         .saved-note-item {
             background-color: #dbeafe;
             color: #1e40af;
@@ -420,6 +426,25 @@
             transition: transform 0.2s;
         }
         #show-report-btn:active { transform: scale(0.95); }
+        
+        #report-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 0.8rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid white;
+            font-weight: bold;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
         
         /* Help Button */
         #help-btn {
@@ -514,6 +539,26 @@
             font-weight: bold;
         }
         .share-btn:hover { background-color: #1b8ac0; }
+        
+        .copy-btn {
+            background-color: #64748b;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1rem;
+            margin-top: 10px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background 0.2s;
+            font-weight: bold;
+        }
+        .copy-btn:hover { background-color: #475569; }
 
         .action-btn-group {
             display: flex;
@@ -535,9 +580,47 @@
         .clear-all-btn { background-color: #ef4444; }
         .export-btn:hover, .clear-all-btn:hover { opacity: 0.9; }
 
+        /* Interactive Report Styles */
+        .report-verb-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .report-verb-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        .report-verb-text {
+            flex: 1;
+            margin-left: 10px;
+            font-weight: bold;
+            color: #334155;
+            white-space: pre-wrap;
+        }
+        .report-verb-actions {
+            display: flex;
+            gap: 5px;
+        }
+        .report-verb-actions button {
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 2px 5px;
+            transition: transform 0.2s;
+        }
+        .report-verb-actions button:hover {
+            transform: scale(1.2);
+        }
+
         @media (max-width: 768px) {
             .leaf-input-container {
-                display: block;
+                display: none;
                 padding-right: 0;
             }
             .leaf-input {
@@ -734,7 +817,7 @@
     <div class="modal-overlay" id="report-modal">
         <div class="modal-content">
             <button class="close-modal" id="close-report">داخستن (Close)</button>
-            <div class="report-title">راپورتا قوتابی (Student Report)</div>
+            <div class="report-title">راپورتا شیکارکرنا سورەتا یوسف</div>
             <div id="report-body"></div>
         </div>
     </div>
@@ -752,7 +835,9 @@
     </div>
 
     <!-- Floating Report Button -->
-    <button id="show-report-btn" title="راپورتا قوتابی">📊</button>
+    <button id="show-report-btn" title="راپورتا قوتابی">
+        📊 <span id="report-badge" style="display:none">0</span>
+    </button>
     <button id="help-btn" title="رێبەری">؟</button>
 
     <script>
@@ -815,6 +900,17 @@
                 });
             }
 
+            function updateBadgeCount() {
+                const count = document.querySelectorAll('.saved-note-item').length;
+                const badge = document.getElementById('report-badge');
+                if (count > 0) {
+                    badge.style.display = 'flex';
+                    badge.innerText = count;
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+
             function addNoteToUI(listContainer, text) {
                 const item = document.createElement('div');
                 item.className = 'saved-note-item';
@@ -825,10 +921,13 @@
                     if(confirm('تۆ پشتڕاستی کو تە دڤێت ژێ ببەی؟')) {
                         item.remove();
                         saveAllNotes();
+                        updateBadgeCount();
                     }
                 });
                 
                 listContainer.appendChild(item);
+                updateBadgeCount();
+                listContainer.scrollTop = listContainer.scrollHeight; // Auto-scroll to show new item
             }
 
             function switchTab(targetId) {
@@ -849,17 +948,20 @@
             
             // Load Data on Start
             loadAllNotes();
+            updateBadgeCount();
 
             // Search Functionality
             const searchInput = document.getElementById('search-input');
             searchInput.addEventListener('input', (e) => {
                 const term = e.target.value.trim();
                 const allNodes = document.querySelectorAll('.node');
+                const allNotes = document.querySelectorAll('.saved-note-item');
                 
                 if (!term) {
                     allNodes.forEach(n => {
                         n.classList.remove('dimmed', 'highlight-search');
                     });
+                    allNotes.forEach(n => n.style.backgroundColor = '');
                     return;
                 }
 
@@ -876,6 +978,21 @@
                     } else {
                         n.classList.remove('highlight-search');
                         n.classList.add('dimmed');
+                    }
+                });
+
+                // Search in Saved Notes
+                allNotes.forEach(note => {
+                    const text = note.querySelector('.note-text').innerText;
+                    if (text.includes(term)) {
+                        note.style.backgroundColor = '#fef08a';
+                        let parent = note.closest('li');
+                        while (parent) {
+                            parent.classList.add('expanded');
+                            parent = parent.parentElement.closest('li');
+                        }
+                    } else {
+                        note.style.backgroundColor = '';
                     }
                 });
             });
@@ -945,7 +1062,7 @@
                             // Textarea
                             const textarea = document.createElement('textarea');
                             textarea.className = 'leaf-input';
-                            textarea.placeholder = 'تێبینی بنڤیسە...';
+                            textarea.placeholder = 'فعلەکێ ژ سورەتا یوسف بنڤیسە...';
                             textarea.addEventListener('click', (ev) => ev.stopPropagation());
 
                             // Save Button
@@ -980,6 +1097,9 @@
                         
                         // Show this container
                         container.classList.add('visible');
+                        
+                        // Scroll to view on mobile
+                        setTimeout(() => container.scrollIntoView({behavior: 'smooth', block: 'center'}), 100);
                     }
                 });
             });
@@ -1058,25 +1178,66 @@
                 savedItems.forEach((item) => {
                     const li = item.closest('li');
                     const fullPath = getLeafPath(li);
-                    const answer = item.querySelector('.note-text').innerText;
+                    const noteTextSpan = item.querySelector('.note-text');
+                    const answer = noteTextSpan.innerText;
                     
                     if (!groupedData[fullPath]) groupedData[fullPath] = [];
-                    groupedData[fullPath].push(answer);
+                    groupedData[fullPath].push({ text: answer, domItem: item, textSpan: noteTextSpan });
                 });
 
                 // Render Grouped Data
-                for (const [path, verbs] of Object.entries(groupedData)) {
-                    const verbsList = verbs.map(v => `• ${v}`).join('<br>');
+                for (const [path, items] of Object.entries(groupedData)) {
+                    const listContainer = document.createElement('div');
+                    listContainer.className = 'report-verb-list';
+
+                    items.forEach(itemObj => {
+                        const verbRow = document.createElement('div');
+                        verbRow.className = 'report-verb-row';
+                        
+                        const textDiv = document.createElement('div');
+                        textDiv.className = 'report-verb-text';
+                        textDiv.innerText = itemObj.text;
+                        
+                        const actionsDiv = document.createElement('div');
+                        actionsDiv.className = 'report-verb-actions';
+                        
+                        // Edit Button
+                        const editBtn = document.createElement('button');
+                        editBtn.innerText = '✏️';
+                        editBtn.title = 'دەستکاری (Edit)';
+                        editBtn.onclick = () => {
+                            const newText = prompt('تێبینی راستڤەکە:', itemObj.text);
+                            if (newText !== null && newText.trim() !== '') {
+                                itemObj.textSpan.innerText = newText.trim();
+                                saveAllNotes();
+                                document.getElementById('show-report-btn').click(); // Refresh Report
+                            }
+                        };
+
+                        // Delete Button
+                        const delBtn = document.createElement('button');
+                        delBtn.innerText = '🗑️';
+                        delBtn.title = 'ژێبرن (Delete)';
+                        delBtn.onclick = () => {
+                            if (confirm('تۆ پشتڕاستی؟')) {
+                                itemObj.domItem.remove();
+                                saveAllNotes();
+                                document.getElementById('show-report-btn').click(); // Refresh Report
+                            }
+                        };
+
+                        actionsDiv.appendChild(editBtn);
+                        actionsDiv.appendChild(delBtn);
+                        
+                        verbRow.appendChild(textDiv);
+                        verbRow.appendChild(actionsDiv);
+                        listContainer.appendChild(verbRow);
+                    });
 
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'report-item';
-                    
-                    let answerHtml = `<div class="report-answer"><strong>${verbs.length} دانە:</strong><br>${verbsList}</div>`;
-
-                    itemDiv.innerHTML = `
-                        <div class="report-path">🔹 ${path}</div>
-                        ${answerHtml}
-                    `;
+                    itemDiv.innerHTML = `<div class="report-path">🔹 ${path} <span style="font-size:0.8em; color:#64748b">(${items.length})</span></div>`;
+                    itemDiv.appendChild(listContainer);
                     reportBody.appendChild(itemDiv);
                 }
 
@@ -1084,8 +1245,10 @@
                 const shareBtn = document.createElement('button');
                 shareBtn.className = 'share-btn';
                 shareBtn.innerHTML = '📤 بەشکرن بۆ تیلیگرام (Share)';
-                shareBtn.addEventListener('click', () => {
-                    let text = "📊 *راپورتا قوتابی* (Student Report)\n";
+                
+                // Function to generate report text
+                const generateReportText = () => {
+                    let text = "📊 *راپورتا شیکارکرنا سورەتا یوسف*\n";
                     text += "------------------\n";
                     text += `✅ رێژەیا گشتی: ${percentage}% (${stats.answered} ژ ${stats.total})\n`;
                     text += `📌 ماضٍ: ${stats.madi.answered}/${stats.madi.total}\n`;
@@ -1096,20 +1259,35 @@
                         text += "📝 *تێبینی:* \n\n";
                         
                         // Use the same grouped data for Telegram
-                        for (const [path, verbs] of Object.entries(groupedData)) {
+                        for (const [path, items] of Object.entries(groupedData)) {
+                            const verbsText = items.map(i => i.text).join('، ');
                             text += `🔹 ${path}\n`;
                             // Join verbs with commas for compact text
-                            text += `✍️ (${verbs.length}): ${verbs.join('، ')}\n`;
+                            text += `✍️ (${items.length}): ${verbsText}\n`;
                             text += "------------------\n";
                         }
                     } else {
                         text += "هیچ تێبینییەک نەهاتیە تۆمارکرن.\n";
                     }
+                    return text;
+                };
 
+                shareBtn.addEventListener('click', () => {
+                    const text = generateReportText();
                     const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
                     window.open(telegramUrl, '_blank');
                 });
                 reportBody.appendChild(shareBtn);
+
+                // Add Copy Button (For large reports)
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-btn';
+                copyBtn.innerHTML = '📋 کۆپی کرن (Copy Report)';
+                copyBtn.onclick = () => {
+                    const text = generateReportText();
+                    navigator.clipboard.writeText(text).then(() => alert('راپۆرت هاتە کۆپی کرن! نوکە بچۆ د گرووپێ تیلیگرامی دا "Paste" بکە.'));
+                };
+                reportBody.appendChild(copyBtn);
 
                 // Action Buttons Container
                 const actionContainer = document.createElement('div');
@@ -1140,6 +1318,7 @@
                     if (confirm('ئەرێ تۆ پشتڕاستی؟ هەمی تێبینی دێ ژێچن و زڤڕاندن نینە!')) {
                         localStorage.removeItem('arabicVerbNotes');
                         document.querySelectorAll('.saved-notes-list').forEach(el => el.remove());
+                        updateBadgeCount();
                         alert('هەمی داتا هاتنە ژێبرن.');
                         reportModal.classList.remove('active');
                     }
