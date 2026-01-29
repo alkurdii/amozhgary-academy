@@ -295,8 +295,8 @@
         }
         
         .leaf-input {
-            width: 140px;
-            height: 50px;
+            width: 120px;
+            height: 40px;
             padding: 8px;
             border: 2px solid var(--line-color);
             border-radius: 8px;
@@ -305,6 +305,51 @@
             resize: none;
             transition: border-color 0.3s;
             background-color: #ffffff;
+        }
+
+        .leaf-input-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10px;
+            gap: 5px;
+        }
+        .leaf-input-container.visible {
+            display: flex;
+        }
+        .add-note-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .add-note-btn:hover { background-color: #0284c7; }
+        
+        .saved-notes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 10px;
+            width: 100%;
+            align-items: center;
+        }
+        .saved-note-item {
+            background-color: #dbeafe;
+            color: #1e40af;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            border: 1px solid #93c5fd;
+            width: 120px;
+            word-wrap: break-word;
+            text-align: right;
+            white-space: pre-wrap;
+            animation: fadeIn 0.3s ease;
         }
 
         .leaf-input:focus {
@@ -340,7 +385,7 @@
             padding: 15px 0;
         }
         .report-path { font-weight: 700; color: var(--accent-color); font-size: 0.9rem; margin-bottom: 8px; }
-        .report-answer { background: #f8fafc; padding: 10px; border-radius: 8px; color: #334155; border: 1px solid #e2e8f0; }
+        .report-answer { background: #f8fafc; padding: 10px; border-radius: 8px; color: #334155; border: 1px solid #e2e8f0; white-space: pre-wrap; }
         .report-empty { color: #ef4444; font-style: italic; background: #fef2f2; border-color: #fee2e2; }
         .close-modal {
             position: sticky;
@@ -449,6 +494,26 @@
         .progress-bar { width: 100%; height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; margin-top: 5px; }
         .progress-fill { height: 100%; background: #10b981; width: 0%; transition: width 0.5s ease; }
         .summary-header { text-align: center; margin-bottom: 15px; }
+
+        .share-btn {
+            background-color: #229ED9;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1rem;
+            margin-top: 20px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background 0.2s;
+            font-weight: bold;
+        }
+        .share-btn:hover { background-color: #1b8ac0; }
 
         @media (max-width: 768px) {
             .leaf-input-container {
@@ -675,6 +740,77 @@
             const tabButtons = document.querySelectorAll('.tab-button');
             const tabContents = document.querySelectorAll('.tab-content');
 
+            // --- Helper: Get Path for a Leaf Node ---
+            function getLeafPath(li) {
+                let current = li.querySelector('.node');
+                let textParts = [];
+                while (current) {
+                    textParts.unshift(current.innerText.trim());
+                    let parentLi = current.closest('li').parentElement.closest('li');
+                    current = parentLi ? parentLi.querySelector('.node') : null;
+                }
+                return textParts.join(' ');
+            }
+
+            // --- Storage Functions ---
+            function saveAllNotes() {
+                const data = {};
+                document.querySelectorAll('.saved-note-item').forEach(item => {
+                    const li = item.closest('li');
+                    const path = getLeafPath(li);
+                    const text = item.querySelector('.note-text').innerText;
+                    
+                    if (!data[path]) data[path] = [];
+                    data[path].push(text);
+                });
+                localStorage.setItem('arabicVerbNotes', JSON.stringify(data));
+            }
+
+            function loadAllNotes() {
+                const saved = localStorage.getItem('arabicVerbNotes');
+                if (!saved) return;
+                const data = JSON.parse(saved);
+
+                // Iterate all leaf nodes and populate
+                document.querySelectorAll('.tree li').forEach(li => {
+                    if (!li.querySelector('ul')) { // Is leaf
+                        const path = getLeafPath(li);
+                        if (data[path]) {
+                            // Ensure container exists
+                            let container = li.querySelector('.leaf-input-container');
+                            if (!container) {
+                                // Trigger the creation logic manually or duplicate it. 
+                                // For simplicity, we simulate a click or just create the list container directly if needed.
+                                // Better: Just create the list div.
+                                let list = document.createElement('div');
+                                list.className = 'saved-notes-list';
+                                li.appendChild(list);
+                                
+                                data[path].forEach(noteText => {
+                                    addNoteToUI(list, noteText);
+                                });
+                            }
+                        }
+                    }
+                });
+            }
+
+            function addNoteToUI(listContainer, text) {
+                const item = document.createElement('div');
+                item.className = 'saved-note-item';
+                item.innerHTML = `<span class="note-text">${text}</span><span class="delete-note" title="ژێبرن">×</span>`;
+                
+                item.querySelector('.delete-note').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if(confirm('تۆ پشتڕاستی کو تە دڤێت ژێ ببەی؟')) {
+                        item.remove();
+                        saveAllNotes();
+                    }
+                });
+                
+                listContainer.appendChild(item);
+            }
+
             function switchTab(targetId) {
                 tabButtons.forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.target === targetId);
@@ -690,6 +826,9 @@
 
             // Default
             switchTab('madi');
+            
+            // Load Data on Start
+            loadAllNotes();
 
             // Search Functionality
             const searchInput = document.getElementById('search-input');
@@ -767,6 +906,61 @@
                     irabText.innerText = textParts.join(' ');
                     irabBox.classList.add('visible');
                     document.body.classList.add('has-irab-box');
+
+                    // --- NEW LOGIC: Show Input for Leaf Nodes ---
+                    const isLeaf = !this.nextElementSibling || this.nextElementSibling.tagName !== 'UL';
+                    
+                    // Hide all other input containers first
+                    document.querySelectorAll('.leaf-input-container').forEach(c => c.classList.remove('visible'));
+
+                    if (isLeaf) {
+                        let li = this.closest('li');
+                        let container = li.querySelector('.leaf-input-container');
+                        
+                        if (!container) {
+                            // Create container dynamically
+                            container = document.createElement('div');
+                            container.className = 'leaf-input-container';
+                            
+                            // Textarea
+                            const textarea = document.createElement('textarea');
+                            textarea.className = 'leaf-input';
+                            textarea.placeholder = 'تێبینی بنڤیسە...';
+                            textarea.addEventListener('click', (ev) => ev.stopPropagation());
+
+                            // Save Button
+                            const saveBtn = document.createElement('button');
+                            saveBtn.className = 'add-note-btn';
+                            saveBtn.innerText = 'تۆمار بکە 💾';
+                            saveBtn.addEventListener('click', (ev) => {
+                                ev.stopPropagation();
+                                const text = textarea.value.trim();
+                                if (text) {
+                                    // Add to saved list
+                                    let list = li.querySelector('.saved-notes-list');
+                                    if (!list) {
+                                        list = document.createElement('div');
+                                        list.className = 'saved-notes-list';
+                                        li.appendChild(list);
+                                    }
+                                    
+                                    addNoteToUI(list, text);
+                                    saveAllNotes(); // Save to storage
+                                    
+                                    // Clear input
+                                    textarea.value = '';
+                                    textarea.focus();
+                                }
+                            });
+
+                            container.appendChild(textarea);
+                            container.appendChild(saveBtn);
+                            li.appendChild(container);
+                        }
+                        
+                        // Show this container
+                        container.classList.add('visible');
+                    }
                 });
             });
 
@@ -778,26 +972,7 @@
                 document.getElementById('irab-box').classList.remove('visible');
                 document.body.classList.remove('has-irab-box');
                 document.getElementById('search-input').value = '';
-            });
-
-            // Add Input Boxes to Leaf Nodes (End of branches)
-            const allLis = document.querySelectorAll('.tree li');
-            allLis.forEach(li => {
-                // If li does not have a child UL, it is a leaf node
-                if (!li.querySelector('ul')) {
-                    const container = document.createElement('div');
-                    container.className = 'leaf-input-container';
-                    
-                    const textarea = document.createElement('textarea');
-                    textarea.className = 'leaf-input';
-                    textarea.placeholder = 'اكتب الإعراب...';
-                    
-                    // Prevent click from triggering node selection
-                    textarea.addEventListener('click', (e) => e.stopPropagation());
-                    
-                    container.appendChild(textarea);
-                    li.appendChild(container);
-                }
+                document.querySelectorAll('.leaf-input-container').forEach(c => c.classList.remove('visible'));
             });
 
             // Report Logic
@@ -806,26 +981,32 @@
             
             document.getElementById('show-report-btn').addEventListener('click', () => {
                 reportBody.innerHTML = '';
-                const inputs = document.querySelectorAll('.leaf-input');
+                // Get all saved notes instead of inputs
+                const savedItems = document.querySelectorAll('.saved-note-item');
                 
                 // Statistics Calculation
+                // Find all leaf nodes first to calculate total
+                const leafLis = [];
+                document.querySelectorAll('.tree li').forEach(li => {
+                    if (!li.querySelector('ul')) leafLis.push(li);
+                });
+
                 let stats = {
-                    total: 0,
+                    total: leafLis.length,
                     answered: 0,
                     madi: { total: 0, answered: 0, label: 'ماضٍ' },
                     mudari: { total: 0, answered: 0, label: 'مضارع' },
                     amr: { total: 0, answered: 0, label: 'أمر' }
                 };
 
-                inputs.forEach(input => {
-                    stats.total++;
-                    const hasAnswer = input.value.trim().length > 0;
-                    if (hasAnswer) stats.answered++;
-
-                    const tab = input.closest('.tab-content');
-                    if (tab && stats[tab.id]) {
-                        stats[tab.id].total++;
-                        if (hasAnswer) stats[tab.id].answered++;
+                leafLis.forEach(li => {
+                    const tab = li.closest('.tab-content');
+                    if (tab && stats[tab.id]) stats[tab.id].total++;
+                    
+                    // Check if this leaf has any saved notes
+                    if (li.querySelector('.saved-note-item')) {
+                        stats.answered++;
+                        if (tab && stats[tab.id]) stats[tab.id].answered++;
                     }
                 });
 
@@ -846,31 +1027,69 @@
                 `;
                 reportBody.innerHTML = summaryHTML;
 
-                inputs.forEach((input, index) => {
-                    // Build Path
-                    let current = input.closest('li').querySelector('.node');
-                    let textParts = [];
-                    while (current) {
-                        textParts.unshift(current.innerText.trim());
-                        let parentLi = current.closest('li').parentElement.closest('li');
-                        current = parentLi ? parentLi.querySelector('.node') : null;
-                    }
-                    const fullPath = textParts.join(' ');
-                    const answer = input.value.trim();
+                if (savedItems.length === 0) {
+                    reportBody.innerHTML += '<div style="text-align:center; padding:20px;">هیچ تێبینییەک نەهاتیە تۆمارکرن.</div>';
+                    reportModal.classList.add('active');
+                    return;
+                }
+
+                // Group by Path
+                const groupedData = {};
+                savedItems.forEach((item) => {
+                    const li = item.closest('li');
+                    const fullPath = getLeafPath(li);
+                    const answer = item.querySelector('.note-text').innerText;
+                    
+                    if (!groupedData[fullPath]) groupedData[fullPath] = [];
+                    groupedData[fullPath].push(answer);
+                });
+
+                // Render Grouped Data
+                for (const [path, verbs] of Object.entries(groupedData)) {
+                    const verbsList = verbs.map(v => `• ${v}`).join('<br>');
 
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'report-item';
                     
-                    let answerHtml = answer 
-                        ? `<div class="report-answer">✍️ ${answer}</div>` 
-                        : `<div class="report-answer report-empty">❌ نەهاتیە چارەسەرکرن (Not Answered)</div>`;
+                    let answerHtml = `<div class="report-answer"><strong>${verbs.length} دانە:</strong><br>${verbsList}</div>`;
 
                     itemDiv.innerHTML = `
-                        <div class="report-path">🔹 ${fullPath}</div>
+                        <div class="report-path">🔹 ${path}</div>
                         ${answerHtml}
                     `;
                     reportBody.appendChild(itemDiv);
+                }
+
+                // Add Share to Telegram Button
+                const shareBtn = document.createElement('button');
+                shareBtn.className = 'share-btn';
+                shareBtn.innerHTML = '📤 بەشکرن بۆ تیلیگرام (Share)';
+                shareBtn.addEventListener('click', () => {
+                    let text = "📊 *راپورتا قوتابی* (Student Report)\n";
+                    text += "------------------\n";
+                    text += `✅ رێژەیا گشتی: ${percentage}% (${stats.answered} ژ ${stats.total})\n`;
+                    text += `📌 ماضٍ: ${stats.madi.answered}/${stats.madi.total}\n`;
+                    text += `📌 مضارع: ${stats.mudari.answered}/${stats.mudari.total}\n`;
+                    text += `📌 أمر: ${stats.amr.answered}/${stats.amr.total}\n\n`;
+                    
+                    if (savedItems.length > 0) {
+                        text += "📝 *تێبینی:* \n\n";
+                        
+                        // Use the same grouped data for Telegram
+                        for (const [path, verbs] of Object.entries(groupedData)) {
+                            text += `🔹 ${path}\n`;
+                            // Join verbs with commas for compact text
+                            text += `✍️ (${verbs.length}): ${verbs.join('، ')}\n`;
+                            text += "------------------\n";
+                        }
+                    } else {
+                        text += "هیچ تێبینییەک نەهاتیە تۆمارکرن.\n";
+                    }
+
+                    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
+                    window.open(telegramUrl, '_blank');
                 });
+                reportBody.appendChild(shareBtn);
 
                 reportModal.classList.add('active');
             });
