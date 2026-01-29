@@ -66,6 +66,28 @@
             border-color: var(--accent-color);
         }
 
+        /* Search Bar */
+        .search-container {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        #search-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            border: 2px solid var(--line-color);
+            border-radius: 12px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #search-input:focus {
+            border-color: var(--accent-color);
+        }
+
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
@@ -236,11 +258,74 @@
                 to { opacity: 1; transform: translateY(0); }
             }
         }
+
+        /* I'rab Result Box (Advanced Feature) */
+        #irab-box {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 15px 20px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+            border-top: 4px solid var(--accent-color);
+            z-index: 2000;
+            transform: translateY(120%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            border-radius: 15px 15px 0 0;
+        }
+
+        #irab-box.visible {
+            transform: translateY(0);
+        }
+
+        #irab-text {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--node-text);
+            line-height: 1.6;
+        }
+        
+        .copy-btn {
+            margin-top: 10px;
+            background: var(--bg-color);
+            border: 1px solid var(--line-color);
+            padding: 5px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .node.selected {
+            background-color: var(--accent-color) !important;
+            color: white !important;
+            border-color: var(--accent-color) !important;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.3);
+        }
+        
+        body.has-irab-box {
+            padding-bottom: 120px; /* Space for the box */
+        }
+
+        .node.dimmed { opacity: 0.2; }
+        .node.highlight-search { 
+            background-color: #fef08a !important; 
+            color: black !important;
+            border-color: #eab308 !important;
+        }
     </style>
 </head>
 <body>
 
     <div class="tab-container">
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="بگەڕێ... (نموونە: السكون)">
+        </div>
         <div class="tab-buttons">
             <button class="tab-button" data-target="madi">ماضٍ</button>
             <button class="tab-button" data-target="mudari">مضارع</button>
@@ -354,6 +439,15 @@
         </div>
     </div>
 
+    <!-- Result Box -->
+    <div id="irab-box">
+        <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 5px;">النتيجة (ئەنجام):</div>
+        <div id="irab-text"></div>
+        <button class="copy-btn" id="copy-btn">
+            📋 کۆپی
+        </button>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const tabButtons = document.querySelectorAll('.tab-button');
@@ -375,15 +469,79 @@
             // Default
             switchTab('madi');
 
-            // Collapsible Tree Script (Mobile Interaction)
+            // Search Functionality
+            const searchInput = document.getElementById('search-input');
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.trim();
+                const allNodes = document.querySelectorAll('.node');
+                
+                if (!term) {
+                    allNodes.forEach(n => {
+                        n.classList.remove('dimmed', 'highlight-search');
+                    });
+                    return;
+                }
+
+                allNodes.forEach(n => {
+                    if (n.innerText.includes(term)) {
+                        n.classList.add('highlight-search');
+                        n.classList.remove('dimmed');
+                        // Expand parents
+                        let parent = n.closest('li');
+                        while (parent) {
+                            parent.classList.add('expanded');
+                            parent = parent.parentElement.closest('li');
+                        }
+                    } else {
+                        n.classList.remove('highlight-search');
+                        n.classList.add('dimmed');
+                    }
+                });
+            });
+
+            // Advanced Interaction Script
             const nodes = document.querySelectorAll('.node');
+            const irabBox = document.getElementById('irab-box');
+            const irabText = document.getElementById('irab-text');
+
             nodes.forEach(node => {
+                // 1. Collapsible Logic
                 if (node.nextElementSibling && node.nextElementSibling.tagName === 'UL') {
                     node.classList.add('has-children');
                     node.addEventListener('click', function(e) {
                         this.parentElement.classList.toggle('expanded');
                     });
                 }
+
+                // 2. Selection & Sentence Builder Logic
+                node.addEventListener('click', function(e) {
+                    // Highlight selection
+                    nodes.forEach(n => n.classList.remove('selected'));
+                    this.classList.add('selected');
+
+                    // Build the sentence path
+                    let current = this;
+                    let textParts = [];
+                    
+                    while (current) {
+                        textParts.unshift(current.innerText.trim());
+                        // Traverse up: Node -> LI -> UL -> Parent LI -> Parent Node
+                        let parentLi = current.closest('li').parentElement.closest('li');
+                        current = parentLi ? parentLi.querySelector('.node') : null;
+                    }
+
+                    // Show result
+                    irabText.innerText = textParts.join(' ');
+                    irabBox.classList.add('visible');
+                    document.body.classList.add('has-irab-box');
+                });
+            });
+
+            // Copy Button
+            document.getElementById('copy-btn').addEventListener('click', () => {
+                const text = document.getElementById('irab-text').innerText;
+                navigator.clipboard.writeText(text);
+                alert('تەم کۆپی کرن! (Copied)');
             });
         });
     </script>
