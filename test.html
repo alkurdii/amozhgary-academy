@@ -112,28 +112,28 @@
             position: absolute;
             top: 0;
             right: 50%;
-            border-top: 2px solid var(--branch-color, var(--line-color));
+            border-top: 3px solid var(--branch-color, var(--line-color));
             width: 50%;
             height: 20px;
         }
 
         .tree li::after {
             left: 50%;
-            border-left: 2px solid var(--branch-color, var(--line-color));
+            border-left: 3px solid var(--branch-color, var(--line-color));
         }
 
         .tree li:only-child::after, .tree li:only-child::before { display: none; }
         .tree li:only-child { padding-top: 0; }
         .tree li:first-child::before, .tree li:last-child::after { border: 0; }
-        .tree li:last-child::before { border-left: 2px solid var(--branch-color, var(--line-color)); border-radius: 0 5px 0 0; }
-        .tree li:first-child::after { border-radius: 5px 0 0 0; }
+        .tree li:last-child::before { border-left: 3px solid var(--branch-color, var(--line-color)); border-radius: 0 15px 0 0; }
+        .tree li:first-child::after { border-radius: 15px 0 0 0; }
 
         .tree ul ul::before {
             content: '';
             position: absolute;
             top: 0;
             left: 50%;
-            border-left: 2px solid var(--branch-color, var(--line-color));
+            border-left: 3px solid var(--branch-color, var(--line-color));
             width: 0;
             height: 20px;
         }
@@ -184,7 +184,7 @@
             .tree li {
                 padding: 5px 8px 0 0;
                 margin-right: 8px;
-                border-right: 2px solid var(--branch-color, var(--line-color));
+                border-right: 3px solid var(--branch-color, var(--line-color));
             }
 
             .tree li::before, .tree li::after, .tree ul ul::before {
@@ -197,7 +197,7 @@
                 right: 0;
                 top: 17px;
                 width: 8px;
-                height: 2px;
+                height: 3px;
                 background: var(--branch-color, var(--line-color));
                 display: block;
             }
@@ -285,20 +285,6 @@
             font-weight: 700;
             color: var(--node-text);
             line-height: 1.6;
-        }
-        
-        .copy-btn {
-            margin-top: 10px;
-            background: var(--bg-color);
-            border: 1px solid var(--line-color);
-            padding: 5px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
         }
 
         .node.selected {
@@ -443,9 +429,6 @@
     <div id="irab-box">
         <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 5px;">النتيجة (ئەنجام):</div>
         <div id="irab-text"></div>
-        <button class="copy-btn" id="copy-btn">
-            📋 کۆپی
-        </button>
     </div>
 
     <script>
@@ -537,12 +520,6 @@
                 });
             });
 
-            // Copy Button
-            document.getElementById('copy-btn').addEventListener('click', () => {
-                const text = document.getElementById('irab-text').innerText;
-                navigator.clipboard.writeText(text);
-                alert('تەم کۆپی کرن! (Copied)');
-            });
         });
     </script>
 
