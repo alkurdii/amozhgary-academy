@@ -767,7 +767,7 @@
                 <ul>
                     <li>
                         <div class="node" style="position: relative;">
-                            <span class="start-label">دەستپێک 👇</span>
+                            <span class="start-label">البداية 👇</span>
                             ماضٍ مبني على
                         </div>
                         <ul>
@@ -793,7 +793,7 @@
                 <ul>
                     <li>
                         <div class="node" style="position: relative;">
-                            <span class="start-label">دەستپێک 👇</span>
+                            <span class="start-label">البداية 👇</span>
                             مضارع
                         </div>
                         <ul>
@@ -862,7 +862,7 @@
                 <ul>
                     <li>
                         <div class="node" style="position: relative;">
-                            <span class="start-label">دەستپێک 👇</span>
+                            <span class="start-label">البداية 👇</span>
                             أمر مبني على
                         </div>
                         <ul>
@@ -893,28 +893,28 @@
     <!-- Login Overlay -->
     <div id="login-overlay" class="modal-overlay active" style="z-index: 5000; background: var(--bg-color);">
         <div class="login-box">
-            <h2 style="margin-bottom: 20px; color: var(--node-text);">چوونە ژوور (Login)</h2>
-            <p style="margin-bottom: 15px; color: #64748b; font-size: 0.9rem;">تکایە ئیمێل و ژمارا نهێنی بنڤیسە</p>
-            <input type="email" id="login-email" placeholder="ئیمێل (Email)" class="leaf-input" style="width: 100%; height: 45px; margin-bottom: 10px;">
-            <input type="password" id="login-password" placeholder="ژمارا نهێنی (Password)" class="leaf-input" style="width: 100%; height: 45px; margin-bottom: 20px;">
-            <button id="login-submit-btn" class="add-note-btn" style="width: 100%; padding: 12px; font-size: 1rem; margin-bottom: 10px;">چوونە ژوور 🔐</button>
+            <h2 style="margin-bottom: 20px; color: var(--node-text);">تسجيل الدخول</h2>
+            <p style="margin-bottom: 15px; color: #64748b; font-size: 0.9rem;">يرجى إدخال البريد الإلكتروني وكلمة المرور</p>
+            <input type="email" id="login-email" placeholder="البريد الإلكتروني" class="leaf-input" style="width: 100%; height: 45px; margin-bottom: 10px;">
+            <input type="password" id="login-password" placeholder="كلمة المرور" class="leaf-input" style="width: 100%; height: 45px; margin-bottom: 20px;">
+            <button id="login-submit-btn" class="add-note-btn" style="width: 100%; padding: 12px; font-size: 1rem; margin-bottom: 10px;">دخول 🔐</button>
         </div>
     </div>
 
     <!-- Result Box -->
     <div id="irab-box">
-        <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 5px;">النتيجة (ئەنجام):</div>
+        <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 5px;">النتيجة:</div>
         <div id="irab-text"></div>
         <button class="reset-btn" id="reset-btn">
-            ↺ دەستپێکرنەوە
+            ↺ إعادة تعيين
         </button>
     </div>
 
     <!-- Report Modal -->
     <div class="modal-overlay" id="report-modal">
         <div class="modal-content">
-            <button class="close-modal" id="close-report">داخستن (Close)</button>
-            <div class="report-title">راپورتا شیکارکرنا سورەتا یوسف</div>
+            <button class="close-modal" id="close-report">إغلاق</button>
+            <div class="report-title">تقرير تحليل سورة يوسف</div>
             <div id="report-body"></div>
         </div>
     </div>
@@ -922,23 +922,23 @@
     <!-- Help Modal -->
     <div class="modal-overlay" id="help-modal">
         <div class="modal-content" style="text-align: center;">
-            <button class="close-modal" id="close-help">داخستن</button>
-            <div class="report-title">رێبەری (Guide)</div>
-            <p>١. ژ "دەستپێک" دەستپێبکە.</p>
-            <p>٢. کلیک ل سەر هەر بەشەکی بکە دا لقێن وێ ڤەبن.</p>
-            <p>٣. رێچکێ بگرە هەتا دگەهیە دوماهیێ.</p>
-            <p>٤. ئەنجام دێ ل خوارێ دیار بیت.</p>
+            <button class="close-modal" id="close-help">إغلاق</button>
+            <div class="report-title">دليل الاستخدام</div>
+            <p>١. ابدأ من "البداية".</p>
+            <p>٢. اضغط على أي قسم لفتح فروعه.</p>
+            <p>٣. تتبع المسار حتى تصل للنهاية.</p>
+            <p>٤. ستظهر النتيجة في الأسفل.</p>
         </div>
     </div>
 
     <!-- Floating Report Button -->
-    <button id="show-report-btn" title="راپورتا قوتابی">
+    <button id="show-report-btn" title="تقرير الطالب">
         📊 <span id="report-badge" style="display:none">0</span>
     </button>
-    <button id="logout-btn" title="دەرکەفتن" style="position: fixed; top: 10px; left: 10px; z-index: 1100; background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; display: none; font-family: 'Tajawal'; font-weight: bold;">
-        دەرکەفتن 🚪
+    <button id="logout-btn" title="تسجيل الخروج" style="position: fixed; top: 10px; left: 10px; z-index: 1100; background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; display: none; font-family: 'Tajawal'; font-weight: bold;">
+        خروج 🚪
     </button>
-    <button id="help-btn" title="رێبەری">؟</button>
+    <button id="help-btn" title="دليل">؟</button>
 
     <!-- Toast Container -->
     <div id="toast"></div>
@@ -988,15 +988,15 @@
             loginSubmitBtn.addEventListener('click', () => {
                 const email = emailInput.value.trim();
                 const password = passwordInput.value.trim();
-                if (!email || !password) { alert('تکایە ئیمێل و ژمارا نهێنی بنڤیسە!'); return; }
+                if (!email || !password) { alert('يرجى إدخال البريد الإلكتروني وكلمة المرور!'); return; }
                 
                 auth.signInWithEmailAndPassword(email, password)
                     .then((userCredential) => {
-                        showToast(`بەخێرهاتی: ${userCredential.user.email}`);
+                        showToast(`مرحباً: ${userCredential.user.email}`);
                         loginOverlay.classList.remove('active');
                     })
                     .catch((error) => {
-                        alert("شاشی: " + error.message);
+                        alert("خطأ: " + error.message);
                     });
             });
 
@@ -1015,7 +1015,7 @@
             });
             
             logoutBtn.addEventListener('click', function() {
-                if(confirm('تۆ پشتڕاستی دڤێی دەربکەڤی؟')) {
+                if(confirm('هل أنت متأكد أنك تريد الخروج؟')) {
                     auth.signOut().then(() => {
                         location.reload();
                     });
@@ -1029,7 +1029,7 @@
                 while (current) {
                     // Clean the text to remove the start label and extra spaces
                     // Use textContent instead of innerText to read hidden tabs correctly
-                    let text = current.textContent.replace('دەستپێک 👇', '').trim();
+                    let text = current.textContent.replace('البداية 👇', '').trim();
                     textParts.unshift(text);
                     let parentLi = current.closest('li').parentElement.closest('li');
                     current = parentLi ? parentLi.querySelector('.node') : null;
@@ -1056,12 +1056,12 @@
                 
                 // Safety Check: Prevent overwriting if data hasn't loaded yet
                 if (!isDataLoaded) {
-                    showToast("⚠️ هێشتا داتا نەهاتیە بارکرن! تکایە بوەستە...");
+                    showToast("⚠️ لم يتم تحميل البيانات بعد! يرجى الانتظار...");
                     return Promise.reject("Data not loaded");
                 }
                 
                 if (loadError) {
-                    if(!confirm("⚠️ ئگەهداری: داتایێن کەڤن نەهاتنە بارکرن ژبەر ئاریشەکێ. ئەگەر نوکە تۆمار بکەی، دبیت داتایێن کەڤن ژ فایربەیس بەرزە ببن. ئەرێ تۆ دڤێی هەر تۆمار بکەی؟")) {
+                    if(!confirm("⚠️ تحذير: لم يتم تحميل البيانات القديمة بسبب مشكلة. إذا قمت بالحفظ الآن، قد تفقد البيانات القديمة. هل تريد الحفظ؟")) {
                         return Promise.reject("Cancelled by user");
                     }
                 }
@@ -1073,11 +1073,11 @@
                 return db.collection('users').doc(currentUser.uid).set({ notes: data })
                     .then(() => {
                         console.log("Data saved to Firestore");
-                        if (showSuccessToast) showToast("✅ راستەوخۆ هاتە پاراستن د فایربەیس دا ☁️");
+                        if (showSuccessToast) showToast("✅ تم الحفظ في قاعدة البيانات ☁️");
                     })
                     .catch((error) => {
                         console.error("Error saving document: ", error);
-                        showToast("⚠️ ئاریشە: " + error.message);
+                        showToast("⚠️ مشكلة: " + error.message);
                         throw error;
                     });
             }
@@ -1091,7 +1091,7 @@
                 if (!currentUser) return;
                 isDataLoaded = false; // Lock saving until load completes
                 loadError = false;
-                showToast("⏳ داتا دهێتە بارکرن...");
+                showToast("⏳ جاري تحميل البيانات...");
                 document.querySelectorAll('.saved-notes-list').forEach(el => el.remove());
 
                 db.collection('users').doc(currentUser.uid).get().then((doc) => {
@@ -1103,13 +1103,13 @@
                         
                         // Count total notes
                         const count = Object.values(data).reduce((acc, val) => acc + val.length, 0);
-                        if (count > 0) showToast(`✅ ${count} فعل ژ فایربەیس هاتنە بارکرن`);
+                        if (count > 0) showToast(`✅ تم تحميل ${count} فعل`);
                     }
                     isDataLoaded = true; // Unlock saving
                     updateBadgeCount();
                 }).catch((error) => {
                     console.log("Error getting document:", error);
-                    showToast(`⚠️ ئاریشە د بارکرنێ دا هەیە. <button onclick="retryLoad()" style="margin-right:10px; background:white; color:black; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-weight:bold;">🔄 دووبارە</button>`, 0, true);
+                    showToast(`⚠️ توجد مشكلة في التحميل. <button onclick="retryLoad()" style="margin-right:10px; background:white; color:black; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-weight:bold;">🔄 إعادة المحاولة</button>`, 0, true);
                     loadError = true;
                     isDataLoaded = true; // Unlock to allow manual override
                 });
@@ -1129,11 +1129,11 @@
             function addNoteToUI(listContainer, text, path) {
                 const item = document.createElement('div');
                 item.className = 'saved-note-item';
-                item.innerHTML = `<span class="note-text">${text}</span><span class="delete-note" title="ژێبرن">×</span>`;
+                item.innerHTML = `<span class="note-text">${text}</span><span class="delete-note" title="حذف">×</span>`;
                 
                 item.querySelector('.delete-note').addEventListener('click', (e) => {
                     e.stopPropagation();
-                    if(confirm('تۆ پشتڕاستی کو تە دڤێت ژێ ببەی؟')) {
+                    if(confirm('هل أنت متأكد من الحذف؟')) {
                         // Remove the last item (since UI shows last)
                         if (cachedNotesData[path]) cachedNotesData[path].pop();
                         
@@ -1143,7 +1143,7 @@
                             addNoteToUI(listContainer, cachedNotesData[path][cachedNotesData[path].length - 1], path);
                         }
                         
-                        saveAllNotes(false).then(() => showToast("🗑️ هاتە ژێبرن"));
+                        saveAllNotes(false).then(() => showToast("🗑️ تم الحذف"));
                         updateBadgeCount();
                     }
                 });
@@ -1245,7 +1245,7 @@
                     let pathNodes = []; // To store the active path
                     
                     while (current) {
-                        textParts.unshift(current.textContent.replace('دەستپێک 👇', '').trim());
+                        textParts.unshift(current.textContent.replace('البداية 👇', '').trim());
                         pathNodes.push(current);
                         // Traverse up: Node -> LI -> UL -> Parent LI -> Parent Node
                         let parentLi = current.closest('li').parentElement.closest('li');
@@ -1284,13 +1284,13 @@
                             // Textarea
                             const textarea = document.createElement('textarea');
                             textarea.className = 'leaf-input';
-                            textarea.placeholder = 'فعلەکێ ژ سورەتا یوسف بنڤیسە...';
+                            textarea.placeholder = 'اكتب فعلاً من سورة يوسف...';
                             textarea.addEventListener('click', (ev) => ev.stopPropagation());
 
                             // Save Button
                             const saveBtn = document.createElement('button');
                             saveBtn.className = 'add-note-btn';
-                            saveBtn.innerText = 'تۆمار بکە 💾';
+                            saveBtn.innerText = 'حفظ 💾';
                             saveBtn.addEventListener('click', (ev) => {
                                 ev.stopPropagation();
                                 const text = textarea.value.trim();
@@ -1322,11 +1322,11 @@
                                         })
                                         .catch((err) => {
                                             // Error handled in saveAllNotes, but we can alert too
-                                            alert("نەهاتە پاراستن! تکایە ئینتەرنێتێ بپشکنە.");
+                                            alert("لم يتم الحفظ! يرجى التحقق من الإنترنت.");
                                         })
                                         .finally(() => {
                                             saveBtn.disabled = false;
-                                            saveBtn.innerText = 'تۆمار بکە 💾';
+                                            saveBtn.innerText = 'حفظ 💾';
                                         });
                                 }
                             });
@@ -1364,53 +1364,84 @@
                 reportBody.innerHTML = '';
                 const data = cachedNotesData || {};
                 
-                // Statistics Calculation
-                // Find all leaf nodes first to calculate total
-                const leafLis = [];
-                document.querySelectorAll('.tree li').forEach(li => {
-                    if (!li.querySelector('ul')) leafLis.push(li);
-                });
-
-                let stats = {
-                    total: leafLis.length,
-                    answered: 0,
-                    madi: { total: 0, answered: 0, label: 'ماضٍ' },
-                    mudari: { total: 0, answered: 0, label: 'مضارع' },
-                    amr: { total: 0, answered: 0, label: 'أمر' }
+                // Statistics Calculation (Count total verbs written)
+                let counts = {
+                    total: 0,
+                    madi: 0,
+                    mudari: 0,
+                    amr: 0
                 };
 
-                leafLis.forEach(li => {
-                    const tab = li.closest('.tab-content');
-                    if (tab && stats[tab.id]) stats[tab.id].total++;
-                    
-                    // Check if this leaf has any saved notes
-                    const path = getLeafPath(li);
-                    if (data[path] && data[path].length > 0) {
-                        stats.answered++;
-                        if (tab && stats[tab.id]) stats[tab.id].answered++;
-                    }
-                });
-
-                const percentage = stats.total === 0 ? 0 : Math.round((stats.answered / stats.total) * 100);
+                for (const [path, notes] of Object.entries(data)) {
+                    const count = notes.length;
+                    counts.total += count;
+                    if (path.includes('ماضٍ')) counts.madi += count;
+                    else if (path.includes('مضارع')) counts.mudari += count;
+                    else if (path.includes('أمر')) counts.amr += count;
+                }
 
                 // Add Summary Section
                 const summaryHTML = `
                     <div class="report-summary">
                         <div class="summary-header">
-                            <div style="font-size:1.1rem; font-weight:bold;">رێژەیا گشتی (Total Progress)</div>
-                            <div class="progress-bar"><div class="progress-fill" style="width: ${percentage}%"></div></div>
-                            <div style="margin-top:5px; color:#64748b;">${percentage}% (${stats.answered} ژ ${stats.total})</div>
+                            <div style="font-size:1.1rem; font-weight:bold;">إجمالي الأفعال</div>
+                            <div style="font-size:2.5rem; color:var(--accent-color); margin:10px 0; font-weight:bold;">${counts.total}</div>
+                            <div style="color:#64748b;">فعل مسجل</div>
                         </div>
-                        <div class="summary-row"><span class="summary-label">ماضٍ</span><span class="summary-value">${stats.madi.answered} / ${stats.madi.total}</span></div>
-                        <div class="summary-row"><span class="summary-label">مضارع</span><span class="summary-value">${stats.mudari.answered} / ${stats.mudari.total}</span></div>
-                        <div class="summary-row"><span class="summary-label">أمر</span><span class="summary-value">${stats.amr.answered} / ${stats.amr.total}</span></div>
+                        <div class="summary-row"><span class="summary-label">ماضٍ</span><span class="summary-value">${counts.madi}</span></div>
+                        <div class="summary-row"><span class="summary-label">مضارع</span><span class="summary-value">${counts.mudari}</span></div>
+                        <div class="summary-row"><span class="summary-label">أمر</span><span class="summary-value">${counts.amr}</span></div>
                     </div>
                 `;
                 reportBody.innerHTML = summaryHTML;
 
+                // --- Search Input in Report ---
+                const searchInput = document.createElement('input');
+                searchInput.type = 'text';
+                searchInput.placeholder = 'بحث في التقرير...';
+                searchInput.className = 'leaf-input';
+                searchInput.style.width = '100%';
+                searchInput.style.marginBottom = '15px';
+                searchInput.addEventListener('input', (e) => {
+                    const term = e.target.value.toLowerCase();
+                    const lists = document.querySelectorAll('.report-verb-list');
+                    
+                    lists.forEach(list => {
+                        const rows = list.querySelectorAll('.report-verb-row');
+                        let hasMatch = false;
+                        rows.forEach(row => {
+                            const text = row.innerText.toLowerCase();
+                            if (text.includes(term)) {
+                                row.style.display = 'flex';
+                                hasMatch = true;
+                            } else {
+                                row.style.display = 'none';
+                            }
+                        });
+                        
+                        const itemDiv = list.closest('.report-item');
+                        if (term === '') {
+                            list.classList.remove('expanded');
+                            itemDiv.style.display = 'block';
+                            const icon = itemDiv.querySelector('.toggle-icon');
+                            if(icon) icon.innerText = '▼ عرض';
+                        } else {
+                            if (hasMatch) {
+                                itemDiv.style.display = 'block';
+                                list.classList.add('expanded');
+                                const icon = itemDiv.querySelector('.toggle-icon');
+                                if(icon) icon.innerText = '▲ إخفاء';
+                            } else {
+                                itemDiv.style.display = 'none';
+                            }
+                        }
+                    });
+                });
+                reportBody.appendChild(searchInput);
+
                 const hasData = Object.values(data).some(arr => arr.length > 0);
                 if (!hasData) {
-                    reportBody.innerHTML += '<div style="text-align:center; padding:20px;">هیچ تێبینییەک نەهاتیە تۆمارکرن.</div>';
+                    reportBody.innerHTML += '<div style="text-align:center; padding:20px;">لا توجد ملاحظات مسجلة.</div>';
                     reportModal.classList.add('active');
                     return;
                 }
@@ -1441,9 +1472,9 @@
                         // Edit Button
                         const editBtn = document.createElement('button');
                         editBtn.innerText = '✏️';
-                        editBtn.title = 'دەستکاری (Edit)';
+                        editBtn.title = 'تعديل';
                         editBtn.onclick = () => {
-                            const newText = prompt('تێبینی راستڤەکە:', noteText);
+                            const newText = prompt('تعديل الملاحظة:', noteText);
                             if (newText !== null && newText.trim() !== '') {
                                 cachedNotesData[path][index] = newText.trim();
                                 saveAllNotes();
@@ -1455,9 +1486,9 @@
                         // Delete Button
                         const delBtn = document.createElement('button');
                         delBtn.innerText = '🗑️';
-                        delBtn.title = 'ژێبرن (Delete)';
+                        delBtn.title = 'حذف';
                         delBtn.onclick = () => {
-                            if (confirm('تۆ پشتڕاستی؟')) {
+                            if (confirm('هل أنت متأكد؟')) {
                                 cachedNotesData[path].splice(index, 1);
                                 saveAllNotes();
                                 document.getElementById('show-report-btn').click(); // Refresh Report
@@ -1479,11 +1510,11 @@
                     // Header with Toggle
                     const headerDiv = document.createElement('div');
                     headerDiv.className = 'report-path';
-                    headerDiv.innerHTML = `<span>🔹 ${path} <span style="font-size:0.9em; color:#64748b; font-weight:normal;">(${notesArray.length} دانە)</span></span> <span class="toggle-icon">▼ نیشاندان</span>`;
+                    headerDiv.innerHTML = `<span>🔹 ${path} <span style="font-size:0.9em; color:#64748b; font-weight:normal;">(${notesArray.length} دانە)</span></span> <span class="toggle-icon">▼ عرض</span>`;
                     headerDiv.onclick = () => {
                         listContainer.classList.toggle('expanded');
                         const icon = headerDiv.querySelector('.toggle-icon');
-                        icon.innerText = listContainer.classList.contains('expanded') ? '▲ ڤەشارتن' : '▼ نیشاندان';
+                        icon.innerText = listContainer.classList.contains('expanded') ? '▲ إخفاء' : '▼ عرض';
                     };
 
                     itemDiv.appendChild(headerDiv);
@@ -1494,19 +1525,19 @@
                 // Add Share to Telegram Button
                 const shareBtn = document.createElement('button');
                 shareBtn.className = 'share-btn';
-                shareBtn.innerHTML = '📤 بەشکرن بۆ تیلیگرام (Share)';
+                shareBtn.innerHTML = '📤 مشاركة عبر تيليجرام';
                 
                 // Function to generate report text
                 const generateReportText = (includeVerbs = false) => {
-                    let text = "📊 *راپورتا شیکارکرنا سورەتا یوسف*\n";
+                    let text = "📊 *تقرير تحليل سورة يوسف*\n";
                     text += "------------------\n";
-                    text += `✅ رێژەیا گشتی: ${percentage}% (${stats.answered} ژ ${stats.total})\n`;
-                    text += `📌 ماضٍ: ${stats.madi.answered}/${stats.madi.total}\n`;
-                    text += `📌 مضارع: ${stats.mudari.answered}/${stats.mudari.total}\n`;
-                    text += `📌 أمر: ${stats.amr.answered}/${stats.amr.total}\n\n`;
+                    text += `✅ إجمالي الأفعال: ${counts.total} فعل\n`;
+                    text += `📌 ماضٍ: ${counts.madi}\n`;
+                    text += `📌 مضارع: ${counts.mudari}\n`;
+                    text += `📌 أمر: ${counts.amr}\n\n`;
                     
                     if (hasData) {
-                        text += "📝📝📝📝 *تێبینی:* \n\n";
+                        text += "📝📝📝📝 *ملاحظات:* \n\n";
                         for (const [path, items] of Object.entries(data)) {
                             if (items.length === 0) continue;
                             text += `🔹 ${path} (${items.length})\n`;
@@ -1518,7 +1549,7 @@
                             }
                         }
                     } else {
-                        text += "هیچ تێبینییەک نەهاتیە تۆمارکرن.\n";
+                        text += "لا توجد ملاحظات مسجلة.\n";
                     }
                     return text;
                 };
@@ -1533,17 +1564,17 @@
                 // Add Copy Button (For large reports)
                 const copyBtn = document.createElement('button');
                 copyBtn.className = 'copy-btn';
-                copyBtn.innerHTML = '📋 کۆپی کرن (Copy Report)';
+                copyBtn.innerHTML = '📋 نسخ التقرير';
                 copyBtn.onclick = () => {
                     const text = generateReportText(false); // No verbs for Copy
-                    navigator.clipboard.writeText(text).then(() => alert('راپۆرت هاتە کۆپی کرن! نوکە بچۆ د گرووپێ تیلیگرامی دا "Paste" بکە.'));
+                    navigator.clipboard.writeText(text).then(() => alert('تم نسخ التقرير! اذهب الآن إلى مجموعة التيليجرام وقم باللصق.'));
                 };
                 reportBody.appendChild(copyBtn);
 
                 // Add TXT Download Button (Best for large reports)
                 const txtBtn = document.createElement('button');
                 txtBtn.className = 'txt-btn';
-                txtBtn.innerHTML = '📄 دابەزاندنا راپۆرتێ (TXT File)';
+                txtBtn.innerHTML = '📄 تحميل التقرير (ملف نصي)';
                 txtBtn.onclick = () => {
                     const text = generateReportText(true); // Keep verbs for TXT
                     const blob = new Blob([text], {type: 'text/plain'});
