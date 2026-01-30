@@ -739,7 +739,6 @@
                 <ul>
                     <li>
                         <div class="node" style="position: relative;">
-                            <span class="start-label">البداية 👇</span>
                             ماضٍ مبني على
                         </div>
                         <ul>
@@ -765,7 +764,6 @@
                 <ul>
                     <li>
                         <div class="node" style="position: relative;">
-                            <span class="start-label">البداية 👇</span>
                             مضارع
                         </div>
                         <ul>
@@ -834,7 +832,6 @@
                 <ul>
                     <li>
                         <div class="node" style="position: relative;">
-                            <span class="start-label">البداية 👇</span>
                             أمر مبني على
                         </div>
                         <ul>
@@ -1001,7 +998,7 @@
                 while (current) {
                     // Clean the text to remove the start label and extra spaces
                     // Use textContent instead of innerText to read hidden tabs correctly
-                    let text = current.textContent.replace('البداية 👇', '').trim();
+                    let text = current.textContent.trim();
                     textParts.unshift(text);
                     let parentLi = current.closest('li').parentElement.closest('li');
                     current = parentLi ? parentLi.querySelector('.node') : null;
@@ -1190,7 +1187,7 @@
                     let pathNodes = []; // To store the active path
                     
                     while (current) {
-                        textParts.unshift(current.textContent.replace('البداية 👇', '').trim());
+                        textParts.unshift(current.textContent.trim());
                         pathNodes.push(current);
                         // Traverse up: Node -> LI -> UL -> Parent LI -> Parent Node
                         let parentLi = current.closest('li').parentElement.closest('li');
