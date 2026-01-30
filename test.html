@@ -966,6 +966,8 @@
             const auth = firebase.auth();
             const db = firebase.firestore();
 
+            let cachedNotesData = {}; // Global storage for notes (مەخزەنێ داتایان)
+
             // --- Enable Offline Persistence (پاراستنا داتایان بێ ئینتەرنێت) ---
             db.enablePersistence().catch(err => {
                 if (err.code == 'failed-precondition') console.log("Multiple tabs open, persistence disabled");
@@ -1064,19 +1066,10 @@
                     }
                 }
 
-                const data = {};
-                document.querySelectorAll('.saved-note-item').forEach(item => {
-                    const li = item.closest('li');
-                    const path = getLeafPath(li);
-                    const text = item.querySelector('.note-text').textContent;
-                    
-                    if (!data[path]) data[path] = [];
-                    data[path].push(text);
-                });
+                // Use cachedNotesData instead of scraping DOM (بکارئینانا مەخزەنی ل شوینا شاشێ)
+                const data = cachedNotesData;
                 
                 // Save to Firestore
-                return db.collection('users').doc(currentUser.uid).set({ notes: data }, { merge: true })
-                // تێبینی: من { merge: true } لابرد دا کو دەمێ تۆ تێبینیەکێ ژێدبەی، ل سێرڤەری ژی ژێبچیت
                 return db.collection('users').doc(currentUser.uid).set({ notes: data })
                     .then(() => {
                         console.log("Data saved to Firestore");
@@ -1103,26 +1096,13 @@
 
                 db.collection('users').doc(currentUser.uid).get().then((doc) => {
                     if (doc.exists) {
-                        const data = doc.data().notes || {};
+                        cachedNotesData = doc.data().notes || {};
+                        const data = cachedNotesData;
                         
-                        // Iterate all leaf nodes and populate
-                        document.querySelectorAll('.tree li').forEach(li => {
-                            if (!li.querySelector('ul')) { // Is leaf
-                                const path = getLeafPath(li);
-                                if (data[path]) {
-                                    let list = document.createElement('div');
-                                    list.className = 'saved-notes-list';
-                                    li.appendChild(list);
-                                    
-                                    // Show only the last note (بەس ئێک دیارکەت)
-                                    if (data[path].length > 0) {
-                                        addNoteToUI(list, data[path][data[path].length - 1]);
-                                    }
-                                }
-                            }
-                        });
+                        // (تێبینی: مە کۆدێ نیشاندانا نموونەیان ل سەر دارێ لابرد دا دار یا پاک بیت)
                         
-                        const count = document.querySelectorAll('.saved-note-item').length;
+                        // Count total notes
+                        const count = Object.values(data).reduce((acc, val) => acc + val.length, 0);
                         if (count > 0) showToast(`✅ ${count} فعل ژ فایربەیس هاتنە بارکرن`);
                     }
                     isDataLoaded = true; // Unlock saving
@@ -1136,7 +1116,7 @@
             }
 
             function updateBadgeCount() {
-                const count = document.querySelectorAll('.saved-note-item').length;
+                const count = Object.values(cachedNotesData).reduce((acc, val) => acc + val.length, 0);
                 const badge = document.getElementById('report-badge');
                 if (count > 0) {
                     badge.style.display = 'flex';
@@ -1146,7 +1126,7 @@
                 }
             }
 
-            function addNoteToUI(listContainer, text) {
+            function addNoteToUI(listContainer, text, path) {
                 const item = document.createElement('div');
                 item.className = 'saved-note-item';
                 item.innerHTML = `<span class="note-text">${text}</span><span class="delete-note" title="ژێبرن">×</span>`;
@@ -1154,7 +1134,15 @@
                 item.querySelector('.delete-note').addEventListener('click', (e) => {
                     e.stopPropagation();
                     if(confirm('تۆ پشتڕاستی کو تە دڤێت ژێ ببەی؟')) {
-                        item.remove();
+                        // Remove the last item (since UI shows last)
+                        if (cachedNotesData[path]) cachedNotesData[path].pop();
+                        
+                        // Re-render
+                        listContainer.innerHTML = '';
+                        if (cachedNotesData[path] && cachedNotesData[path].length > 0) {
+                            addNoteToUI(listContainer, cachedNotesData[path][cachedNotesData[path].length - 1], path);
+                        }
+                        
                         saveAllNotes(false).then(() => showToast("🗑️ هاتە ژێبرن"));
                         updateBadgeCount();
                     }
@@ -1311,17 +1299,12 @@
                                     saveBtn.disabled = true;
                                     saveBtn.innerText = "⏳...";
                                     
-                                    // Add to saved list
-                                    let list = li.querySelector('.saved-notes-list');
-                                    if (!list) {
-                                        list = document.createElement('div');
-                                        list.className = 'saved-notes-list';
-                                        li.appendChild(list);
-                                    }
                                     
-                                    // Clear previous notes (بەس ئێک دیارکەت)
-                                    list.innerHTML = '';
-                                    addNoteToUI(list, text);
+                                    // Update Cache (زێدەکرن بۆ مەخزەنی)
+                                    const path = getLeafPath(li);
+                                    if (!cachedNotesData[path]) cachedNotesData[path] = [];
+                                    cachedNotesData[path].push(text);
+                                    
                                     
                                     // Save and wait for result
                                     saveAllNotes(true)
@@ -1330,6 +1313,12 @@
                                             textarea.value = '';
                                             // Close the box (هەمی خانەیێن فەبین بهێنە گرتبن)
                                             document.querySelectorAll('.leaf-input-container').forEach(c => c.classList.remove('visible'));
+                                            
+                                            // Collapse Tree (دار حەتابنی دێ هێتە گرتن)
+                                            document.querySelectorAll('li.expanded').forEach(el => el.classList.remove('expanded'));
+                                            document.querySelectorAll('.node').forEach(n => n.classList.remove('selected', 'dimmed', 'highlight-search'));
+                                            document.getElementById('irab-box').classList.remove('visible');
+                                            document.body.classList.remove('has-irab-box');
                                         })
                                         .catch((err) => {
                                             // Error handled in saveAllNotes, but we can alert too
@@ -1373,8 +1362,7 @@
             
             document.getElementById('show-report-btn').addEventListener('click', () => {
                 reportBody.innerHTML = '';
-                // Get all saved notes instead of inputs
-                const savedItems = document.querySelectorAll('.saved-note-item');
+                const data = cachedNotesData || {};
                 
                 // Statistics Calculation
                 // Find all leaf nodes first to calculate total
@@ -1396,7 +1384,8 @@
                     if (tab && stats[tab.id]) stats[tab.id].total++;
                     
                     // Check if this leaf has any saved notes
-                    if (li.querySelector('.saved-note-item')) {
+                    const path = getLeafPath(li);
+                    if (data[path] && data[path].length > 0) {
                         stats.answered++;
                         if (tab && stats[tab.id]) stats[tab.id].answered++;
                     }
@@ -1419,36 +1408,32 @@
                 `;
                 reportBody.innerHTML = summaryHTML;
 
-                if (savedItems.length === 0) {
+                const hasData = Object.values(data).some(arr => arr.length > 0);
+                if (!hasData) {
                     reportBody.innerHTML += '<div style="text-align:center; padding:20px;">هیچ تێبینییەک نەهاتیە تۆمارکرن.</div>';
                     reportModal.classList.add('active');
                     return;
                 }
 
-                // Group by Path
-                const groupedData = {};
-                savedItems.forEach((item) => {
-                    const li = item.closest('li');
-                    const fullPath = getLeafPath(li);
-                    const noteTextSpan = item.querySelector('.note-text');
-                    const answer = noteTextSpan.textContent;
-                    
-                    if (!groupedData[fullPath]) groupedData[fullPath] = [];
-                    groupedData[fullPath].push({ text: answer, domItem: item, textSpan: noteTextSpan });
-                });
-
                 // Render Grouped Data
-                for (const [path, items] of Object.entries(groupedData)) {
+                for (const [path, notesArray] of Object.entries(data)) {
+                    if (notesArray.length === 0) continue;
+                    
                     const listContainer = document.createElement('div');
                     listContainer.className = 'report-verb-list';
 
-                    items.forEach((itemObj, index) => {
+                    // Show only last 5 (دوماهیک ٥ یێل راپورت دیاربن)
+                    const startIndex = Math.max(0, notesArray.length - 5);
+                    const visibleNotes = notesArray.slice(startIndex);
+
+                    visibleNotes.forEach((noteText, relativeIndex) => {
+                        const index = startIndex + relativeIndex;
                         const verbRow = document.createElement('div');
                         verbRow.className = 'report-verb-row';
                         
                         const textDiv = document.createElement('div');
                         textDiv.className = 'report-verb-text';
-                        textDiv.innerText = `${index + 1}. ${itemObj.text}`; // Add numbering
+                        textDiv.innerText = `${index + 1}. ${noteText}`; // Add numbering
                         
                         const actionsDiv = document.createElement('div');
                         actionsDiv.className = 'report-verb-actions';
@@ -1458,11 +1443,12 @@
                         editBtn.innerText = '✏️';
                         editBtn.title = 'دەستکاری (Edit)';
                         editBtn.onclick = () => {
-                            const newText = prompt('تێبینی راستڤەکە:', itemObj.text);
+                            const newText = prompt('تێبینی راستڤەکە:', noteText);
                             if (newText !== null && newText.trim() !== '') {
-                                itemObj.textSpan.innerText = newText.trim();
+                                cachedNotesData[path][index] = newText.trim();
                                 saveAllNotes();
                                 document.getElementById('show-report-btn').click(); // Refresh Report
+                                loadAllNotes(); // Refresh Main UI
                             }
                         };
 
@@ -1472,9 +1458,10 @@
                         delBtn.title = 'ژێبرن (Delete)';
                         delBtn.onclick = () => {
                             if (confirm('تۆ پشتڕاستی؟')) {
-                                itemObj.domItem.remove();
+                                cachedNotesData[path].splice(index, 1);
                                 saveAllNotes();
                                 document.getElementById('show-report-btn').click(); // Refresh Report
+                                loadAllNotes(); // Refresh Main UI
                             }
                         };
 
@@ -1492,7 +1479,7 @@
                     // Header with Toggle
                     const headerDiv = document.createElement('div');
                     headerDiv.className = 'report-path';
-                    headerDiv.innerHTML = `<span>🔹 ${path} <span style="font-size:0.9em; color:#64748b; font-weight:normal;">(${items.length} دانە)</span></span> <span class="toggle-icon">▼ نیشاندان</span>`;
+                    headerDiv.innerHTML = `<span>🔹 ${path} <span style="font-size:0.9em; color:#64748b; font-weight:normal;">(${notesArray.length} دانە)</span></span> <span class="toggle-icon">▼ نیشاندان</span>`;
                     headerDiv.onclick = () => {
                         listContainer.classList.toggle('expanded');
                         const icon = headerDiv.querySelector('.toggle-icon');
@@ -1518,13 +1505,14 @@
                     text += `📌 مضارع: ${stats.mudari.answered}/${stats.mudari.total}\n`;
                     text += `📌 أمر: ${stats.amr.answered}/${stats.amr.total}\n\n`;
                     
-                    if (savedItems.length > 0) {
+                    if (hasData) {
                         text += "📝📝📝📝 *تێبینی:* \n\n";
-                        for (const [path, items] of Object.entries(groupedData)) {
+                        for (const [path, items] of Object.entries(data)) {
+                            if (items.length === 0) continue;
                             text += `🔹 ${path} (${items.length})\n`;
                             if (includeVerbs) {
-                                items.forEach((item, idx) => {
-                                    text += `   ${idx + 1}. ${item.text}\n`;
+                                items.forEach((noteText, idx) => {
+                                    text += `   ${idx + 1}. ${noteText}\n`;
                                 });
                                 text += "------------------\n";
                             }
