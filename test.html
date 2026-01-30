@@ -1114,9 +1114,10 @@
                                     list.className = 'saved-notes-list';
                                     li.appendChild(list);
                                     
-                                    data[path].forEach(noteText => {
-                                        addNoteToUI(list, noteText);
-                                    });
+                                    // Show only the last note (بەس ئێک دیارکەت)
+                                    if (data[path].length > 0) {
+                                        addNoteToUI(list, data[path][data[path].length - 1]);
+                                    }
                                 }
                             }
                         });
@@ -1318,6 +1319,8 @@
                                         li.appendChild(list);
                                     }
                                     
+                                    // Clear previous notes (بەس ئێک دیارکەت)
+                                    list.innerHTML = '';
                                     addNoteToUI(list, text);
                                     
                                     // Save and wait for result
@@ -1325,7 +1328,8 @@
                                         .then(() => {
                                             // Success
                                             textarea.value = '';
-                                            textarea.focus();
+                                            // Close the box (هەمی خانەیێن فەبین بهێنە گرتبن)
+                                            container.classList.remove('visible');
                                         })
                                         .catch((err) => {
                                             // Error handled in saveAllNotes, but we can alert too
