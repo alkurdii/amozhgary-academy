@@ -330,34 +330,6 @@
         }
         .add-note-btn:hover { background-color: #0284c7; }
         
-        .saved-notes-list {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            margin-top: 10px;
-            width: 100%;
-            align-items: center;
-            max-height: 100px; /* Limit height to keep UI clean */
-            overflow-y: auto;  /* Enable scrolling for many verbs */
-            padding-bottom: 5px;
-        }
-        .saved-notes-list::-webkit-scrollbar { width: 4px; }
-        .saved-notes-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-
-        .saved-note-item {
-            background-color: #dbeafe;
-            color: #1e40af;
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            border: 1px solid #93c5fd;
-            width: 120px;
-            word-wrap: break-word;
-            text-align: right;
-            white-space: pre-wrap;
-            animation: fadeIn 0.3s ease;
-        }
-
         .leaf-input:focus {
             border-color: var(--accent-color);
             outline: none;
@@ -1099,7 +1071,7 @@
                         cachedNotesData = doc.data().notes || {};
                         const data = cachedNotesData;
                         
-                        // (تێبینی: مە کۆدێ نیشاندانا نموونەیان ل سەر دارێ لابرد دا دار یا پاک بیت)
+                        // ملاحظة: تم إزالة عرض الملاحظات من الشجرة لتبقى نظيفة
                         
                         // Count total notes
                         const count = Object.values(data).reduce((acc, val) => acc + val.length, 0);
@@ -1124,33 +1096,6 @@
                 } else {
                     badge.style.display = 'none';
                 }
-            }
-
-            function addNoteToUI(listContainer, text, path) {
-                const item = document.createElement('div');
-                item.className = 'saved-note-item';
-                item.innerHTML = `<span class="note-text">${text}</span><span class="delete-note" title="حذف">×</span>`;
-                
-                item.querySelector('.delete-note').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if(confirm('هل أنت متأكد من الحذف؟')) {
-                        // Remove the last item (since UI shows last)
-                        if (cachedNotesData[path]) cachedNotesData[path].pop();
-                        
-                        // Re-render
-                        listContainer.innerHTML = '';
-                        if (cachedNotesData[path] && cachedNotesData[path].length > 0) {
-                            addNoteToUI(listContainer, cachedNotesData[path][cachedNotesData[path].length - 1], path);
-                        }
-                        
-                        saveAllNotes(false).then(() => showToast("🗑️ تم الحذف"));
-                        updateBadgeCount();
-                    }
-                });
-                
-                listContainer.appendChild(item);
-                updateBadgeCount();
-                listContainer.scrollTop = listContainer.scrollHeight; // Auto-scroll to show new item
             }
 
             function switchTab(targetId) {
