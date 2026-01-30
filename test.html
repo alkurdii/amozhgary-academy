@@ -1329,7 +1329,7 @@
                                             // Success
                                             textarea.value = '';
                                             // Close the box (هەمی خانەیێن فەبین بهێنە گرتبن)
-                                            container.classList.remove('visible');
+                                            document.querySelectorAll('.leaf-input-container').forEach(c => c.classList.remove('visible'));
                                         })
                                         .catch((err) => {
                                             // Error handled in saveAllNotes, but we can alert too
