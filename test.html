@@ -560,12 +560,32 @@
         }
         .copy-btn:hover { background-color: #475569; }
 
+        .txt-btn {
+            background-color: #8b5cf6;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1rem;
+            margin-top: 10px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background 0.2s;
+            font-weight: bold;
+        }
+        .txt-btn:hover { background-color: #7c3aed; }
+
         .action-btn-group {
             display: flex;
             gap: 10px;
             margin-top: 10px;
         }
-        .export-btn, .clear-all-btn {
+        .export-btn, .clear-all-btn, .import-btn {
             color: white;
             border: none;
             padding: 12px;
@@ -577,9 +597,20 @@
             transition: opacity 0.2s;
         }
         .export-btn { background-color: #10b981; }
+        .import-btn { background-color: #3b82f6; }
         .clear-all-btn { background-color: #ef4444; }
-        .export-btn:hover, .clear-all-btn:hover { opacity: 0.9; }
+        .export-btn:hover, .clear-all-btn:hover, .import-btn:hover { opacity: 0.9; }
 
+        /* Login Styles */
+        .login-box {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 350px;
+            width: 90%;
+        }
         /* Interactive Report Styles */
         .report-verb-list {
             display: flex;
@@ -616,6 +647,57 @@
         }
         .report-verb-actions button:hover {
             transform: scale(1.2);
+        }
+        
+        /* Toast Notification (پەیاما پاراستنێ) */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 12px;
+            position: fixed;
+            z-index: 4000;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 0.9rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s;
+            font-family: 'Tajawal', sans-serif;
+        }
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+
+        /* Collapsible Report Styles */
+        .report-verb-list {
+            display: none; /* Hidden by default */
+            max-height: 300px; /* Scrollable if very long */
+            overflow-y: auto;
+            margin-top: 10px;
+            border-top: 1px dashed #cbd5e1;
+            padding-top: 10px;
+        }
+        .report-verb-list.expanded { display: flex; }
+        .report-path {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .report-path:hover { background-color: #f1f5f9; border-radius: 5px; padding: 2px 5px; }
+        .toggle-icon {
+            font-size: 0.8rem;
+            background: #e2e8f0;
+            padding: 2px 8px;
+            border-radius: 12px;
+            color: #475569;
         }
 
         @media (max-width: 768px) {
@@ -662,6 +744,10 @@
             border-color: #eab308 !important;
         }
     </style>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -804,6 +890,17 @@
         </div>
     </div>
 
+    <!-- Login Overlay -->
+    <div id="login-overlay" class="modal-overlay active" style="z-index: 5000; background: var(--bg-color);">
+        <div class="login-box">
+            <h2 style="margin-bottom: 20px; color: var(--node-text);">چوونە ژوور (Login)</h2>
+            <p style="margin-bottom: 15px; color: #64748b; font-size: 0.9rem;">تکایە ئیمێل و ژمارا نهێنی بنڤیسە</p>
+            <input type="email" id="login-email" placeholder="ئیمێل (Email)" class="leaf-input" style="width: 100%; height: 45px; margin-bottom: 10px;">
+            <input type="password" id="login-password" placeholder="ژمارا نهێنی (Password)" class="leaf-input" style="width: 100%; height: 45px; margin-bottom: 20px;">
+            <button id="login-submit-btn" class="add-note-btn" style="width: 100%; padding: 12px; font-size: 1rem; margin-bottom: 10px;">چوونە ژوور 🔐</button>
+        </div>
+    </div>
+
     <!-- Result Box -->
     <div id="irab-box">
         <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 5px;">النتيجة (ئەنجام):</div>
@@ -838,12 +935,82 @@
     <button id="show-report-btn" title="راپورتا قوتابی">
         📊 <span id="report-badge" style="display:none">0</span>
     </button>
+    <button id="logout-btn" title="دەرکەفتن" style="position: fixed; top: 10px; left: 10px; z-index: 1100; background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; display: none; font-family: 'Tajawal'; font-weight: bold;">
+        دەرکەفتن 🚪
+    </button>
     <button id="help-btn" title="رێبەری">؟</button>
+
+    <!-- Toast Container -->
+    <div id="toast"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const tabButtons = document.querySelectorAll('.tab-button');
             const tabContents = document.querySelectorAll('.tab-content');
+            
+            // --- Firebase Configuration (تکایە زانیاریێن خۆ لێرە دانێ) ---
+            const firebaseConfig = {
+                apiKey: "AIzaSyAmFk6mXxlWLqFjktkEX3SYF5YtzubGGGw",
+  authDomain: "naho-d06fb.firebaseapp.com",
+  databaseURL: "https://naho-d06fb-default-rtdb.firebaseio.com",
+  projectId: "naho-d06fb",
+  storageBucket: "naho-d06fb.firebasestorage.app",
+  messagingSenderId: "963866480395",
+  appId: "1:963866480395:web:7e5a20ed6962a4c878dc0e",
+  measurementId: "G-SPRGPBXKSP"
+};
+
+            
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            const db = firebase.firestore();
+
+            // --- Login System ---
+            let currentUser = null;
+            const loginOverlay = document.getElementById('login-overlay');
+            const logoutBtn = document.getElementById('logout-btn');
+            const loginSubmitBtn = document.getElementById('login-submit-btn');
+            const emailInput = document.getElementById('login-email');
+            const passwordInput = document.getElementById('login-password');
+
+            // Handle Login
+            loginSubmitBtn.addEventListener('click', () => {
+                const email = emailInput.value.trim();
+                const password = passwordInput.value.trim();
+                if (!email || !password) { alert('تکایە ئیمێل و ژمارا نهێنی بنڤیسە!'); return; }
+                
+                auth.signInWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        showToast(`بەخێرهاتی: ${userCredential.user.email}`);
+                        loginOverlay.classList.remove('active');
+                    })
+                    .catch((error) => {
+                        alert("شاشی: " + error.message);
+                    });
+            });
+
+            // Auth State Listener
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    currentUser = user;
+                    loginOverlay.classList.remove('active');
+                    logoutBtn.style.display = 'block';
+                    loadAllNotes(); // Load from Firestore
+                } else {
+                    currentUser = null;
+                    loginOverlay.classList.add('active');
+                    logoutBtn.style.display = 'none';
+                }
+            });
+            
+            logoutBtn.addEventListener('click', function() {
+                if(confirm('تۆ پشتڕاستی دڤێی دەربکەڤی؟')) {
+                    auth.signOut().then(() => {
+                        location.reload();
+                    });
+                }
+            });
 
             // --- Helper: Get Path for a Leaf Node ---
             function getLeafPath(li) {
@@ -857,8 +1024,18 @@
                 return textParts.join(' ');
             }
 
+            // --- Toast Function (فەنکشنا نیشاندانا پەیامان) ---
+            function showToast(message) {
+                const toast = document.getElementById("toast");
+                toast.innerText = message;
+                toast.className = "show";
+                setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
+            }
+
             // --- Storage Functions ---
             function saveAllNotes() {
+                if (!currentUser) return; 
+
                 const data = {};
                 document.querySelectorAll('.saved-note-item').forEach(item => {
                     const li = item.closest('li');
@@ -868,35 +1045,48 @@
                     if (!data[path]) data[path] = [];
                     data[path].push(text);
                 });
-                localStorage.setItem('arabicVerbNotes', JSON.stringify(data));
+                
+                // Save to Firestore
+                db.collection('users').doc(currentUser.uid).set({ notes: data }, { merge: true })
+                    .then(() => {
+                        console.log("Data saved to Firestore");
+                    })
+                    .catch((error) => {
+                        console.error("Error saving document: ", error);
+                        showToast("⚠️ ئاریشە د پاراستنێ دا هەیە!");
+                    });
             }
 
             function loadAllNotes() {
-                const saved = localStorage.getItem('arabicVerbNotes');
-                if (!saved) return;
-                const data = JSON.parse(saved);
+                if (!currentUser) return;
+                document.querySelectorAll('.saved-notes-list').forEach(el => el.remove());
 
-                // Iterate all leaf nodes and populate
-                document.querySelectorAll('.tree li').forEach(li => {
-                    if (!li.querySelector('ul')) { // Is leaf
-                        const path = getLeafPath(li);
-                        if (data[path]) {
-                            // Ensure container exists
-                            let container = li.querySelector('.leaf-input-container');
-                            if (!container) {
-                                // Trigger the creation logic manually or duplicate it. 
-                                // For simplicity, we simulate a click or just create the list container directly if needed.
-                                // Better: Just create the list div.
-                                let list = document.createElement('div');
-                                list.className = 'saved-notes-list';
-                                li.appendChild(list);
-                                
-                                data[path].forEach(noteText => {
-                                    addNoteToUI(list, noteText);
-                                });
+                db.collection('users').doc(currentUser.uid).get().then((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data().notes || {};
+                        
+                        // Iterate all leaf nodes and populate
+                        document.querySelectorAll('.tree li').forEach(li => {
+                            if (!li.querySelector('ul')) { // Is leaf
+                                const path = getLeafPath(li);
+                                if (data[path]) {
+                                    let list = document.createElement('div');
+                                    list.className = 'saved-notes-list';
+                                    li.appendChild(list);
+                                    
+                                    data[path].forEach(noteText => {
+                                        addNoteToUI(list, noteText);
+                                    });
+                                }
                             }
-                        }
+                        });
+                        
+                        const count = document.querySelectorAll('.saved-note-item').length;
+                        if (count > 0) showToast(`✅ ${count} فعل ژ فایربەیس هاتنە بارکرن`);
+                        updateBadgeCount();
                     }
+                }).catch((error) => {
+                    console.log("Error getting document:", error);
                 });
             }
 
@@ -921,6 +1111,7 @@
                     if(confirm('تۆ پشتڕاستی کو تە دڤێت ژێ ببەی؟')) {
                         item.remove();
                         saveAllNotes();
+                        showToast("🗑️ هاتە ژێبرن");
                         updateBadgeCount();
                     }
                 });
@@ -946,9 +1137,8 @@
             // Default
             switchTab('madi');
             
-            // Load Data on Start
-            loadAllNotes();
-            updateBadgeCount();
+            // Note: loadAllNotes() is now called inside handleLogin()
+            // updateBadgeCount();
 
             // Search Functionality
             const searchInput = document.getElementById('search-input');
@@ -1083,6 +1273,7 @@
                                     
                                     addNoteToUI(list, text);
                                     saveAllNotes(); // Save to storage
+                                    showToast("✅ هاتە پاراستن");
                                     
                                     // Clear input
                                     textarea.value = '';
@@ -1190,13 +1381,13 @@
                     const listContainer = document.createElement('div');
                     listContainer.className = 'report-verb-list';
 
-                    items.forEach(itemObj => {
+                    items.forEach((itemObj, index) => {
                         const verbRow = document.createElement('div');
                         verbRow.className = 'report-verb-row';
                         
                         const textDiv = document.createElement('div');
                         textDiv.className = 'report-verb-text';
-                        textDiv.innerText = itemObj.text;
+                        textDiv.innerText = `${index + 1}. ${itemObj.text}`; // Add numbering
                         
                         const actionsDiv = document.createElement('div');
                         actionsDiv.className = 'report-verb-actions';
@@ -1236,7 +1427,18 @@
 
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'report-item';
-                    itemDiv.innerHTML = `<div class="report-path">🔹 ${path} <span style="font-size:0.8em; color:#64748b">(${items.length})</span></div>`;
+                    
+                    // Header with Toggle
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = 'report-path';
+                    headerDiv.innerHTML = `<span>🔹 ${path} <span style="font-size:0.9em; color:#64748b; font-weight:normal;">(${items.length} دانە)</span></span> <span class="toggle-icon">▼ نیشاندان</span>`;
+                    headerDiv.onclick = () => {
+                        listContainer.classList.toggle('expanded');
+                        const icon = headerDiv.querySelector('.toggle-icon');
+                        icon.innerText = listContainer.classList.contains('expanded') ? '▲ ڤەشارتن' : '▼ نیشاندان';
+                    };
+
+                    itemDiv.appendChild(headerDiv);
                     itemDiv.appendChild(listContainer);
                     reportBody.appendChild(itemDiv);
                 }
@@ -1247,7 +1449,7 @@
                 shareBtn.innerHTML = '📤 بەشکرن بۆ تیلیگرام (Share)';
                 
                 // Function to generate report text
-                const generateReportText = () => {
+                const generateReportText = (includeVerbs = false) => {
                     let text = "📊 *راپورتا شیکارکرنا سورەتا یوسف*\n";
                     text += "------------------\n";
                     text += `✅ رێژەیا گشتی: ${percentage}% (${stats.answered} ژ ${stats.total})\n`;
@@ -1256,15 +1458,15 @@
                     text += `📌 أمر: ${stats.amr.answered}/${stats.amr.total}\n\n`;
                     
                     if (savedItems.length > 0) {
-                        text += "📝 *تێبینی:* \n\n";
-                        
-                        // Use the same grouped data for Telegram
+                        text += "📝📝📝📝 *تێبینی:* \n\n";
                         for (const [path, items] of Object.entries(groupedData)) {
-                            const verbsText = items.map(i => i.text).join('، ');
-                            text += `🔹 ${path}\n`;
-                            // Join verbs with commas for compact text
-                            text += `✍️ (${items.length}): ${verbsText}\n`;
-                            text += "------------------\n";
+                            text += `🔹 ${path} (${items.length})\n`;
+                            if (includeVerbs) {
+                                items.forEach((item, idx) => {
+                                    text += `   ${idx + 1}. ${item.text}\n`;
+                                });
+                                text += "------------------\n";
+                            }
                         }
                     } else {
                         text += "هیچ تێبینییەک نەهاتیە تۆمارکرن.\n";
@@ -1273,7 +1475,7 @@
                 };
 
                 shareBtn.addEventListener('click', () => {
-                    const text = generateReportText();
+                    const text = generateReportText(false); // No verbs for Telegram
                     const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
                     window.open(telegramUrl, '_blank');
                 });
@@ -1284,10 +1486,27 @@
                 copyBtn.className = 'copy-btn';
                 copyBtn.innerHTML = '📋 کۆپی کرن (Copy Report)';
                 copyBtn.onclick = () => {
-                    const text = generateReportText();
+                    const text = generateReportText(false); // No verbs for Copy
                     navigator.clipboard.writeText(text).then(() => alert('راپۆرت هاتە کۆپی کرن! نوکە بچۆ د گرووپێ تیلیگرامی دا "Paste" بکە.'));
                 };
                 reportBody.appendChild(copyBtn);
+
+                // Add TXT Download Button (Best for large reports)
+                const txtBtn = document.createElement('button');
+                txtBtn.className = 'txt-btn';
+                txtBtn.innerHTML = '📄 دابەزاندنا راپۆرتێ (TXT File)';
+                txtBtn.onclick = () => {
+                    const text = generateReportText(true); // Keep verbs for TXT
+                    const blob = new Blob([text], {type: 'text/plain'});
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Report_Yusuf_${new Date().toISOString().slice(0,10)}.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                };
+                reportBody.appendChild(txtBtn);
 
                 // Action Buttons Container
                 const actionContainer = document.createElement('div');
@@ -1298,7 +1517,16 @@
                 exportBtn.className = 'export-btn';
                 exportBtn.innerHTML = '📥 پاراستن (Backup)';
                 exportBtn.onclick = () => {
-                    const data = localStorage.getItem('arabicVerbNotes');
+                    // Generate JSON from current DOM
+                    const exportData = {};
+                    document.querySelectorAll('.saved-note-item').forEach(item => {
+                        const li = item.closest('li');
+                        const path = getLeafPath(li);
+                        const text = item.querySelector('.note-text').innerText;
+                        if (!exportData[path]) exportData[path] = [];
+                        exportData[path].push(text);
+                    });
+                    const data = JSON.stringify(exportData);
                     if (!data) { alert('هیچ داتایەک نینە بۆ پاراستنێ.'); return; }
                     const blob = new Blob([data], {type: 'application/json'});
                     const url = URL.createObjectURL(blob);
@@ -1310,13 +1538,58 @@
                     document.body.removeChild(a);
                 };
 
+                // Import Button (Restore)
+                const importBtn = document.createElement('button');
+                importBtn.className = 'import-btn';
+                importBtn.innerHTML = '📂 بارکرن (Restore)';
+                
+                const fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.accept = '.json';
+                fileInput.style.display = 'none';
+                
+                importBtn.onclick = () => fileInput.click();
+                
+                fileInput.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const data = JSON.parse(event.target.result);
+                            if (data && typeof data === 'object') {
+                                if(confirm('ئەرێ تۆ دڤێی داتایێن نوکە هەیی ژێ ببەی و یێن ڤی فایلی دانێی؟')) {
+                                    // Update Firestore
+                                    if (currentUser) {
+                                        db.collection('users').doc(currentUser.uid).set({ notes: data }, { merge: true })
+                                            .then(() => {
+                                                alert('داتا ب سەرکەفتیانە هاتە بارکرن! بەرپەڕ دێ نوو بیتەڤە.');
+                                                location.reload();
+                                            });
+                                    }
+                                    alert('داتا ب سەرکەفتیانە هاتە بارکرن! بەرپەڕ دێ نوو بیتەڤە.');
+                                    location.reload();
+                                }
+                            } else {
+                                alert('فایل نە یێ دروستە!');
+                            }
+                        } catch (err) {
+                            alert('شاشی: ' + err);
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+
                 // Clear All Button
                 const clearBtn = document.createElement('button');
                 clearBtn.className = 'clear-all-btn';
                 clearBtn.innerHTML = '🗑️ ژێبرنا هەمیێ';
                 clearBtn.onclick = () => {
                     if (confirm('ئەرێ تۆ پشتڕاستی؟ هەمی تێبینی دێ ژێچن و زڤڕاندن نینە!')) {
-                        localStorage.removeItem('arabicVerbNotes');
+                        if (currentUser) {
+                            db.collection('users').doc(currentUser.uid).delete();
+                        }
                         document.querySelectorAll('.saved-notes-list').forEach(el => el.remove());
                         updateBadgeCount();
                         alert('هەمی داتا هاتنە ژێبرن.');
@@ -1325,7 +1598,9 @@
                 };
 
                 actionContainer.appendChild(exportBtn);
+                actionContainer.appendChild(importBtn);
                 actionContainer.appendChild(clearBtn);
+                actionContainer.appendChild(fileInput);
                 reportBody.appendChild(actionContainer);
 
                 reportModal.classList.add('active');
