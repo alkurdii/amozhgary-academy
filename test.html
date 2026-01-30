@@ -966,8 +966,16 @@
             const auth = firebase.auth();
             const db = firebase.firestore();
 
+            // --- Enable Offline Persistence (پاراستنا داتایان بێ ئینتەرنێت) ---
+            db.enablePersistence().catch(err => {
+                if (err.code == 'failed-precondition') console.log("Multiple tabs open, persistence disabled");
+                else if (err.code == 'unimplemented') console.log("Browser doesn't support persistence");
+            });
+
             // --- Login System ---
             let currentUser = null;
+            let isDataLoaded = false; // Safety Flag (قوفلا پاراستنێ)
+            let loadError = false; // Flag for load errors
             const loginOverlay = document.getElementById('login-overlay');
             const logoutBtn = document.getElementById('logout-btn');
             const loginSubmitBtn = document.getElementById('login-submit-btn');
@@ -1017,7 +1025,10 @@
                 let current = li.querySelector('.node');
                 let textParts = [];
                 while (current) {
-                    textParts.unshift(current.innerText.trim());
+                    // Clean the text to remove the start label and extra spaces
+                    // Use textContent instead of innerText to read hidden tabs correctly
+                    let text = current.textContent.replace('دەستپێک 👇', '').trim();
+                    textParts.unshift(text);
                     let parentLi = current.closest('li').parentElement.closest('li');
                     current = parentLi ? parentLi.querySelector('.node') : null;
                 }
@@ -1025,40 +1036,69 @@
             }
 
             // --- Toast Function (فەنکشنا نیشاندانا پەیامان) ---
-            function showToast(message) {
+            let toastTimeout;
+            function showToast(message, duration = 3000, isHtml = false) {
                 const toast = document.getElementById("toast");
-                toast.innerText = message;
+                if (isHtml) toast.innerHTML = message;
+                else toast.innerText = message;
+                
                 toast.className = "show";
-                setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
+                
+                if (toastTimeout) clearTimeout(toastTimeout);
+                if (duration > 0) toastTimeout = setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, duration);
             }
 
             // --- Storage Functions ---
-            function saveAllNotes() {
-                if (!currentUser) return; 
+            function saveAllNotes(showSuccessToast = true) {
+                if (!currentUser) return Promise.reject("User not logged in"); 
+                
+                // Safety Check: Prevent overwriting if data hasn't loaded yet
+                if (!isDataLoaded) {
+                    showToast("⚠️ هێشتا داتا نەهاتیە بارکرن! تکایە بوەستە...");
+                    return Promise.reject("Data not loaded");
+                }
+                
+                if (loadError) {
+                    if(!confirm("⚠️ ئگەهداری: داتایێن کەڤن نەهاتنە بارکرن ژبەر ئاریشەکێ. ئەگەر نوکە تۆمار بکەی، دبیت داتایێن کەڤن ژ فایربەیس بەرزە ببن. ئەرێ تۆ دڤێی هەر تۆمار بکەی؟")) {
+                        return Promise.reject("Cancelled by user");
+                    }
+                }
 
                 const data = {};
                 document.querySelectorAll('.saved-note-item').forEach(item => {
                     const li = item.closest('li');
                     const path = getLeafPath(li);
-                    const text = item.querySelector('.note-text').innerText;
+                    const text = item.querySelector('.note-text').textContent;
                     
                     if (!data[path]) data[path] = [];
                     data[path].push(text);
                 });
                 
                 // Save to Firestore
-                db.collection('users').doc(currentUser.uid).set({ notes: data }, { merge: true })
+                return db.collection('users').doc(currentUser.uid).set({ notes: data }, { merge: true })
+                // تێبینی: من { merge: true } لابرد دا کو دەمێ تۆ تێبینیەکێ ژێدبەی، ل سێرڤەری ژی ژێبچیت
+                return db.collection('users').doc(currentUser.uid).set({ notes: data })
                     .then(() => {
                         console.log("Data saved to Firestore");
+                        if (showSuccessToast) showToast("✅ راستەوخۆ هاتە پاراستن د فایربەیس دا ☁️");
                     })
                     .catch((error) => {
                         console.error("Error saving document: ", error);
-                        showToast("⚠️ ئاریشە د پاراستنێ دا هەیە!");
+                        showToast("⚠️ ئاریشە: " + error.message);
+                        throw error;
                     });
             }
 
+            // Make load function available globally for retry button
+            window.retryLoad = function() {
+                loadAllNotes();
+            };
+
             function loadAllNotes() {
                 if (!currentUser) return;
+                isDataLoaded = false; // Lock saving until load completes
+                loadError = false;
+                showToast("⏳ داتا دهێتە بارکرن...");
                 document.querySelectorAll('.saved-notes-list').forEach(el => el.remove());
 
                 db.collection('users').doc(currentUser.uid).get().then((doc) => {
@@ -1083,10 +1123,14 @@
                         
                         const count = document.querySelectorAll('.saved-note-item').length;
                         if (count > 0) showToast(`✅ ${count} فعل ژ فایربەیس هاتنە بارکرن`);
-                        updateBadgeCount();
                     }
+                    isDataLoaded = true; // Unlock saving
+                    updateBadgeCount();
                 }).catch((error) => {
                     console.log("Error getting document:", error);
+                    showToast(`⚠️ ئاریشە د بارکرنێ دا هەیە. <button onclick="retryLoad()" style="margin-right:10px; background:white; color:black; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-weight:bold;">🔄 دووبارە</button>`, 0, true);
+                    loadError = true;
+                    isDataLoaded = true; // Unlock to allow manual override
                 });
             }
 
@@ -1110,8 +1154,7 @@
                     e.stopPropagation();
                     if(confirm('تۆ پشتڕاستی کو تە دڤێت ژێ ببەی؟')) {
                         item.remove();
-                        saveAllNotes();
-                        showToast("🗑️ هاتە ژێبرن");
+                        saveAllNotes(false).then(() => showToast("🗑️ هاتە ژێبرن"));
                         updateBadgeCount();
                     }
                 });
@@ -1156,7 +1199,7 @@
                 }
 
                 allNodes.forEach(n => {
-                    if (n.innerText.includes(term)) {
+                    if (n.textContent.includes(term)) {
                         n.classList.add('highlight-search');
                         n.classList.remove('dimmed');
                         // Expand parents
@@ -1173,7 +1216,7 @@
 
                 // Search in Saved Notes
                 allNotes.forEach(note => {
-                    const text = note.querySelector('.note-text').innerText;
+                    const text = note.querySelector('.note-text').textContent;
                     if (text.includes(term)) {
                         note.style.backgroundColor = '#fef08a';
                         let parent = note.closest('li');
@@ -1213,7 +1256,7 @@
                     let pathNodes = []; // To store the active path
                     
                     while (current) {
-                        textParts.unshift(current.innerText.trim());
+                        textParts.unshift(current.textContent.replace('دەستپێک 👇', '').trim());
                         pathNodes.push(current);
                         // Traverse up: Node -> LI -> UL -> Parent LI -> Parent Node
                         let parentLi = current.closest('li').parentElement.closest('li');
@@ -1263,6 +1306,10 @@
                                 ev.stopPropagation();
                                 const text = textarea.value.trim();
                                 if (text) {
+                                    // Disable button while saving
+                                    saveBtn.disabled = true;
+                                    saveBtn.innerText = "⏳...";
+                                    
                                     // Add to saved list
                                     let list = li.querySelector('.saved-notes-list');
                                     if (!list) {
@@ -1272,12 +1319,22 @@
                                     }
                                     
                                     addNoteToUI(list, text);
-                                    saveAllNotes(); // Save to storage
-                                    showToast("✅ هاتە پاراستن");
                                     
-                                    // Clear input
-                                    textarea.value = '';
-                                    textarea.focus();
+                                    // Save and wait for result
+                                    saveAllNotes(true)
+                                        .then(() => {
+                                            // Success
+                                            textarea.value = '';
+                                            textarea.focus();
+                                        })
+                                        .catch((err) => {
+                                            // Error handled in saveAllNotes, but we can alert too
+                                            alert("نەهاتە پاراستن! تکایە ئینتەرنێتێ بپشکنە.");
+                                        })
+                                        .finally(() => {
+                                            saveBtn.disabled = false;
+                                            saveBtn.innerText = 'تۆمار بکە 💾';
+                                        });
                                 }
                             });
 
@@ -1370,7 +1427,7 @@
                     const li = item.closest('li');
                     const fullPath = getLeafPath(li);
                     const noteTextSpan = item.querySelector('.note-text');
-                    const answer = noteTextSpan.innerText;
+                    const answer = noteTextSpan.textContent;
                     
                     if (!groupedData[fullPath]) groupedData[fullPath] = [];
                     groupedData[fullPath].push({ text: answer, domItem: item, textSpan: noteTextSpan });
@@ -1507,101 +1564,6 @@
                     document.body.removeChild(a);
                 };
                 reportBody.appendChild(txtBtn);
-
-                // Action Buttons Container
-                const actionContainer = document.createElement('div');
-                actionContainer.className = 'action-btn-group';
-
-                // Export Button (Backup)
-                const exportBtn = document.createElement('button');
-                exportBtn.className = 'export-btn';
-                exportBtn.innerHTML = '📥 پاراستن (Backup)';
-                exportBtn.onclick = () => {
-                    // Generate JSON from current DOM
-                    const exportData = {};
-                    document.querySelectorAll('.saved-note-item').forEach(item => {
-                        const li = item.closest('li');
-                        const path = getLeafPath(li);
-                        const text = item.querySelector('.note-text').innerText;
-                        if (!exportData[path]) exportData[path] = [];
-                        exportData[path].push(text);
-                    });
-                    const data = JSON.stringify(exportData);
-                    if (!data) { alert('هیچ داتایەک نینە بۆ پاراستنێ.'); return; }
-                    const blob = new Blob([data], {type: 'application/json'});
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `arabic_verbs_backup_${new Date().toISOString().slice(0,10)}.json`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                };
-
-                // Import Button (Restore)
-                const importBtn = document.createElement('button');
-                importBtn.className = 'import-btn';
-                importBtn.innerHTML = '📂 بارکرن (Restore)';
-                
-                const fileInput = document.createElement('input');
-                fileInput.type = 'file';
-                fileInput.accept = '.json';
-                fileInput.style.display = 'none';
-                
-                importBtn.onclick = () => fileInput.click();
-                
-                fileInput.onchange = (e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        try {
-                            const data = JSON.parse(event.target.result);
-                            if (data && typeof data === 'object') {
-                                if(confirm('ئەرێ تۆ دڤێی داتایێن نوکە هەیی ژێ ببەی و یێن ڤی فایلی دانێی؟')) {
-                                    // Update Firestore
-                                    if (currentUser) {
-                                        db.collection('users').doc(currentUser.uid).set({ notes: data }, { merge: true })
-                                            .then(() => {
-                                                alert('داتا ب سەرکەفتیانە هاتە بارکرن! بەرپەڕ دێ نوو بیتەڤە.');
-                                                location.reload();
-                                            });
-                                    }
-                                    alert('داتا ب سەرکەفتیانە هاتە بارکرن! بەرپەڕ دێ نوو بیتەڤە.');
-                                    location.reload();
-                                }
-                            } else {
-                                alert('فایل نە یێ دروستە!');
-                            }
-                        } catch (err) {
-                            alert('شاشی: ' + err);
-                        }
-                    };
-                    reader.readAsText(file);
-                };
-
-                // Clear All Button
-                const clearBtn = document.createElement('button');
-                clearBtn.className = 'clear-all-btn';
-                clearBtn.innerHTML = '🗑️ ژێبرنا هەمیێ';
-                clearBtn.onclick = () => {
-                    if (confirm('ئەرێ تۆ پشتڕاستی؟ هەمی تێبینی دێ ژێچن و زڤڕاندن نینە!')) {
-                        if (currentUser) {
-                            db.collection('users').doc(currentUser.uid).delete();
-                        }
-                        document.querySelectorAll('.saved-notes-list').forEach(el => el.remove());
-                        updateBadgeCount();
-                        alert('هەمی داتا هاتنە ژێبرن.');
-                        reportModal.classList.remove('active');
-                    }
-                };
-
-                actionContainer.appendChild(exportBtn);
-                actionContainer.appendChild(importBtn);
-                actionContainer.appendChild(clearBtn);
-                actionContainer.appendChild(fileInput);
-                reportBody.appendChild(actionContainer);
 
                 reportModal.classList.add('active');
             });
