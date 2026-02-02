@@ -1610,12 +1610,10 @@
                         .replace(/ئ/g, 'ي');   // 6. Unify Hamza on Ya to Ya
                 }
 
-                // Build Reverse Lookup Map with normalized verbs for Fast Checking
-                const verbToPath = {};
-                for (const [path, verbs] of Object.entries(MASTER_KEY)) {
-                    verbs.forEach(v => {
-                        verbToPath[normalizeForGrading(v.trim())] = path;
-                    });
+                // Prepare available answers pool to handle duplicates correctly
+                const availableAnswers = {};
+                for (const [key, val] of Object.entries(MASTER_KEY)) {
+                    availableAnswers[key] = [...val]; // Clone array
                 }
 
                 // Track correct counts per path to check for missing items
@@ -1632,59 +1630,65 @@
                     const itemDiv = listContainer.closest('.report-item');
                     const currentPath = itemDiv.dataset.path; // Use dataset for accuracy
 
-                    // Check correctness using normalized versions
-                    const correctVerbsForThisPath = MASTER_KEY[currentPath] || [];
-                    const normalizedCorrectVerbs = correctVerbsForThisPath.map(v => normalizeForGrading(v));
+                    // Check against available pool for this path
+                    const pool = availableAnswers[currentPath] || [];
+                    let matchIndex = -1;
+                    let isSpelling = false;
                     
-                    // --- Advanced Check with Levenshtein Distance for typo tolerance ---
-                    let isSimilarEnough = false;
-                    for (const correctNormalizedVerb of normalizedCorrectVerbs) {
-                        const distance = levenshtein(normalizedVerb, correctNormalizedVerb);
-                        // Allow 1 error for words up to 5 chars, 2 for longer.
-                        // A distance of 0 is a perfect match.
-                        const threshold = correctNormalizedVerb.length <= 5 ? 1 : 2;
-                        if (distance <= threshold) {
-                            isSimilarEnough = true;
-                            break;
+                    // 1. Try Exact Match first
+                    matchIndex = pool.findIndex(v => normalizeForGrading(v) === normalizedVerb);
+
+                    // 2. If not found, try Fuzzy Match (Spelling)
+                    if (matchIndex === -1) {
+                        let bestDist = 3; // Max allowed distance
+                        let bestIdx = -1;
+                        
+                        pool.forEach((v, idx) => {
+                            const dist = levenshtein(normalizedVerb, normalizeForGrading(v));
+                            const threshold = v.length <= 4 ? 1 : 2; // Stricter for short words
+                            if (dist <= threshold && dist < bestDist) {
+                                bestDist = dist;
+                                bestIdx = idx;
+                            }
+                        });
+
+                        if (bestIdx !== -1) {
+                            matchIndex = bestIdx;
+                            isSpelling = true;
                         }
                     }
 
-                    if (isSimilarEnough) {
-                        // Correct!
+                    if (matchIndex !== -1) {
+                        // Correct Answer Found
+                        pool.splice(matchIndex, 1); // Remove from pool (Consume it)
+                        
                         row.classList.add('correct');
                         row.classList.remove('wrong');
                         const existingHint = row.querySelector('.correction-hint');
                         if (existingHint) existingHint.remove();
                         
+                        // Add hint if spelling mistake
+                        if (isSpelling) {
+                            let hintElement = document.createElement('span'); 
+                            hintElement.className = 'correction-hint'; 
+                            hintElement.style.color = '#d97706'; // Orange for warning
+                            hintElement.innerText = `⚠️ خەلەتیا ئیملایە (Spelling)`;
+                            textDiv.appendChild(hintElement);
+                        }
+
                         // Count correct answers for this path
                         pathCorrectCounts[currentPath] = (pathCorrectCounts[currentPath] || 0) + 1;
                     } else {
-                        // Wrong - Now with smarter hints for typos
+                        // Wrong Answer
                         row.classList.add('wrong');
                         row.classList.remove('correct');
                         
-                        let correctPath = verbToPath[normalizedVerb];
-
-                        // If exact match fails (due to typo), find the closest match in the entire answer key
-                        if (!correctPath) {
-                            let bestMatchPath = null;
-                            let minDistanceOverall = 3; // Don't suggest if it's too different (e.g., > 2 errors)
-
-                            for (const [path, verbs] of Object.entries(MASTER_KEY)) {
-                                for (const verb of verbs) {
-                                    const normalizedMasterVerb = normalizeForGrading(verb);
-                                    const distance = levenshtein(normalizedVerb, normalizedMasterVerb);
-                                    if (distance < minDistanceOverall) {
-                                        minDistanceOverall = distance;
-                                        bestMatchPath = path;
-                                    }
-                                }
-                            }
-                            if (bestMatchPath) correctPath = bestMatchPath;
-                        }
-
-                        let hintText = correctPath 
-                            ? `❌ خطأ! الصواب: ${correctPath}`
+                        // Check if it was a duplicate (Correct word but already used)
+                        const originalList = MASTER_KEY[currentPath] || [];
+                        const isDuplicate = originalList.some(v => normalizeForGrading(v) === normalizedVerb);
+                        
+                        let hintText = isDuplicate 
+                            ? `⚠️ خەلەتە! (ئەڤە یا زێدەیە - Duplicate)`
                             : `⚠️ خەلەتە! (ئەڤە یا زێدەیە)`;
 
                         let hintElement = row.querySelector('.correction-hint');
