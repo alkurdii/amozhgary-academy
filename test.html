@@ -1,0 +1,1653 @@
+
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>أقسام الفعل - Arabic Verb Types</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+
+        :root {
+            --bg-color: #f8fafc;
+            --line-color: #cbd5e1;
+            --root-bg: #0f172a;
+            --root-text: #ffffff;
+            --node-bg: #ffffff;
+            --node-text: #1e293b;
+            --hover-color: #3b82f6;
+            --accent-color: #0ea5e9;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 10px;
+            direction: rtl;
+            display: flex;
+            justify-content: center;
+        }
+
+        .tab-container {
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            background: var(--bg-color);
+            padding: 10px 0;
+            z-index: 1000;
+        }
+
+        .tab-button {
+            padding: 8px 16px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            border: 2px solid var(--line-color);
+            background-color: var(--node-bg);
+            color: var(--node-text);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .tab-button.active {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        /* Search Bar */
+        .search-container {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        #search-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            border: 2px solid var(--line-color);
+            border-radius: 12px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #search-input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Tree Styling */
+        .tree ul {
+            padding-top: 20px; 
+            position: relative;
+            display: flex;
+            justify-content: center;
+            padding-right: 0;
+        }
+
+        .tree li {
+            text-align: center;
+            list-style-type: none;
+            position: relative;
+            padding: 20px 5px 0 5px;
+        }
+
+        .tree li::before, .tree li::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 50%;
+            border-top: 3px solid var(--branch-color, var(--line-color));
+            width: 50%;
+            height: 20px;
+        }
+
+        .tree li::after {
+            left: 50%;
+            border-left: 3px solid var(--branch-color, var(--line-color));
+        }
+
+        .tree li:only-child::after, .tree li:only-child::before { display: none; }
+        .tree li:only-child { padding-top: 0; }
+        .tree li:first-child::before, .tree li:last-child::after { border: 0; }
+        .tree li:last-child::before { border-left: 3px solid var(--branch-color, var(--line-color)); border-radius: 0 15px 0 0; }
+        .tree li:first-child::after { border-radius: 15px 0 0 0; }
+
+        .tree ul ul::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            border-left: 3px solid var(--branch-color, var(--line-color));
+            width: 0;
+            height: 20px;
+        }
+
+        .node {
+            border: 2px solid var(--branch-color, var(--line-color));
+            padding: 6px 10px;
+            color: var(--node-text);
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: inline-block;
+            border-radius: 8px;
+            background: var(--node-bg);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            min-width: 80px;
+        }
+
+        .tree > ul > li > .node {
+            background-color: var(--root-bg);
+            color: white;
+            font-size: 1.1rem;
+            padding: 10px 20px;
+        }
+
+        /* Branch Colors */
+        /* Level 1 */
+        .tree > ul > li > ul > li:nth-child(1) { --branch-color: #ef4444; } /* Red */
+        .tree > ul > li > ul > li:nth-child(2) { --branch-color: #3b82f6; } /* Blue */
+        .tree > ul > li > ul > li:nth-child(3) { --branch-color: #10b981; } /* Green */
+        .tree > ul > li > ul > li:nth-child(4) { --branch-color: #f59e0b; } /* Orange */
+
+        /* Level 2 */
+        .tree > ul > li > ul > li > ul > li:nth-child(1) { --branch-color: #ec4899; } /* Pink */
+        .tree > ul > li > ul > li > ul > li:nth-child(2) { --branch-color: #8b5cf6; } /* Violet */
+        .tree > ul > li > ul > li > ul > li:nth-child(3) { --branch-color: #06b6d4; } /* Cyan */
+
+        /* Level 3 */
+        .tree > ul > li > ul > li > ul > li > ul > li:nth-child(1) { --branch-color: #be185d; } /* Dark Pink */
+        .tree > ul > li > ul > li > ul > li > ul > li:nth-child(2) { --branch-color: #4338ca; } /* Dark Indigo */
+
+        /* Responsive / Mobile View */
+        @media (max-width: 768px) {
+            .tree, .tree ul, .tree li {
+                display: block;
+                text-align: right;
+            }
+
+            .tree li {
+                padding: 5px 8px 0 0;
+                margin-right: 8px;
+                border-right: 3px solid var(--branch-color, var(--line-color));
+            }
+
+            .tree li::before, .tree li::after, .tree ul ul::before {
+                display: none;
+            }
+
+            .tree li::after {
+                content: '';
+                position: absolute;
+                right: 0;
+                top: 17px;
+                width: 8px;
+                height: 3px;
+                background: var(--branch-color, var(--line-color));
+                display: block;
+            }
+
+            .node {
+                width: auto;
+                max-width: 95%;
+                font-size: 0.95rem; /* Increased font size for readability */
+                padding: 4px 8px;
+                min-width: auto;
+            }
+
+            .tree > ul > li > .node {
+                font-size: 0.9rem;
+                padding: 6px 12px;
+            }
+
+            .tree > ul > li {
+                border-right: none;
+                padding-right: 0;
+                margin-right: 0;
+            }
+
+            .tree > ul > li::after { display: none; }
+
+            /* Collapsible Logic for Mobile (Accordion Style) */
+            .tree ul ul {
+                display: none; /* Hide sub-branches by default */
+            }
+
+            .tree li.expanded > ul {
+                display: block; /* Show when expanded */
+                animation: fadeIn 0.3s ease;
+            }
+
+            .node.has-children {
+                cursor: pointer;
+                position: relative;
+                padding-left: 30px; /* Space for the +/- icon */
+            }
+
+            .node.has-children::after {
+                content: '+';
+                position: absolute;
+                left: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-weight: bold;
+                font-size: 1.2em;
+            }
+
+            .tree li.expanded > .node.has-children::after {
+                content: '-';
+            }
+
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        }
+
+        /* I'rab Result Box (Advanced Feature) */
+        #irab-box {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 15px 20px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+            border-top: 4px solid var(--accent-color);
+            z-index: 2000;
+            transform: translateY(120%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            border-radius: 15px 15px 0 0;
+        }
+
+        #irab-box.visible {
+            transform: translateY(0);
+        }
+
+        #irab-text {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--node-text);
+            line-height: 1.6;
+        }
+
+        /* Leaf Node Input Box (Writing Box) */
+        .leaf-input-container {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .leaf-input {
+            width: 120px;
+            height: 40px;
+            padding: 8px;
+            border: 2px solid var(--line-color);
+            border-radius: 8px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.8rem;
+            resize: none;
+            transition: border-color 0.3s;
+            background-color: #ffffff;
+        }
+
+        .leaf-input-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10px;
+            gap: 5px;
+        }
+        .leaf-input-container.visible {
+            display: flex;
+        }
+        .add-note-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .add-note-btn:hover { background-color: #0284c7; }
+        
+        .leaf-input:focus {
+            border-color: var(--accent-color);
+            outline: none;
+        }
+
+        /* Report Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(3px);
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .report-item {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 15px 0;
+        }
+        .report-path { font-weight: 700; color: var(--accent-color); font-size: 0.9rem; margin-bottom: 8px; }
+        .report-answer { background: #f8fafc; padding: 10px; border-radius: 8px; color: #334155; border: 1px solid #e2e8f0; white-space: pre-wrap; }
+        .report-empty { color: #ef4444; font-style: italic; background: #fef2f2; border-color: #fee2e2; }
+        .close-modal {
+            position: sticky;
+            top: 0;
+            float: left;
+            background: #ef4444; color: white;
+            border: none; padding: 8px 15px;
+            border-radius: 8px; cursor: pointer;
+            font-family: inherit;
+            z-index: 10;
+        }
+        .report-title { text-align: center; font-weight: bold; margin-bottom: 20px; font-size: 1.2rem; border-bottom: 2px solid var(--line-color); padding-bottom: 10px; }
+        
+        /* Floating Report Button (FAB) */
+        #show-report-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 2500;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        #show-report-btn:active { transform: scale(0.95); }
+        
+        #report-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 0.8rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid white;
+            font-weight: bold;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+        
+        /* Help Button */
+        #help-btn {
+            position: fixed;
+            bottom: 90px; /* Above the report button */
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #64748b;
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 2500;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        #help-btn:active { transform: scale(0.95); }
+
+        /* Start Label Animation */
+        .start-label {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-color);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            animation: bounce 2s infinite;
+        }
+        .start-label::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 4px solid var(--accent-color);
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateX(-50%) translateY(0);}
+            40% {transform: translateX(-50%) translateY(-5px);}
+            60% {transform: translateX(-50%) translateY(-3px);}
+        }
+
+        /* Advanced Report Summary */
+        .report-summary {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #cbd5e1;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 5px;
+        }
+        .summary-row:last-child { border-bottom: none; }
+        .summary-label { font-weight: bold; color: var(--node-text); }
+        .summary-value { font-weight: bold; color: var(--accent-color); }
+        .progress-bar { width: 100%; height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; margin-top: 5px; }
+        .progress-fill { height: 100%; background: #10b981; width: 0%; transition: width 0.5s ease; }
+        .summary-header { text-align: center; margin-bottom: 15px; }
+
+        .share-btn {
+            background-color: #229ED9;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1rem;
+            margin-top: 20px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background 0.2s;
+            font-weight: bold;
+        }
+        .share-btn:hover { background-color: #1b8ac0; }
+        
+        .copy-btn {
+            background-color: #64748b;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1rem;
+            margin-top: 10px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background 0.2s;
+            font-weight: bold;
+        }
+        .copy-btn:hover { background-color: #475569; }
+
+        .txt-btn {
+            background-color: #8b5cf6;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1rem;
+            margin-top: 10px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background 0.2s;
+            font-weight: bold;
+        }
+        .txt-btn:hover { background-color: #7c3aed; }
+
+        .action-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .export-btn, .clear-all-btn, .import-btn {
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: bold;
+            flex: 1;
+            transition: opacity 0.2s;
+        }
+        .export-btn { background-color: #10b981; }
+        .import-btn { background-color: #3b82f6; }
+        .clear-all-btn { background-color: #ef4444; }
+        .export-btn:hover, .clear-all-btn:hover, .import-btn:hover { opacity: 0.9; }
+
+        /* Login Styles */
+        .login-box {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 350px;
+            width: 90%;
+        }
+        /* Interactive Report Styles */
+        .report-verb-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .report-verb-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        .report-verb-text {
+            flex: 1;
+            margin-left: 10px;
+            font-weight: bold;
+            color: #334155;
+            white-space: pre-wrap;
+        }
+        .report-verb-actions {
+            display: flex;
+            gap: 5px;
+        }
+        .report-verb-actions button {
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 2px 5px;
+            transition: transform 0.2s;
+        }
+        .report-verb-actions button:hover {
+            transform: scale(1.2);
+        }
+        
+        /* Toast Notification (پەیاما پاراستنێ) */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 12px;
+            position: fixed;
+            z-index: 4000;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 0.9rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s;
+            font-family: 'Tajawal', sans-serif;
+        }
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+
+        /* Collapsible Report Styles */
+        .report-verb-list {
+            display: none; /* Hidden by default */
+            max-height: 300px; /* Scrollable if very long */
+            overflow-y: auto;
+            margin-top: 10px;
+            border-top: 1px dashed #cbd5e1;
+            padding-top: 10px;
+        }
+        .report-verb-list.expanded { display: flex; }
+        .report-path {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .report-path:hover { background-color: #f1f5f9; border-radius: 5px; padding: 2px 5px; }
+        .toggle-icon {
+            font-size: 0.8rem;
+            background: #e2e8f0;
+            padding: 2px 8px;
+            border-radius: 12px;
+            color: #475569;
+        }
+
+        @media (max-width: 768px) {
+            .leaf-input-container {
+                display: none;
+                padding-right: 0;
+            }
+            .leaf-input {
+                width: 95%;
+                height: 60px;
+                margin-top: 5px;
+            }
+        }
+        
+        .reset-btn {
+            margin-top: 10px;
+            background: var(--bg-color);
+            border: 1px solid var(--line-color);
+            padding: 5px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .node.selected {
+            background-color: var(--accent-color) !important;
+            color: white !important;
+            border-color: var(--accent-color) !important;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.3);
+        }
+        
+        body.has-irab-box {
+            padding-bottom: 120px; /* Space for the box */
+        }
+
+        .node.dimmed { opacity: 0.2; }
+        .node.highlight-search { 
+            background-color: #fef08a !important; 
+            color: black !important;
+            border-color: #eab308 !important;
+        }
+        
+        /* Grading Styles */
+        .report-verb-row.correct { background-color: #dcfce7; border-color: #86efac; }
+        .report-verb-row.correct .report-verb-text { color: #166534; }
+        
+        .report-verb-row.wrong { background-color: #fee2e2; border-color: #fca5a5; }
+        .report-verb-row.wrong .report-verb-text { color: #991b1b; }
+        
+        .correction-hint { display: block; font-size: 0.85rem; color: #b91c1c; margin-top: 4px; font-weight: bold; }
+    </style>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+    <div class="tab-container">
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="بگەڕێ... (نموونە: السكون)">
+        </div>
+        <div class="tab-buttons">
+            <button class="tab-button" data-target="madi">ماضٍ</button>
+            <button class="tab-button" data-target="mudari">مضارع</button>
+            <button class="tab-button" data-target="amr">أمر</button>
+        </div>
+
+        <!-- الماضي -->
+        <div id="madi" class="tab-content">
+            <div class="tree">
+                <ul>
+                    <li>
+                        <div class="node" style="position: relative;">
+                            ماضٍ مبني على
+                        </div>
+                        <ul>
+                            <li><div class="node">الفتح لأنه لم يتصل بآخره شيء</div></li>
+                            <li>
+                                <div class="node">السكون لاتصاله بـ</div>
+                                <ul>
+                                    <li><div class="node">تاء الفاعل</div></li>
+                                    <li><div class="node">نا الفاعلين</div></li>
+                                    <li><div class="node">نون النسوة</div></li>
+                                </ul>
+                            </li>
+                            <li><div class="node">الضم لاتصاله بواو الجماعة</div></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- المضارع -->
+        <div id="mudari" class="tab-content">
+            <div class="tree">
+                <ul>
+                    <li>
+                        <div class="node" style="position: relative;">
+                            مضارع
+                        </div>
+                        <ul>
+                            <li>
+                                <div class="node">مبني على</div>
+                                <ul>
+                                    <li><div class="node">السكون لاتصاله بنون النسوة</div></li>
+                                    <li>
+                                        <div class="node">الفتح لاتصاله بنون التوكيد</div>
+                                        <ul>
+                                            <li><div class="node">الثقيلة</div></li>
+                                            <li><div class="node">الخفيفة</div></li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="node">مرفوع وعلامة رفعه</div>
+                                <ul>
+                                    <li>
+                                        <div class="node">الضمة</div>
+                                        <ul>
+                                            <li><div class="node">الظاهرة</div></li>
+                                            <li>
+                                                <div class="node">المقدرة على</div>
+                                                <ul>
+                                                    <li><div class="node">الألف للتعذر</div></li>
+                                                    <li><div class="node">(الواو) أو (الياء) للثقل</div></li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li><div class="node">ثبوت النون</div></li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="node">منصوب وعلامة نصبه</div>
+                                <ul>
+                                    <li>
+                                        <div class="node">الفتحة</div>
+                                        <ul>
+                                            <li><div class="node">الظاهرة</div></li>
+                                            <li><div class="node">المقدرة على الألف للتعذر</div></li>
+                                        </ul>
+                                    </li>
+                                    <li><div class="node">حذف النون</div></li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="node">مجزوم وعلامة جزمه</div>
+                                <ul>
+                                    <li><div class="node">السكون</div></li>
+                                    <li><div class="node">حذف حرف العلة لأنه معتل الآخر</div></li>
+                                    <li><div class="node">حذف النون لأنه من الأفعال الخمسة</div></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- الأمر -->
+        <div id="amr" class="tab-content">
+            <div class="tree">
+                <ul>
+                    <li>
+                        <div class="node" style="position: relative;">
+                            أمر مبني على
+                        </div>
+                        <ul>
+                            <li><div class="node">السكون</div></li>
+                            <li><div class="node">حذف حرف العلة لأنه معتل الآخر</div></li>
+                            <li>
+                                <div class="node">حذف النون لاتصاله بـ</div>
+                                <ul>
+                                    <li><div class="node">ألف الاثنين</div></li>
+                                    <li><div class="node">واو الجماعة</div></li>
+                                    <li><div class="node">ياء المخاطبة</div></li>
+                                </ul>
+                            </li>
+                            <li>
+                                <div class="node">الفتح لاتصاله بنون التوكيد</div>
+                                <ul>
+                                    <li><div class="node">الخفيفة</div></li>
+                                    <li><div class="node">الثقيلة</div></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Overlay -->
+    <div id="login-overlay" class="modal-overlay active" style="z-index: 5000; background: var(--bg-color);">
+        <div class="login-box">
+            <h2 style="margin-bottom: 20px; color: var(--node-text);">تسجيل الدخول</h2>
+            <p style="margin-bottom: 15px; color: #64748b; font-size: 0.9rem;">يرجى إدخال البريد الإلكتروني وكلمة المرور</p>
+            <input type="email" id="login-email" placeholder="البريد الإلكتروني" class="leaf-input" style="width: 100%; height: 45px; margin-bottom: 10px;">
+            <input type="password" id="login-password" placeholder="كلمة المرور" class="leaf-input" style="width: 100%; height: 45px; margin-bottom: 20px;">
+            <button id="login-submit-btn" class="add-note-btn" style="width: 100%; padding: 12px; font-size: 1rem; margin-bottom: 10px;">دخول 🔐</button>
+        </div>
+    </div>
+
+    <!-- Result Box -->
+    <div id="irab-box">
+        <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 5px;">النتيجة:</div>
+        <div id="irab-text"></div>
+        <button class="reset-btn" id="reset-btn">
+            ↺ إعادة تعيين
+        </button>
+    </div>
+
+    <!-- Report Modal -->
+    <div class="modal-overlay" id="report-modal">
+        <div class="modal-content">
+            <button class="close-modal" id="close-report">إغلاق</button>
+            <div class="report-title">تقرير تحليل سورة يوسف</div>
+            <button id="grade-btn" class="add-note-btn" style="width:100%; margin-bottom:15px; background-color:#8b5cf6; display:none;">✅ تصحيح الإجابات (مقارنة مع الحل)</button>
+            <div id="report-body"></div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="help-modal">
+        <div class="modal-content" style="text-align: center;">
+            <button class="close-modal" id="close-help">إغلاق</button>
+            <div class="report-title">دليل الاستخدام</div>
+            <p>١. ابدأ من "البداية".</p>
+            <p>٢. اضغط على أي قسم لفتح فروعه.</p>
+            <p>٣. تتبع المسار حتى تصل للنهاية.</p>
+            <p>٤. ستظهر النتيجة في الأسفل.</p>
+        </div>
+    </div>
+
+    <!-- Floating Report Button -->
+    <button id="show-report-btn" title="تقرير الطالب">
+        📊 <span id="report-badge" style="display:none">0</span>
+    </button>
+    <button id="logout-btn" title="تسجيل الخروج" style="position: fixed; top: 10px; left: 10px; z-index: 1100; background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; display: none; font-family: 'Tajawal'; font-weight: bold;">
+        خروج 🚪
+    </button>
+    <button id="help-btn" title="دليل">؟</button>
+
+    <!-- Toast Container -->
+    <div id="toast"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            // --- Firebase Configuration (تکایە زانیاریێن خۆ لێرە دانێ) ---
+            const firebaseConfig = {
+                apiKey: "AIzaSyAmFk6mXxlWLqFjktkEX3SYF5YtzubGGGw",
+  authDomain: "naho-d06fb.firebaseapp.com",
+  databaseURL: "https://naho-d06fb-default-rtdb.firebaseio.com",
+  projectId: "naho-d06fb",
+  storageBucket: "naho-d06fb.firebasestorage.app",
+  messagingSenderId: "963866480395",
+  appId: "1:963866480395:web:7e5a20ed6962a4c878dc0e",
+  measurementId: "G-SPRGPBXKSP"
+};
+
+            
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            const db = firebase.firestore();
+
+            let cachedNotesData = {}; // Global storage for notes (مەخزەنێ داتایان)
+
+            // --- Enable Offline Persistence (پاراستنا داتایان بێ ئینتەرنێت) ---
+            db.enablePersistence().catch(err => {
+                if (err.code == 'failed-precondition') console.log("Multiple tabs open, persistence disabled");
+                else if (err.code == 'unimplemented') console.log("Browser doesn't support persistence");
+            });
+
+            // --- Login System ---
+            let currentUser = null;
+            let isDataLoaded = false; // Safety Flag (قوفلا پاراستنێ)
+            let loadError = false; // Flag for load errors
+            const loginOverlay = document.getElementById('login-overlay');
+            const logoutBtn = document.getElementById('logout-btn');
+            const loginSubmitBtn = document.getElementById('login-submit-btn');
+            const emailInput = document.getElementById('login-email');
+            const passwordInput = document.getElementById('login-password');
+
+            // Handle Login
+            loginSubmitBtn.addEventListener('click', () => {
+                const email = emailInput.value.trim();
+                const password = passwordInput.value.trim();
+                if (!email || !password) { alert('يرجى إدخال البريد الإلكتروني وكلمة المرور!'); return; }
+                
+                auth.signInWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        showToast(`مرحباً: ${userCredential.user.email}`);
+                        loginOverlay.classList.remove('active');
+                    })
+                    .catch((error) => {
+                        alert("خطأ: " + error.message);
+                    });
+            });
+
+            // Auth State Listener
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    currentUser = user;
+                    loginOverlay.classList.remove('active');
+                    logoutBtn.style.display = 'block';
+                    loadAllNotes(); // Load from Firestore
+                } else {
+                    currentUser = null;
+                    loginOverlay.classList.add('active');
+                    logoutBtn.style.display = 'none';
+                }
+            });
+            
+            logoutBtn.addEventListener('click', function() {
+                if(confirm('هل أنت متأكد أنك تريد الخروج؟')) {
+                    auth.signOut().then(() => {
+                        location.reload();
+                    });
+                }
+            });
+
+            // --- Helper: Get Path for a Leaf Node ---
+            function getLeafPath(li) {
+                let current = li.querySelector('.node');
+                let textParts = [];
+                while (current) {
+                    // Clean the text to remove the start label and extra spaces
+                    // Use textContent instead of innerText to read hidden tabs correctly
+                    let text = current.textContent.trim();
+                    textParts.unshift(text);
+                    let parentLi = current.closest('li').parentElement.closest('li');
+                    current = parentLi ? parentLi.querySelector('.node') : null;
+                }
+                return textParts.join(' ');
+            }
+
+            // --- Toast Function (فەنکشنا نیشاندانا پەیامان) ---
+            let toastTimeout;
+            function showToast(message, duration = 3000, isHtml = false) {
+                const toast = document.getElementById("toast");
+                if (isHtml) toast.innerHTML = message;
+                else toast.innerText = message;
+                
+                toast.className = "show";
+                
+                if (toastTimeout) clearTimeout(toastTimeout);
+                if (duration > 0) toastTimeout = setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, duration);
+            }
+
+            // --- Storage Functions ---
+            function saveAllNotes(showSuccessToast = true) {
+                if (!currentUser) return Promise.reject("User not logged in"); 
+                
+                // Safety Check: Prevent overwriting if data hasn't loaded yet
+                if (!isDataLoaded) {
+                    showToast("⚠️ لم يتم تحميل البيانات بعد! يرجى الانتظار...");
+                    return Promise.reject("Data not loaded");
+                }
+                
+                if (loadError) {
+                    if(!confirm("⚠️ تحذير: لم يتم تحميل البيانات القديمة بسبب مشكلة. إذا قمت بالحفظ الآن، قد تفقد البيانات القديمة. هل تريد الحفظ؟")) {
+                        return Promise.reject("Cancelled by user");
+                    }
+                }
+
+                // Use cachedNotesData instead of scraping DOM (بکارئینانا مەخزەنی ل شوینا شاشێ)
+                const data = cachedNotesData;
+                
+                // Save to Firestore
+                return db.collection('users').doc(currentUser.uid).set({ notes: data })
+                    .then(() => {
+                        console.log("Data saved to Firestore");
+                        if (showSuccessToast) showToast("✅ تم الحفظ في قاعدة البيانات ☁️");
+                    })
+                    .catch((error) => {
+                        console.error("Error saving document: ", error);
+                        showToast("⚠️ مشكلة: " + error.message);
+                        throw error;
+                    });
+            }
+
+            // Make load function available globally for retry button
+            window.retryLoad = function() {
+                loadAllNotes();
+            };
+
+            function loadAllNotes() {
+                if (!currentUser) return;
+                isDataLoaded = false; // Lock saving until load completes
+                loadError = false;
+                showToast("⏳ جاري تحميل البيانات...");
+                document.querySelectorAll('.saved-notes-list').forEach(el => el.remove());
+
+                db.collection('users').doc(currentUser.uid).get().then((doc) => {
+                    if (doc.exists) {
+                        cachedNotesData = doc.data().notes || {};
+                        const data = cachedNotesData;
+                        
+                        // ملاحظة: تم إزالة عرض الملاحظات من الشجرة لتبقى نظيفة
+                        
+                        // Count total notes
+                        const count = Object.values(data).reduce((acc, val) => acc + val.length, 0);
+                        if (count > 0) showToast(`✅ تم تحميل ${count} فعل`);
+                    }
+                    isDataLoaded = true; // Unlock saving
+                    updateBadgeCount();
+                }).catch((error) => {
+                    console.log("Error getting document:", error);
+                    showToast(`⚠️ توجد مشكلة في التحميل. <button onclick="retryLoad()" style="margin-right:10px; background:white; color:black; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-weight:bold;">🔄 إعادة المحاولة</button>`, 0, true);
+                    loadError = true;
+                    isDataLoaded = true; // Unlock to allow manual override
+                });
+            }
+
+            function updateBadgeCount() {
+                const count = Object.values(cachedNotesData).reduce((acc, val) => acc + val.length, 0);
+                const badge = document.getElementById('report-badge');
+                if (count > 0) {
+                    badge.style.display = 'flex';
+                    badge.innerText = count;
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+
+            function switchTab(targetId) {
+                tabButtons.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.target === targetId);
+                });
+                tabContents.forEach(content => {
+                    content.classList.toggle('active', content.id === targetId);
+                });
+            }
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => switchTab(button.dataset.target));
+            });
+
+            // Default
+            switchTab('madi');
+            
+            // Note: loadAllNotes() is now called inside handleLogin()
+            // updateBadgeCount();
+
+            // Search Functionality
+            const searchInput = document.getElementById('search-input');
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.trim();
+                const allNodes = document.querySelectorAll('.node');
+                const allNotes = document.querySelectorAll('.saved-note-item');
+                
+                if (!term) {
+                    allNodes.forEach(n => {
+                        n.classList.remove('dimmed', 'highlight-search');
+                    });
+                    allNotes.forEach(n => n.style.backgroundColor = '');
+                    return;
+                }
+
+                allNodes.forEach(n => {
+                    if (n.textContent.includes(term)) {
+                        n.classList.add('highlight-search');
+                        n.classList.remove('dimmed');
+                        // Expand parents
+                        let parent = n.closest('li');
+                        while (parent) {
+                            parent.classList.add('expanded');
+                            parent = parent.parentElement.closest('li');
+                        }
+                    } else {
+                        n.classList.remove('highlight-search');
+                        n.classList.add('dimmed');
+                    }
+                });
+
+                // Search in Saved Notes
+                allNotes.forEach(note => {
+                    const text = note.querySelector('.note-text').textContent;
+                    if (text.includes(term)) {
+                        note.style.backgroundColor = '#fef08a';
+                        let parent = note.closest('li');
+                        while (parent) {
+                            parent.classList.add('expanded');
+                            parent = parent.parentElement.closest('li');
+                        }
+                    } else {
+                        note.style.backgroundColor = '';
+                    }
+                });
+            });
+
+            // Advanced Interaction Script
+            const nodes = document.querySelectorAll('.node');
+            const irabBox = document.getElementById('irab-box');
+            const irabText = document.getElementById('irab-text');
+
+            nodes.forEach(node => {
+                // 1. Collapsible Logic
+                if (node.nextElementSibling && node.nextElementSibling.tagName === 'UL') {
+                    node.classList.add('has-children');
+                    node.addEventListener('click', function(e) {
+                        this.parentElement.classList.toggle('expanded');
+                    });
+                }
+
+                // 2. Selection & Sentence Builder Logic
+                node.addEventListener('click', function(e) {
+                    // Highlight selection
+                    nodes.forEach(n => n.classList.remove('selected'));
+                    this.classList.add('selected');
+
+                    // Build the sentence path
+                    let current = this;
+                    let textParts = [];
+                    let pathNodes = []; // To store the active path
+                    
+                    while (current) {
+                        textParts.unshift(current.textContent.trim());
+                        pathNodes.push(current);
+                        // Traverse up: Node -> LI -> UL -> Parent LI -> Parent Node
+                        let parentLi = current.closest('li').parentElement.closest('li');
+                        current = parentLi ? parentLi.querySelector('.node') : null;
+                    }
+
+                    // Focus Mode: Dim all other nodes
+                    nodes.forEach(n => {
+                        if (!pathNodes.includes(n)) {
+                            n.classList.add('dimmed');
+                        } else {
+                            n.classList.remove('dimmed');
+                        }
+                    });
+
+                    // Show result
+                    irabText.innerText = textParts.join(' ');
+                    irabBox.classList.add('visible');
+                    document.body.classList.add('has-irab-box');
+
+                    // --- NEW LOGIC: Show Input for Leaf Nodes ---
+                    const isLeaf = !this.nextElementSibling || this.nextElementSibling.tagName !== 'UL';
+                    
+                    // Hide all other input containers first
+                    document.querySelectorAll('.leaf-input-container').forEach(c => c.classList.remove('visible'));
+
+                    if (isLeaf) {
+                        let li = this.closest('li');
+                        let container = li.querySelector('.leaf-input-container');
+                        
+                        if (!container) {
+                            // Create container dynamically
+                            container = document.createElement('div');
+                            container.className = 'leaf-input-container';
+                            
+                            // Textarea
+                            const textarea = document.createElement('textarea');
+                            textarea.className = 'leaf-input';
+                            textarea.placeholder = 'اكتب فعلاً من سورة يوسف...';
+                            textarea.addEventListener('click', (ev) => ev.stopPropagation());
+
+                            // Save Button
+                            const saveBtn = document.createElement('button');
+                            saveBtn.className = 'add-note-btn';
+                            saveBtn.innerText = 'حفظ 💾';
+                            saveBtn.addEventListener('click', (ev) => {
+                                ev.stopPropagation();
+                                const text = textarea.value.trim();
+                                if (text) {
+                                    // Disable button while saving
+                                    saveBtn.disabled = true;
+                                    saveBtn.innerText = "⏳...";
+                                    
+                                    
+                                    // Update Cache (زێدەکرن بۆ مەخزەنی)
+                                    const path = getLeafPath(li);
+                                    if (!cachedNotesData[path]) cachedNotesData[path] = [];
+                                    cachedNotesData[path].push(text);
+                                    
+                                    
+                                    // Save and wait for result
+                                    saveAllNotes(true)
+                                        .then(() => {
+                                            // Success
+                                            textarea.value = '';
+                                            // Close the box (هەمی خانەیێن فەبین بهێنە گرتبن)
+                                            document.querySelectorAll('.leaf-input-container').forEach(c => c.classList.remove('visible'));
+                                            
+                                            // Collapse Tree (دار حەتابنی دێ هێتە گرتن)
+                                            document.querySelectorAll('li.expanded').forEach(el => el.classList.remove('expanded'));
+                                            document.querySelectorAll('.node').forEach(n => n.classList.remove('selected', 'dimmed', 'highlight-search'));
+                                            document.getElementById('irab-box').classList.remove('visible');
+                                            document.body.classList.remove('has-irab-box');
+                                        })
+                                        .catch((err) => {
+                                            // Error handled in saveAllNotes, but we can alert too
+                                            alert("لم يتم الحفظ! يرجى التحقق من الإنترنت.");
+                                        })
+                                        .finally(() => {
+                                            saveBtn.disabled = false;
+                                            saveBtn.innerText = 'حفظ 💾';
+                                        });
+                                }
+                            });
+
+                            container.appendChild(textarea);
+                            container.appendChild(saveBtn);
+                            li.appendChild(container);
+                        }
+                        
+                        // Show this container
+                        container.classList.add('visible');
+                        
+                        // Scroll to view on mobile
+                        setTimeout(() => container.scrollIntoView({behavior: 'smooth', block: 'center'}), 100);
+                    }
+                });
+            });
+
+            // Reset Button
+            document.getElementById('reset-btn').addEventListener('click', () => {
+                nodes.forEach(n => {
+                    n.classList.remove('selected', 'dimmed', 'highlight-search');
+                });
+                document.getElementById('irab-box').classList.remove('visible');
+                document.body.classList.remove('has-irab-box');
+                document.getElementById('search-input').value = '';
+                document.querySelectorAll('.leaf-input-container').forEach(c => c.classList.remove('visible'));
+            });
+
+            // Report Logic
+            const reportModal = document.getElementById('report-modal');
+            const reportBody = document.getElementById('report-body');
+            const gradeBtn = document.getElementById('grade-btn');
+            
+            // Master Key for Grading (حلول سورة يوسف - أول 30 آية)
+            const MASTER_KEY = {
+                "مضارع مجزوم وعلامة جزمه حذف حرف العلة لأنه معتل الآخر": ["يخل"],
+                "مضارع مجزوم وعلامة جزمه السكون": ["لا تقصص", "يلتقطه", "يرتع", "يلعب"],
+                "مضارع مرفوع وعلامة رفعه ثبوت النون": ["تعقلون", "يشعرون", "يبكون", "تصفون", "يعملون", "يعلمون"],
+                "ماضٍ مبني على الفتح لأنه لم يتصل بآخره شيء": ["قال", "أتمها", "كان", "قال", "قال", "أكله", "فأكله", "سولت", "جاءت", "فأدلى", "قال", "اشترى", "بلغ", "راودت", "غلقت", "قالت", "قال", "أحسن", "همت", "هم", "رأى", "استبقا", "قدت", "ألفيا", "قالت", "أراد", "راودتني", "شهد", "كان", "قد", "صدقت", "كان", "قد", "كذبت", "رأى", "قد", "قال", "قال", "شغفها"],
+                "ماضٍ مبني على الضم لاتصاله بواو الجماعة": ["قالوا", "قالوا", "ذهبوا", "أجمعوا", "جاءوا", "قالوا", "وجاءوا", "ارسلوا", "أسروه", "شروه", "كانوا"],
+                "أمر مبني على حذف النون لاتصاله بـ ياء المخاطبة": ["أكرمي", "استغفري"],
+                "أمر مبني على السكون": ["أرسله", "أعرض"],
+                "مضارع منصوب وعلامة نصبه الفتحة الظاهرة": ["يأكله", "ينفعنا", "نتخذه", "ولنعلمه", "لنصرف", "يسجن"],
+                "مضارع منصوب وعلامة نصبه حذف النون": ["فيكيدوا", "تذهبوا", "أن يجعلوه"],
+                "مضارع مرفوع وعلامة رفعه الضمة المقدرة على (الواو) أو (الياء) للثقل": ["يجتبيك", "نجزي"],
+                "أمر مبني على حذف النون لاتصاله بـ واو الجماعة": ["اقتلوا", "اطرحوا", "ألقوا"],
+                "مضارع مرفوع وعلامة رفعه الضمة المقدرة على الألف للتعذر": ["لنراها"],
+                "مضارع مبني على الفتح لاتصاله بنون التوكيد الثقيلة": ["لتنبأنّهم"],
+                "ماضٍ مبني على السكون لاتصاله بـ تاء الفاعل": ["كنت", "رأيت", "رأيتهم", "كنتم", "كنت"],
+                "ماضٍ مبني على السكون لاتصاله بـ نا الفاعلين": ["أنزلنا", "أوحينا", "أوحينا", "ذهبنا", "تركنا", "مكنا", "آتيناه"],
+                "مضارع مرفوع وعلامة رفعه الضمة الظاهرة": ["نقص", "يعلمك", "يتم", "تأمنّا", "يحزنني", "نستبق", "يفلح", "تراود"],
+                "مضارع مجزوم وعلامة جزمه حذف النون لأنه من الأفعال الخمسة": ["تكونوا", "لا تقتلوا"]
+            };
+            
+            document.getElementById('show-report-btn').addEventListener('click', () => {
+                reportBody.innerHTML = '';
+                const data = cachedNotesData || {};
+                
+                // Statistics Calculation (Count total verbs written)
+                let counts = {
+                    total: 0,
+                    madi: 0,
+                    mudari: 0,
+                    amr: 0
+                };
+
+                for (const [path, notes] of Object.entries(data)) {
+                    const count = notes.length;
+                    counts.total += count;
+                    if (path.includes('ماضٍ')) counts.madi += count;
+                    else if (path.includes('مضارع')) counts.mudari += count;
+                    else if (path.includes('أمر')) counts.amr += count;
+                }
+                
+                gradeBtn.style.display = 'block'; // Show grade button
+
+                // Add Summary Section
+                const summaryHTML = `
+                    <div class="report-summary">
+                        <div class="summary-header">
+                            <div style="font-size:1.1rem; font-weight:bold;">إجمالي الأفعال</div>
+                            <div style="font-size:2.5rem; color:var(--accent-color); margin:10px 0; font-weight:bold;">${counts.total}</div>
+                            <div style="color:#64748b;">فعل مسجل</div>
+                        </div>
+                        <div class="summary-row"><span class="summary-label">ماضٍ</span><span class="summary-value">${counts.madi}</span></div>
+                        <div class="summary-row"><span class="summary-label">مضارع</span><span class="summary-value">${counts.mudari}</span></div>
+                        <div class="summary-row"><span class="summary-label">أمر</span><span class="summary-value">${counts.amr}</span></div>
+                    </div>
+                `;
+                reportBody.innerHTML = summaryHTML;
+
+                // --- Search Input in Report ---
+                const searchInput = document.createElement('input');
+                searchInput.type = 'text';
+                searchInput.placeholder = 'بحث في التقرير...';
+                searchInput.className = 'leaf-input';
+                searchInput.style.width = '100%';
+                searchInput.style.marginBottom = '15px';
+                searchInput.addEventListener('input', (e) => {
+                    const term = e.target.value.toLowerCase();
+                    const lists = document.querySelectorAll('.report-verb-list');
+                    
+                    lists.forEach(list => {
+                        const rows = list.querySelectorAll('.report-verb-row');
+                        let hasMatch = false;
+                        rows.forEach(row => {
+                            const text = row.innerText.toLowerCase();
+                            if (text.includes(term)) {
+                                row.style.display = 'flex';
+                                hasMatch = true;
+                            } else {
+                                row.style.display = 'none';
+                            }
+                        });
+                        
+                        const itemDiv = list.closest('.report-item');
+                        if (term === '') {
+                            list.classList.remove('expanded');
+                            itemDiv.style.display = 'block';
+                            const icon = itemDiv.querySelector('.toggle-icon');
+                            if(icon) icon.innerText = '▼ عرض';
+                        } else {
+                            if (hasMatch) {
+                                itemDiv.style.display = 'block';
+                                list.classList.add('expanded');
+                                const icon = itemDiv.querySelector('.toggle-icon');
+                                if(icon) icon.innerText = '▲ إخفاء';
+                            } else {
+                                itemDiv.style.display = 'none';
+                            }
+                        }
+                    });
+                });
+                reportBody.appendChild(searchInput);
+
+                const hasData = Object.values(data).some(arr => arr.length > 0);
+                if (!hasData) {
+                    reportBody.innerHTML += '<div style="text-align:center; padding:20px;">لا توجد ملاحظات مسجلة.</div>';
+                    reportModal.classList.add('active');
+                    return;
+                }
+
+                // Render Grouped Data
+                for (const [path, notesArray] of Object.entries(data)) {
+                    if (notesArray.length === 0) continue;
+                    
+                    const listContainer = document.createElement('div');
+                    listContainer.className = 'report-verb-list';
+
+                    notesArray.forEach((noteText, index) => {
+                        const verbRow = document.createElement('div');
+                        verbRow.className = 'report-verb-row';
+                        
+                        const textDiv = document.createElement('div');
+                        textDiv.className = 'report-verb-text';
+                        textDiv.innerText = `${index + 1}. ${noteText}`; // Add numbering
+                        
+                        const actionsDiv = document.createElement('div');
+                        actionsDiv.className = 'report-verb-actions';
+                        
+                        // Edit Button
+                        const editBtn = document.createElement('button');
+                        editBtn.innerText = '✏️';
+                        editBtn.title = 'تعديل';
+                        editBtn.onclick = () => {
+                            const newText = prompt('تعديل الملاحظة:', noteText);
+                            if (newText !== null && newText.trim() !== '') {
+                                cachedNotesData[path][index] = newText.trim();
+                                saveAllNotes();
+                                document.getElementById('show-report-btn').click(); // Refresh Report
+                                loadAllNotes(); // Refresh Main UI
+                            }
+                        };
+
+                        // Delete Button
+                        const delBtn = document.createElement('button');
+                        delBtn.innerText = '🗑️';
+                        delBtn.title = 'حذف';
+                        delBtn.onclick = () => {
+                            if (confirm('هل أنت متأكد؟')) {
+                                cachedNotesData[path].splice(index, 1);
+                                saveAllNotes();
+                                document.getElementById('show-report-btn').click(); // Refresh Report
+                                loadAllNotes(); // Refresh Main UI
+                            }
+                        };
+
+                        actionsDiv.appendChild(editBtn);
+                        actionsDiv.appendChild(delBtn);
+                        
+                        verbRow.appendChild(textDiv);
+                        verbRow.appendChild(actionsDiv);
+                        listContainer.appendChild(verbRow);
+                    });
+
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'report-item';
+                    
+                    // Header with Toggle
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = 'report-path';
+                    headerDiv.innerHTML = `<span>🔹 ${path} <span style="font-size:0.9em; color:#64748b; font-weight:normal;">(${notesArray.length} دانە)</span></span> <span class="toggle-icon">▼ عرض</span>`;
+                    headerDiv.onclick = () => {
+                        listContainer.classList.toggle('expanded');
+                        const icon = headerDiv.querySelector('.toggle-icon');
+                        icon.innerText = listContainer.classList.contains('expanded') ? '▲ إخفاء' : '▼ عرض';
+                    };
+
+                    itemDiv.appendChild(headerDiv);
+                    itemDiv.appendChild(listContainer);
+                    reportBody.appendChild(itemDiv);
+                }
+
+                // Add Share to Telegram Button
+                const shareBtn = document.createElement('button');
+                shareBtn.className = 'share-btn';
+                shareBtn.innerHTML = '📤 مشاركة عبر تيليجرام';
+                
+                // Function to generate report text
+                const generateReportText = (includeVerbs = false) => {
+                    let text = "📊 *تقرير تحليل سورة يوسف*\n";
+                    text += "------------------\n";
+                    text += `✅ إجمالي الأفعال: ${counts.total} فعل\n`;
+                    text += `📌 ماضٍ: ${counts.madi}\n`;
+                    text += `📌 مضارع: ${counts.mudari}\n`;
+                    text += `📌 أمر: ${counts.amr}\n\n`;
+                    
+                    if (hasData) {
+                        text += "📝📝📝📝 *ملاحظات:* \n\n";
+                        for (const [path, items] of Object.entries(data)) {
+                            if (items.length === 0) continue;
+                            text += `🔹 ${path} (${items.length})\n`;
+                            if (includeVerbs) {
+                                items.forEach((noteText, idx) => {
+                                    text += `   ${idx + 1}. ${noteText}\n`;
+                                });
+                                text += "------------------\n";
+                            }
+                        }
+                    } else {
+                        text += "لا توجد ملاحظات مسجلة.\n";
+                    }
+                    return text;
+                };
+
+                shareBtn.addEventListener('click', () => {
+                    const text = generateReportText(false); // No verbs for Telegram
+                    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
+                    window.open(telegramUrl, '_blank');
+                });
+                reportBody.appendChild(shareBtn);
+
+                // Add Copy Button (For large reports)
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-btn';
+                copyBtn.innerHTML = '📋 نسخ التقرير';
+                copyBtn.onclick = () => {
+                    const text = generateReportText(false); // No verbs for Copy
+                    navigator.clipboard.writeText(text).then(() => alert('تم نسخ التقرير! اذهب الآن إلى مجموعة التيليجرام وقم باللصق.'));
+                };
+                reportBody.appendChild(copyBtn);
+
+                // Add TXT Download Button (Best for large reports)
+                const txtBtn = document.createElement('button');
+                txtBtn.className = 'txt-btn';
+                txtBtn.innerHTML = '📄 تحميل التقرير (ملف نصي)';
+                txtBtn.onclick = () => {
+                    const text = generateReportText(true); // Keep verbs for TXT
+                    const blob = new Blob([text], {type: 'text/plain'});
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Report_Yusuf_${new Date().toISOString().slice(0,10)}.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                };
+                reportBody.appendChild(txtBtn);
+
+                reportModal.classList.add('active');
+            });
+            
+            // Grading Logic
+            gradeBtn.addEventListener('click', () => {
+                const rows = document.querySelectorAll('.report-verb-row');
+                const lists = document.querySelectorAll('.report-verb-list');
+                
+                // Expand all lists to show results
+                lists.forEach(l => l.classList.add('expanded'));
+                document.querySelectorAll('.toggle-icon').forEach(i => i.innerText = '▲ إخفاء');
+
+                // Helper function to remove Arabic diacritics (tashkeel) for comparison
+                function removeDiacritics(text) {
+                    if (!text) return "";
+                    // This regex removes vowel marks, shadda, sukun, tatweel, etc.
+                    return text.replace(/[\u064B-\u0652\u0640\u0670\u0674\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED]/g, '');
+                }
+
+                // Build Reverse Lookup Map with normalized verbs for Fast Checking
+                const verbToPath = {};
+                for (const [path, verbs] of Object.entries(MASTER_KEY)) {
+                    verbs.forEach(v => {
+                        verbToPath[removeDiacritics(v.trim())] = path;
+                    });
+                }
+
+                rows.forEach(row => {
+                    const textDiv = row.querySelector('.report-verb-text');
+                    // Extract verb text, ignoring numbering and any previous correction hints
+                    let verb = textDiv.innerText.split('\n')[0].replace(/^\d+\.\s*/, '').trim();
+                    let normalizedVerb = removeDiacritics(verb);
+                    
+                    // Find current path of this row
+                    const listContainer = row.closest('.report-verb-list');
+                    const itemDiv = listContainer.closest('.report-item');
+                    const currentPathText = itemDiv.querySelector('.report-path span').innerText;
+                    // Fix: Correctly parse path by removing the count part `(X دانە)`, instead of splitting by '(' which fails for paths containing parentheses.
+                    let currentPath = currentPathText.replace(/^🔹\s*/, '').replace(/\s*\(\d+\s*دانە\)$/, '').trim();
+
+                    // Check correctness using normalized versions
+                    const correctVerbsForThisPath = MASTER_KEY[currentPath] || [];
+                    const normalizedCorrectVerbs = correctVerbsForThisPath.map(v => removeDiacritics(v));
+                    
+                    if (normalizedCorrectVerbs.includes(normalizedVerb)) {
+                        // Correct!
+                        row.classList.add('correct');
+                        row.classList.remove('wrong');
+                        const existingHint = row.querySelector('.correction-hint');
+                        if (existingHint) existingHint.remove();
+                    } else {
+                        // Wrong
+                        row.classList.add('wrong');
+                        row.classList.remove('correct');
+                        
+                        let correctPath = verbToPath[normalizedVerb];
+                        let hintText = correctPath 
+                            ? `❌ خطأ! الصواب: ${correctPath}`
+                            : `⚠️ غير موجود في نموذج الإجابة (تأكد من الإملاء)`;
+
+                        let hintElement = row.querySelector('.correction-hint');
+                        if (!hintElement) {
+                            hintElement = document.createElement('span');
+                            hintElement.className = 'correction-hint';
+                            textDiv.appendChild(hintElement);
+                        }
+                        hintElement.innerText = hintText;
+                    }
+                });
+                
+                gradeBtn.style.display = 'none'; // Hide button after grading
+                showToast("✅ تم تصحيح الإجابات!", 3000);
+            });
+
+            document.getElementById('close-report').addEventListener('click', () => {
+                reportModal.classList.remove('active');
+            });
+
+            // Help Modal Logic
+            const helpModal = document.getElementById('help-modal');
+            document.getElementById('help-btn').addEventListener('click', () => {
+                helpModal.classList.add('active');
+            });
+            document.getElementById('close-help').addEventListener('click', () => {
+                helpModal.classList.remove('active');
+            });
+
+        });
+    </script>
+
+</body>
+</html>
