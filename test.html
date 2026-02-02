@@ -1571,18 +1571,24 @@
                 lists.forEach(l => l.classList.add('expanded'));
                 document.querySelectorAll('.toggle-icon').forEach(i => i.innerText = '▲ إخفاء');
 
-                // Helper function to remove Arabic diacritics (tashkeel) for comparison
-                function removeDiacritics(text) {
+                // Advanced helper function to normalize Arabic text for forgiving comparison
+                // This handles diacritics (tashkeel) and common spelling variations (hamza, ta marbuta, etc.)
+                function normalizeForGrading(text) {
                     if (!text) return "";
-                    // This regex removes vowel marks, shadda, sukun, tatweel, etc.
-                    return text.replace(/[\u064B-\u0652\u0640\u0670\u0674\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED]/g, '');
+                    return text
+                        .replace(/[\u064B-\u0652\u0640\u0670\u0674\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED]/g, '') // 1. Remove diacritics
+                        .replace(/[أإآ]/g, 'ا') // 2. Unify Alef forms
+                        .replace(/ى/g, 'ي')    // 3. Unify Alef Maqsura to Ya
+                        .replace(/ة/g, 'ه')    // 4. Unify Ta Marbuta to Ha
+                        .replace(/ؤ/g, 'و')    // 5. Unify Hamza on Waw to Waw
+                        .replace(/ئ/g, 'ي');   // 6. Unify Hamza on Ya to Ya
                 }
 
                 // Build Reverse Lookup Map with normalized verbs for Fast Checking
                 const verbToPath = {};
                 for (const [path, verbs] of Object.entries(MASTER_KEY)) {
                     verbs.forEach(v => {
-                        verbToPath[removeDiacritics(v.trim())] = path;
+                        verbToPath[normalizeForGrading(v.trim())] = path;
                     });
                 }
 
@@ -1590,7 +1596,7 @@
                     const textDiv = row.querySelector('.report-verb-text');
                     // Extract verb text, ignoring numbering and any previous correction hints
                     let verb = textDiv.innerText.split('\n')[0].replace(/^\d+\.\s*/, '').trim();
-                    let normalizedVerb = removeDiacritics(verb);
+                    let normalizedVerb = normalizeForGrading(verb);
                     
                     // Find current path of this row
                     const listContainer = row.closest('.report-verb-list');
@@ -1601,7 +1607,7 @@
 
                     // Check correctness using normalized versions
                     const correctVerbsForThisPath = MASTER_KEY[currentPath] || [];
-                    const normalizedCorrectVerbs = correctVerbsForThisPath.map(v => removeDiacritics(v));
+                    const normalizedCorrectVerbs = correctVerbsForThisPath.map(v => normalizeForGrading(v));
                     
                     if (normalizedCorrectVerbs.includes(normalizedVerb)) {
                         // Correct!
