@@ -1627,6 +1627,7 @@
                 let totalSpelling = 0;
                 let totalMissing = 0;
                 let totalExtra = 0;
+                let totalUserAnswers = 0;
 
                 const pathStats = {}; 
                 // Initialize pathStats
@@ -1635,6 +1636,7 @@
                 }
 
                 rows.forEach(row => {
+                    totalUserAnswers++;
                     const textDiv = row.querySelector('.report-verb-text');
                     // Extract verb text, ignoring numbering and any previous correction hints
                     let verb = textDiv.innerText.split('\n')[0].replace(/^\d+\.\s*/, '').trim();
