@@ -1477,6 +1477,7 @@
 
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'report-item';
+                    itemDiv.dataset.path = path; // Store path for accurate grading
                     
                     // Header with Toggle
                     const headerDiv = document.createElement('div');
@@ -1586,6 +1587,9 @@
 
             // Grading Logic
             gradeBtn.addEventListener('click', () => {
+                // 1. Reset Headers (Remove old status badges)
+                document.querySelectorAll('.report-status-badge').forEach(el => el.remove());
+
                 const rows = document.querySelectorAll('.report-verb-row');
                 const lists = document.querySelectorAll('.report-verb-list');
                 
@@ -1614,6 +1618,9 @@
                     });
                 }
 
+                // Track correct counts per path to check for missing items
+                const pathCorrectCounts = {};
+
                 rows.forEach(row => {
                     const textDiv = row.querySelector('.report-verb-text');
                     // Extract verb text, ignoring numbering and any previous correction hints
@@ -1623,9 +1630,7 @@
                     // Find current path of this row
                     const listContainer = row.closest('.report-verb-list');
                     const itemDiv = listContainer.closest('.report-item');
-                    const currentPathText = itemDiv.querySelector('.report-path span').innerText;
-                    // Fix: Correctly parse path by removing the count part `(X دانە)`, instead of splitting by '(' which fails for paths containing parentheses.
-                    let currentPath = currentPathText.replace(/^🔹\s*/, '').replace(/\s*\(\d+\s*دانە\)$/, '').trim();
+                    const currentPath = itemDiv.dataset.path; // Use dataset for accuracy
 
                     // Check correctness using normalized versions
                     const correctVerbsForThisPath = MASTER_KEY[currentPath] || [];
@@ -1650,6 +1655,9 @@
                         row.classList.remove('wrong');
                         const existingHint = row.querySelector('.correction-hint');
                         if (existingHint) existingHint.remove();
+                        
+                        // Count correct answers for this path
+                        pathCorrectCounts[currentPath] = (pathCorrectCounts[currentPath] || 0) + 1;
                     } else {
                         // Wrong - Now with smarter hints for typos
                         row.classList.add('wrong');
@@ -1677,12 +1685,43 @@
 
                         let hintText = correctPath 
                             ? `❌ خطأ! الصواب: ${correctPath}`
-                            : `⚠️ غير موجود في نموذج الإجابة (تأكد من الإملاء)`;
+                            : `⚠️ خەلەتە! (ئەڤە یا زێدەیە)`;
 
                         let hintElement = row.querySelector('.correction-hint');
                         if (!hintElement) { hintElement = document.createElement('span'); hintElement.className = 'correction-hint'; textDiv.appendChild(hintElement); }
                         hintElement.innerText = hintText;
                     }
+                });
+
+                // Check for Missing Answers (Under-answering)
+                document.querySelectorAll('.report-item').forEach(itemDiv => {
+                    const currentPath = itemDiv.dataset.path;
+                    const pathSpan = itemDiv.querySelector('.report-path span');
+                    
+                    const totalExpected = (MASTER_KEY[currentPath] || []).length;
+                    const userCorrect = pathCorrectCounts[currentPath] || 0;
+
+                    const statusSpan = document.createElement('span');
+                    statusSpan.className = 'report-status-badge';
+                    statusSpan.style.marginRight = '10px';
+                    statusSpan.style.fontSize = '0.85rem';
+                    statusSpan.style.fontWeight = 'bold';
+
+                    if (totalExpected > 0) {
+                        const missing = totalExpected - userCorrect;
+                        if (missing > 0) {
+                            statusSpan.style.color = '#d97706'; // Orange
+                            statusSpan.innerText = `(هێشتا ${missing} پێتڤینە)`;
+                        } else {
+                            statusSpan.style.color = '#10b981'; // Green
+                            statusSpan.innerText = `(تەمامە ✅)`;
+                        }
+                    } else {
+                        // Path not in Master Key (Extra Category)
+                        statusSpan.style.color = '#ef4444';
+                        statusSpan.innerText = `(ئەڤ بەشە یا زێدەیە ❌)`;
+                    }
+                    pathSpan.appendChild(statusSpan);
                 });
                 
                 gradeBtn.style.display = 'none'; // Hide button after grading
