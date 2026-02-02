@@ -1589,6 +1589,10 @@
             gradeBtn.addEventListener('click', () => {
                 // 1. Reset Headers (Remove old status badges)
                 document.querySelectorAll('.report-status-badge').forEach(el => el.remove());
+                document.querySelectorAll('.correction-hint').forEach(el => el.remove());
+                document.querySelectorAll('.report-verb-row').forEach(el => {
+                    el.classList.remove('correct', 'wrong');
+                });
 
                 const rows = document.querySelectorAll('.report-verb-row');
                 const lists = document.querySelectorAll('.report-verb-list');
@@ -1602,7 +1606,8 @@
                 function normalizeForGrading(text) {
                     if (!text) return "";
                     return text
-                        .replace(/[\u064B-\u0652\u0640\u0670\u0674\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED]/g, '') // 1. Remove diacritics
+                        .replace(/[.,،;:\-!؟?"'()\[\]]/g, '') // Remove punctuation
+                        .replace(/[\u064B-\u0652\u0640\u0670\u0674\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED\u200c\u200d]/g, '') // 1. Remove diacritics & hidden chars
                         .replace(/[أإآ]/g, 'ا') // 2. Unify Alef forms
                         .replace(/ى/g, 'ي')    // 3. Unify Alef Maqsura to Ya
                         .replace(/ة/g, 'ه')    // 4. Unify Ta Marbuta to Ha
@@ -1613,11 +1618,21 @@
                 // Prepare available answers pool to handle duplicates correctly
                 const availableAnswers = {};
                 for (const [key, val] of Object.entries(MASTER_KEY)) {
-                    availableAnswers[key] = [...val]; // Clone array
+                    availableAnswers[key] = val.map(v => ({ text: v, used: false }));
                 }
 
-                // Track correct counts per path to check for missing items
-                const pathCorrectCounts = {};
+                // Stats
+                let totalCorrect = 0;
+                let totalWrong = 0;
+                let totalSpelling = 0;
+                let totalMissing = 0;
+                let totalExtra = 0;
+
+                const pathStats = {}; 
+                // Initialize pathStats
+                for (const path of Object.keys(MASTER_KEY)) {
+                    pathStats[path] = { correct: 0, wrong: 0, spelling: 0, missing: 0, extra: 0 };
+                }
 
                 rows.forEach(row => {
                     const textDiv = row.querySelector('.report-verb-text');
@@ -1630,25 +1645,33 @@
                     const itemDiv = listContainer.closest('.report-item');
                     const currentPath = itemDiv.dataset.path; // Use dataset for accuracy
 
+                    if (!pathStats[currentPath]) {
+                         pathStats[currentPath] = { correct: 0, wrong: 0, spelling: 0, missing: 0, extra: 0 };
+                    }
+
                     // Check against available pool for this path
                     const pool = availableAnswers[currentPath] || [];
                     let matchIndex = -1;
                     let isSpelling = false;
                     
                     // 1. Try Exact Match first
-                    matchIndex = pool.findIndex(v => normalizeForGrading(v) === normalizedVerb);
+                    matchIndex = pool.findIndex(item => !item.used && normalizeForGrading(item.text) === normalizedVerb);
 
                     // 2. If not found, try Fuzzy Match (Spelling)
                     if (matchIndex === -1) {
                         let bestDist = 3; // Max allowed distance
                         let bestIdx = -1;
                         
-                        pool.forEach((v, idx) => {
-                            const dist = levenshtein(normalizedVerb, normalizeForGrading(v));
-                            const threshold = v.length <= 4 ? 1 : 2; // Stricter for short words
-                            if (dist <= threshold && dist < bestDist) {
-                                bestDist = dist;
-                                bestIdx = idx;
+                        pool.forEach((item, idx) => {
+                            if (!item.used) {
+                                const normItem = normalizeForGrading(item.text);
+                                const dist = levenshtein(normalizedVerb, normItem);
+                                // STRICTER THRESHOLD: Exact match for short words (<=3), 1 error for others
+                                const threshold = normItem.length <= 3 ? 0 : 1; 
+                                if (dist <= threshold && dist < bestDist) {
+                                    bestDist = dist;
+                                    bestIdx = idx;
+                                }
                             }
                         });
 
@@ -1660,36 +1683,55 @@
 
                     if (matchIndex !== -1) {
                         // Correct Answer Found
-                        pool.splice(matchIndex, 1); // Remove from pool (Consume it)
+                        pool[matchIndex].used = true; // Mark as used
                         
                         row.classList.add('correct');
                         row.classList.remove('wrong');
-                        const existingHint = row.querySelector('.correction-hint');
-                        if (existingHint) existingHint.remove();
+                        pathStats[currentPath].correct++;
+                        totalCorrect++;
                         
                         // Add hint if spelling mistake
                         if (isSpelling) {
+                            pathStats[currentPath].spelling++;
+                            totalSpelling++;
                             let hintElement = document.createElement('span'); 
                             hintElement.className = 'correction-hint'; 
                             hintElement.style.color = '#d97706'; // Orange for warning
-                            hintElement.innerText = `⚠️ خەلەتیا ئیملایە (Spelling)`;
+                            hintElement.innerText = `⚠️ خەلەتیا ئیملایە (دروست: ${pool[matchIndex].text})`;
                             textDiv.appendChild(hintElement);
                         }
-
-                        // Count correct answers for this path
-                        pathCorrectCounts[currentPath] = (pathCorrectCounts[currentPath] || 0) + 1;
                     } else {
                         // Wrong Answer
                         row.classList.add('wrong');
                         row.classList.remove('correct');
+                        pathStats[currentPath].wrong++;
+                        totalWrong++;
                         
                         // Check if it was a duplicate (Correct word but already used)
-                        const originalList = MASTER_KEY[currentPath] || [];
-                        const isDuplicate = originalList.some(v => normalizeForGrading(v) === normalizedVerb);
+                        const isDuplicate = (availableAnswers[currentPath] || []).some(item => item.used && normalizeForGrading(item.text) === normalizedVerb);
                         
-                        let hintText = isDuplicate 
-                            ? `⚠️ خەلەتە! (ئەڤە یا زێدەیە - Duplicate)`
-                            : `⚠️ خەلەتە! (ئەڤە یا زێدەیە)`;
+                        // Check if it belongs to another category (Cross-Check)
+                        let otherCategory = null;
+                        if (!isDuplicate) {
+                            for (const [otherPath, otherPool] of Object.entries(availableAnswers)) {
+                                if (otherPath === currentPath) continue;
+                                if (otherPool.some(i => normalizeForGrading(i.text) === normalizedVerb)) {
+                                    otherCategory = otherPath;
+                                    break;
+                                }
+                            }
+                        }
+
+                        let hintText = "";
+                        if (isDuplicate) {
+                            hintText = `⚠️ خەلەتە! (ئەڤە یا زێدەیە - Duplicate)`;
+                        } else if (otherCategory) {
+                            hintText = `⚠️ خەلەتە! (ئەڤە یا بەشێ: "${otherCategory}" یە)`;
+                        } else {
+                            hintText = `⚠️ خەلەتە! (ئەڤە یا زێدەیە)`;
+                            pathStats[currentPath].extra++;
+                            totalExtra++;
+                        }
 
                         let hintElement = row.querySelector('.correction-hint');
                         if (!hintElement) { hintElement = document.createElement('span'); hintElement.className = 'correction-hint'; textDiv.appendChild(hintElement); }
@@ -1697,39 +1739,70 @@
                     }
                 });
 
+                // Calculate Missing
+                for (const [path, items] of Object.entries(availableAnswers)) {
+                    const unusedCount = items.filter(i => !i.used).length;
+                    if (pathStats[path]) {
+                        pathStats[path].missing = unusedCount;
+                    }
+                    totalMissing += unusedCount;
+                }
+
                 // Check for Missing Answers (Under-answering)
                 document.querySelectorAll('.report-item').forEach(itemDiv => {
                     const currentPath = itemDiv.dataset.path;
                     const pathSpan = itemDiv.querySelector('.report-path span');
+                    const stats = pathStats[currentPath];
                     
-                    const totalExpected = (MASTER_KEY[currentPath] || []).length;
-                    const userCorrect = pathCorrectCounts[currentPath] || 0;
+                    if (stats) {
+                        const statusSpan = document.createElement('span');
+                        statusSpan.className = 'report-status-badge';
+                        statusSpan.style.marginRight = '10px';
+                        statusSpan.style.fontSize = '0.85rem';
+                        statusSpan.style.fontWeight = 'bold';
 
-                    const statusSpan = document.createElement('span');
-                    statusSpan.className = 'report-status-badge';
-                    statusSpan.style.marginRight = '10px';
-                    statusSpan.style.fontSize = '0.85rem';
-                    statusSpan.style.fontWeight = 'bold';
-
-                    if (totalExpected > 0) {
-                        const missing = totalExpected - userCorrect;
-                        if (missing > 0) {
+                        if (stats.missing > 0) {
                             statusSpan.style.color = '#d97706'; // Orange
-                            statusSpan.innerText = `(هێشتا ${missing} پێتڤینە)`;
-                        } else {
+                            statusSpan.innerText = `(هێشتا ${stats.missing} پێتڤینە)`;
+                        } else if (stats.wrong === 0) {
                             statusSpan.style.color = '#10b981'; // Green
                             statusSpan.innerText = `(تەمامە ✅)`;
+                        } else {
+                            statusSpan.style.color = '#ef4444';
+                            statusSpan.innerText = `(تەمامە بەلێ خەلەتی تێدانە)`;
                         }
-                    } else {
-                        // Path not in Master Key (Extra Category)
-                        statusSpan.style.color = '#ef4444';
-                        statusSpan.innerText = `(ئەڤ بەشە یا زێدەیە ❌)`;
+                        pathSpan.appendChild(statusSpan);
                     }
-                    pathSpan.appendChild(statusSpan);
                 });
                 
+                // Show Summary at Top
+                const summaryDiv = document.createElement('div');
+                summaryDiv.className = 'report-summary';
+                summaryDiv.style.border = '2px solid #3b82f6';
+                summaryDiv.style.backgroundColor = '#eff6ff';
+                summaryDiv.innerHTML = `
+                    <div class="summary-header">
+                        <div style="font-size:1.2rem; font-weight:bold; color:#1e3a8a;">ئەنجامێ کۆتایی (Result)</div>
+                    </div>
+                    <div class="summary-row"><span class="summary-label">دروست (Correct):</span><span class="summary-value" style="color:#10b981">${totalCorrect}</span></div>
+                    <div class="summary-row"><span class="summary-label">خەلەتیێن ئیملای (Spelling):</span><span class="summary-value" style="color:#d97706">${totalSpelling}</span></div>
+                    <div class="summary-row"><span class="summary-label">خەلەت/زێدە (Wrong/Extra):</span><span class="summary-value" style="color:#ef4444">${totalWrong}</span></div>
+                    <div class="summary-row"><span class="summary-label">کێم (Missing):</span><span class="summary-value" style="color:#f59e0b">${totalMissing}</span></div>
+                `;
+                
+                const reportBody = document.getElementById('report-body');
+                // Remove old summary if exists (to avoid duplicates)
+                const oldSummaries = reportBody.querySelectorAll('.report-summary');
+                oldSummaries.forEach(s => s.remove());
+                
+                // Insert at top
+                reportBody.insertBefore(summaryDiv, reportBody.firstChild);
+
                 gradeBtn.style.display = 'none'; // Hide button after grading
                 showToast("✅ تم تصحيح الإجابات!", 3000);
+                
+                // Scroll to top
+                document.querySelector('.modal-content').scrollTop = 0;
             });
 
             document.getElementById('close-report').addEventListener('click', () => {
