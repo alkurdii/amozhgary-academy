@@ -715,6 +715,15 @@
             color: black !important;
             border-color: #eab308 !important;
         }
+        
+        /* Grading Styles */
+        .report-verb-row.correct { background-color: #dcfce7; border-color: #86efac; }
+        .report-verb-row.correct .report-verb-text { color: #166534; }
+        
+        .report-verb-row.wrong { background-color: #fee2e2; border-color: #fca5a5; }
+        .report-verb-row.wrong .report-verb-text { color: #991b1b; }
+        
+        .correction-hint { display: block; font-size: 0.85rem; color: #b91c1c; margin-top: 4px; font-weight: bold; }
     </style>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -884,6 +893,7 @@
         <div class="modal-content">
             <button class="close-modal" id="close-report">إغلاق</button>
             <div class="report-title">تقرير تحليل سورة يوسف</div>
+            <button id="grade-btn" class="add-note-btn" style="width:100%; margin-bottom:15px; background-color:#8b5cf6; display:none;">✅ تصحيح الإجابات (مقارنة مع الحل)</button>
             <div id="report-body"></div>
         </div>
     </div>
@@ -1301,6 +1311,28 @@
             // Report Logic
             const reportModal = document.getElementById('report-modal');
             const reportBody = document.getElementById('report-body');
+            const gradeBtn = document.getElementById('grade-btn');
+            
+            // Master Key for Grading (حلول سورة يوسف - أول 30 آية)
+            const MASTER_KEY = {
+                "مضارع مجزوم وعلامة جزمه حذف حرف العلة لأنه معتل الآخر": ["يخل"],
+                "مضارع مجزوم وعلامة جزمه السكون": ["لا تقصص", "يلتقطه", "يرتع", "يلعب"],
+                "مضارع مرفوع وعلامة رفعه ثبوت النون": ["تعقلون", "يشعرون", "يبكون", "تصفون", "يعملون", "يعلمون"],
+                "ماضٍ مبني على الفتح لأنه لم يتصل بآخره شيء": ["قال", "أتمها", "كان", "قال", "قال", "أكله", "فأكله", "سولت", "جاءت", "فأدلى", "قال", "اشترى", "بلغ", "راودت", "غلقت", "قالت", "قال", "أحسن", "همت", "هم", "رأى", "استبقا", "قدت", "ألفيا", "قالت", "أراد", "راودتني", "شهد", "كان", "قد", "صدقت", "كان", "قد", "كذبت", "رأى", "قد", "قال", "قال", "شغفها"],
+                "ماضٍ مبني على الضم لاتصاله بواو الجماعة": ["قالوا", "قالوا", "ذهبوا", "أجمعوا", "جاءوا", "قالوا", "وجاءوا", "ارسلوا", "أسروه", "شروه", "كانوا"],
+                "أمر مبني على حذف النون لاتصاله بـ ياء المخاطبة": ["أكرمي", "استغفري"],
+                "أمر مبني على السكون": ["أرسله", "أعرض"],
+                "مضارع منصوب وعلامة نصبه الفتحة الظاهرة": ["يأكله", "ينفعنا", "نتخذه", "ولنعلمه", "لنصرف", "يسجن"],
+                "مضارع منصوب وعلامة نصبه حذف النون": ["فيكيدوا", "تذهبوا", "أن يجعلوه"],
+                "مضارع مرفوع وعلامة رفعه الضمة المقدرة على (الواو) أو (الياء) للثقل": ["يجتبيك", "نجزي"],
+                "أمر مبني على حذف النون لاتصاله بـ واو الجماعة": ["اقتلوا", "اطرحوا", "ألقوا"],
+                "مضارع مرفوع وعلامة رفعه الضمة المقدرة على الألف للتعذر": ["لنراها"],
+                "مضارع مبني على الفتح لاتصاله بنون التوكيد الثقيلة": ["لتنبأنّهم"],
+                "ماضٍ مبني على السكون لاتصاله بـ تاء الفاعل": ["كنت", "رأيت", "رأيتهم", "كنتم", "كنت"],
+                "ماضٍ مبني على السكون لاتصاله بـ نا الفاعلين": ["أنزلنا", "أوحينا", "أوحينا", "ذهبنا", "تركنا", "مكنا", "آتيناه", "كنا"],
+                "مضارع مرفوع وعلامة رفعه الضمة الظاهرة": ["نقص", "يعلمك", "يتم", "تأمنّا", "يحزنني", "نستبق", "يفلح", "تراود", "أخاف"],
+                "مضارع مجزوم وعلامة جزمه حذف النون لأنه من الأفعال الخمسة": ["تكونوا", "لا تقتلوا"]
+            };
             
             document.getElementById('show-report-btn').addEventListener('click', () => {
                 reportBody.innerHTML = '';
@@ -1321,6 +1353,8 @@
                     else if (path.includes('مضارع')) counts.mudari += count;
                     else if (path.includes('أمر')) counts.amr += count;
                 }
+                
+                gradeBtn.style.display = 'block'; // Show grade button
 
                 // Add Summary Section
                 const summaryHTML = `
@@ -1395,12 +1429,7 @@
                     const listContainer = document.createElement('div');
                     listContainer.className = 'report-verb-list';
 
-                    // Show only last 5 (دوماهیک ٥ یێل راپورت دیاربن)
-                    const startIndex = Math.max(0, notesArray.length - 5);
-                    const visibleNotes = notesArray.slice(startIndex);
-
-                    visibleNotes.forEach((noteText, relativeIndex) => {
-                        const index = startIndex + relativeIndex;
+                    notesArray.forEach((noteText, index) => {
                         const verbRow = document.createElement('div');
                         verbRow.className = 'report-verb-row';
                         
@@ -1448,6 +1477,7 @@
 
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'report-item';
+                    itemDiv.dataset.path = path; // Store path for accurate grading
                     
                     // Header with Toggle
                     const headerDiv = document.createElement('div');
@@ -1531,6 +1561,269 @@
                 reportBody.appendChild(txtBtn);
 
                 reportModal.classList.add('active');
+            });
+            
+            // Levenshtein distance function for typo tolerance (مەودای لێڤێنشتاین)
+            // This function calculates the number of edits (insertions, deletions, or substitutions)
+            // required to change one word into the other. It helps forgive small spelling mistakes.
+            function levenshtein(a, b) {
+                if (a.length === 0) return b.length;
+                if (b.length === 0) return a.length;
+                const matrix = [];
+                for (let i = 0; i <= b.length; i++) { matrix[i] = [i]; }
+                for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
+                for (let i = 1; i <= b.length; i++) {
+                    for (let j = 1; j <= a.length; j++) {
+                        const cost = b.charAt(i - 1) === a.charAt(j - 1) ? 0 : 1;
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + cost, // substitution
+                            matrix[i][j - 1] + 1,        // insertion
+                            matrix[i - 1][j] + 1         // deletion
+                        );
+                    }
+                }
+                return matrix[b.length][a.length];
+            }
+
+            // Grading Logic
+            gradeBtn.addEventListener('click', () => {
+                // 1. Reset Headers (Remove old status badges)
+                document.querySelectorAll('.report-status-badge').forEach(el => el.remove());
+                document.querySelectorAll('.correction-hint').forEach(el => el.remove());
+                document.querySelectorAll('.report-verb-row').forEach(el => {
+                    el.classList.remove('correct', 'wrong');
+                });
+
+                const rows = document.querySelectorAll('.report-verb-row');
+                const lists = document.querySelectorAll('.report-verb-list');
+                
+                // Expand all lists to show results
+                lists.forEach(l => l.classList.add('expanded'));
+                document.querySelectorAll('.toggle-icon').forEach(i => i.innerText = '▲ إخفاء');
+
+                // Advanced helper function to normalize Arabic text for forgiving comparison
+                // This handles diacritics (tashkeel) and common spelling variations (hamza, ta marbuta, etc.)
+                function normalizeForGrading(text) {
+                    if (!text) return "";
+                    return text
+                        .replace(/[.,،;:\-!؟?"'()\[\]]/g, '') // Remove punctuation
+                        .replace(/[\u064B-\u0652\u0640\u0670\u0674\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED\u200c\u200d]/g, '') // 1. Remove diacritics & hidden chars
+                        .replace(/[أإآ]/g, 'ا') // 2. Unify Alef forms
+                        .replace(/ى/g, 'ي')    // 3. Unify Alef Maqsura to Ya
+                        .replace(/ة/g, 'ه')    // 4. Unify Ta Marbuta to Ha
+                        .replace(/ؤ/g, 'و')    // 5. Unify Hamza on Waw to Waw
+                        .replace(/ئ/g, 'ي');   // 6. Unify Hamza on Ya to Ya
+                }
+
+                // Prepare available answers pool to handle duplicates correctly
+                const availableAnswers = {};
+                for (const [key, val] of Object.entries(MASTER_KEY)) {
+                    availableAnswers[key] = val.map(v => ({ text: v, used: false }));
+                }
+
+                // Stats
+                let totalCorrect = 0;
+                let totalWrong = 0;
+                let totalSpelling = 0;
+                let totalMissing = 0;
+                let totalExtra = 0;
+                let totalUserAnswers = 0;
+
+                const pathStats = {}; 
+                // Initialize pathStats
+                for (const path of Object.keys(MASTER_KEY)) {
+                    pathStats[path] = { correct: 0, wrong: 0, spelling: 0, missing: 0, extra: 0 };
+                }
+
+                rows.forEach(row => {
+                    totalUserAnswers++;
+                    const textDiv = row.querySelector('.report-verb-text');
+                    // Extract verb text, ignoring numbering and any previous correction hints
+                    let verb = textDiv.innerText.split('\n')[0].replace(/^\d+\.\s*/, '').trim();
+                    let normalizedVerb = normalizeForGrading(verb);
+                    
+                    // Find current path of this row
+                    const listContainer = row.closest('.report-verb-list');
+                    const itemDiv = listContainer.closest('.report-item');
+                    const currentPath = itemDiv.dataset.path; // Use dataset for accuracy
+
+                    if (!pathStats[currentPath]) {
+                         pathStats[currentPath] = { correct: 0, wrong: 0, spelling: 0, missing: 0, extra: 0 };
+                    }
+
+                    // Check against available pool for this path
+                    const pool = availableAnswers[currentPath] || [];
+                    let matchIndex = -1;
+                    let isSpelling = false;
+                    
+                    // 1. Try Exact Match first
+                    matchIndex = pool.findIndex(item => !item.used && normalizeForGrading(item.text) === normalizedVerb);
+
+                    // --- NEW UPDATE: Partial Match Rules (First 3 chars OR 2nd-4th chars) ---
+                    if (matchIndex === -1) {
+                        matchIndex = pool.findIndex(item => {
+                            if (item.used) return false;
+                            const normItem = normalizeForGrading(item.text);
+                            
+                            // Rule 1: First 3 letters match (Indices 0, 1, 2)
+                            if (normalizedVerb.length >= 3 && normItem.length >= 3) {
+                                if (normalizedVerb.substring(0, 3) === normItem.substring(0, 3)) return true;
+                            }
+                            
+                            // Rule 2: 2nd, 3rd, 4th letters match (Indices 1, 2, 3)
+                            if (normalizedVerb.length >= 4 && normItem.length >= 4) {
+                                if (normalizedVerb.substring(1, 4) === normItem.substring(1, 4)) return true;
+                            }
+                            return false;
+                        });
+                    }
+
+                    // 2. If not found, try Fuzzy Match (Spelling)
+                    if (matchIndex === -1) {
+                        let bestDist = 3; // Max allowed distance
+                        let bestIdx = -1;
+                        
+                        pool.forEach((item, idx) => {
+                            if (!item.used) {
+                                const normItem = normalizeForGrading(item.text);
+                                const dist = levenshtein(normalizedVerb, normItem);
+                                // STRICTER THRESHOLD: Exact match for short words (<=3), 1 error for others
+                                const threshold = normItem.length <= 3 ? 0 : 1; 
+                                if (dist <= threshold && dist < bestDist) {
+                                    bestDist = dist;
+                                    bestIdx = idx;
+                                }
+                            }
+                        });
+
+                        if (bestIdx !== -1) {
+                            matchIndex = bestIdx;
+                            isSpelling = true;
+                        }
+                    }
+
+                    if (matchIndex !== -1) {
+                        // Correct Answer Found
+                        pool[matchIndex].used = true; // Mark as used
+                        
+                        row.classList.add('correct');
+                        row.classList.remove('wrong');
+                        pathStats[currentPath].correct++;
+                        totalCorrect++;
+                        
+                        // Add hint if spelling mistake
+                        if (isSpelling) {
+                            pathStats[currentPath].spelling++;
+                            totalSpelling++;
+                            let hintElement = document.createElement('span'); 
+                            hintElement.className = 'correction-hint'; 
+                            hintElement.style.color = '#d97706'; // Orange for warning
+                            hintElement.innerText = `⚠️ خەلەتیا ئیملایە (دروست: ${pool[matchIndex].text})`;
+                            textDiv.appendChild(hintElement);
+                        }
+                    } else {
+                        // Wrong Answer
+                        row.classList.add('wrong');
+                        row.classList.remove('correct');
+                        pathStats[currentPath].wrong++;
+                        totalWrong++;
+                        
+                        // Check if it was a duplicate (Correct word but already used)
+                        const isDuplicate = (availableAnswers[currentPath] || []).some(item => item.used && normalizeForGrading(item.text) === normalizedVerb);
+                        
+                        // Check if it belongs to another category (Cross-Check)
+                        let otherCategory = null;
+                        if (!isDuplicate) {
+                            for (const [otherPath, otherPool] of Object.entries(availableAnswers)) {
+                                if (otherPath === currentPath) continue;
+                                if (otherPool.some(i => normalizeForGrading(i.text) === normalizedVerb)) {
+                                    otherCategory = otherPath;
+                                    break;
+                                }
+                            }
+                        }
+
+                        let hintText = "";
+                        if (isDuplicate) {
+                            hintText = `⚠️ خەلەتە! (ئەڤە یا زێدەیە - Duplicate)`;
+                        } else if (otherCategory) {
+                            hintText = `⚠️ خەلەتە! (ئەڤە یا بەشێ: "${otherCategory}" یە)`;
+                        } else {
+                            hintText = `⚠️ خەلەتە! (ئەڤە یا زێدەیە)`;
+                            pathStats[currentPath].extra++;
+                            totalExtra++;
+                        }
+
+                        let hintElement = row.querySelector('.correction-hint');
+                        if (!hintElement) { hintElement = document.createElement('span'); hintElement.className = 'correction-hint'; textDiv.appendChild(hintElement); }
+                        hintElement.innerText = hintText;
+                    }
+                });
+
+                // Calculate Missing
+                for (const [path, items] of Object.entries(availableAnswers)) {
+                    const unusedCount = items.filter(i => !i.used).length;
+                    if (pathStats[path]) {
+                        pathStats[path].missing = unusedCount;
+                    }
+                    totalMissing += unusedCount;
+                }
+
+                // Check for Missing Answers (Under-answering)
+                document.querySelectorAll('.report-item').forEach(itemDiv => {
+                    const currentPath = itemDiv.dataset.path;
+                    const pathSpan = itemDiv.querySelector('.report-path span');
+                    const stats = pathStats[currentPath];
+                    
+                    if (stats) {
+                        const statusSpan = document.createElement('span');
+                        statusSpan.className = 'report-status-badge';
+                        statusSpan.style.marginRight = '10px';
+                        statusSpan.style.fontSize = '0.85rem';
+                        statusSpan.style.fontWeight = 'bold';
+
+                        if (stats.missing > 0) {
+                            statusSpan.style.color = '#d97706'; // Orange
+                            statusSpan.innerText = `(هێشتا ${stats.missing} پێتڤینە)`;
+                        } else if (stats.wrong === 0) {
+                            statusSpan.style.color = '#10b981'; // Green
+                            statusSpan.innerText = `(تەمامە ✅)`;
+                        } else {
+                            statusSpan.style.color = '#ef4444';
+                            statusSpan.innerText = `(تەمامە بەلێ خەلەتی تێدانە)`;
+                        }
+                        pathSpan.appendChild(statusSpan);
+                    }
+                });
+                
+                // Show Summary at Top
+                const summaryDiv = document.createElement('div');
+                summaryDiv.className = 'report-summary';
+                summaryDiv.style.border = '2px solid #3b82f6';
+                summaryDiv.style.backgroundColor = '#eff6ff';
+                summaryDiv.innerHTML = `
+                    <div class="summary-header">
+                        <div style="font-size:1.2rem; font-weight:bold; color:#1e3a8a;">ئەنجامێ کۆتایی (Result)</div>
+                    </div>
+                    <div class="summary-row"><span class="summary-label">دروست (Correct):</span><span class="summary-value" style="color:#10b981">${totalCorrect}</span></div>
+                    <div class="summary-row"><span class="summary-label">خەلەتیێن ئیملای (Spelling):</span><span class="summary-value" style="color:#d97706">${totalSpelling}</span></div>
+                    <div class="summary-row"><span class="summary-label">خەلەت/زێدە (Wrong/Extra):</span><span class="summary-value" style="color:#ef4444">${totalWrong}</span></div>
+                    <div class="summary-row"><span class="summary-label">کێم (Missing):</span><span class="summary-value" style="color:#f59e0b">${totalMissing}</span></div>
+                `;
+                
+                const reportBody = document.getElementById('report-body');
+                // Remove old summary if exists (to avoid duplicates)
+                const oldSummaries = reportBody.querySelectorAll('.report-summary');
+                oldSummaries.forEach(s => s.remove());
+                
+                // Insert at top
+                reportBody.insertBefore(summaryDiv, reportBody.firstChild);
+
+                gradeBtn.style.display = 'none'; // Hide button after grading
+                showToast("✅ تم تصحيح الإجابات!", 3000);
+                
+                // Scroll to top
+                document.querySelector('.modal-content').scrollTop = 0;
             });
 
             document.getElementById('close-report').addEventListener('click', () => {
