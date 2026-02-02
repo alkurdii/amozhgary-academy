@@ -1562,6 +1562,28 @@
                 reportModal.classList.add('active');
             });
             
+            // Levenshtein distance function for typo tolerance (مەودای لێڤێنشتاین)
+            // This function calculates the number of edits (insertions, deletions, or substitutions)
+            // required to change one word into the other. It helps forgive small spelling mistakes.
+            function levenshtein(a, b) {
+                if (a.length === 0) return b.length;
+                if (b.length === 0) return a.length;
+                const matrix = [];
+                for (let i = 0; i <= b.length; i++) { matrix[i] = [i]; }
+                for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
+                for (let i = 1; i <= b.length; i++) {
+                    for (let j = 1; j <= a.length; j++) {
+                        const cost = b.charAt(i - 1) === a.charAt(j - 1) ? 0 : 1;
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + cost, // substitution
+                            matrix[i][j - 1] + 1,        // insertion
+                            matrix[i - 1][j] + 1         // deletion
+                        );
+                    }
+                }
+                return matrix[b.length][a.length];
+            }
+
             // Grading Logic
             gradeBtn.addEventListener('click', () => {
                 const rows = document.querySelectorAll('.report-verb-row');
@@ -1609,28 +1631,56 @@
                     const correctVerbsForThisPath = MASTER_KEY[currentPath] || [];
                     const normalizedCorrectVerbs = correctVerbsForThisPath.map(v => normalizeForGrading(v));
                     
-                    if (normalizedCorrectVerbs.includes(normalizedVerb)) {
+                    // --- Advanced Check with Levenshtein Distance for typo tolerance ---
+                    let isSimilarEnough = false;
+                    for (const correctNormalizedVerb of normalizedCorrectVerbs) {
+                        const distance = levenshtein(normalizedVerb, correctNormalizedVerb);
+                        // Allow 1 error for words up to 5 chars, 2 for longer.
+                        // A distance of 0 is a perfect match.
+                        const threshold = correctNormalizedVerb.length <= 5 ? 1 : 2;
+                        if (distance <= threshold) {
+                            isSimilarEnough = true;
+                            break;
+                        }
+                    }
+
+                    if (isSimilarEnough) {
                         // Correct!
                         row.classList.add('correct');
                         row.classList.remove('wrong');
                         const existingHint = row.querySelector('.correction-hint');
                         if (existingHint) existingHint.remove();
                     } else {
-                        // Wrong
+                        // Wrong - Now with smarter hints for typos
                         row.classList.add('wrong');
                         row.classList.remove('correct');
                         
                         let correctPath = verbToPath[normalizedVerb];
+
+                        // If exact match fails (due to typo), find the closest match in the entire answer key
+                        if (!correctPath) {
+                            let bestMatchPath = null;
+                            let minDistanceOverall = 3; // Don't suggest if it's too different (e.g., > 2 errors)
+
+                            for (const [path, verbs] of Object.entries(MASTER_KEY)) {
+                                for (const verb of verbs) {
+                                    const normalizedMasterVerb = normalizeForGrading(verb);
+                                    const distance = levenshtein(normalizedVerb, normalizedMasterVerb);
+                                    if (distance < minDistanceOverall) {
+                                        minDistanceOverall = distance;
+                                        bestMatchPath = path;
+                                    }
+                                }
+                            }
+                            if (bestMatchPath) correctPath = bestMatchPath;
+                        }
+
                         let hintText = correctPath 
                             ? `❌ خطأ! الصواب: ${correctPath}`
                             : `⚠️ غير موجود في نموذج الإجابة (تأكد من الإملاء)`;
 
                         let hintElement = row.querySelector('.correction-hint');
-                        if (!hintElement) {
-                            hintElement = document.createElement('span');
-                            hintElement.className = 'correction-hint';
-                            textDiv.appendChild(hintElement);
-                        }
+                        if (!hintElement) { hintElement = document.createElement('span'); hintElement.className = 'correction-hint'; textDiv.appendChild(hintElement); }
                         hintElement.innerText = hintText;
                     }
                 });
