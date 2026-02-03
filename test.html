@@ -917,6 +917,9 @@
     <button id="logout-btn" title="تسجيل الخروج" style="position: fixed; top: 10px; left: 10px; z-index: 1100; background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; display: none; font-family: 'Tajawal'; font-weight: bold;">
         خروج 🚪
     </button>
+    <button id="recovery-btn" title="استرجاع البيانات" style="position: fixed; top: 50px; left: 10px; z-index: 1100; background: #f59e0b; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; display: none; font-family: 'Tajawal'; font-weight: bold;">
+        🛠️ چارەسەر
+    </button>
     <button id="help-btn" title="دليل">؟</button>
 
     <!-- Toast Container -->
@@ -989,11 +992,13 @@
                     currentUser = user;
                     loginOverlay.classList.remove('active');
                     logoutBtn.style.display = 'block';
+                    document.getElementById('recovery-btn').style.display = 'block';
                     loadAllNotes(); // Load from Firestore
                 } else {
                     currentUser = null;
                     loginOverlay.classList.add('active');
                     logoutBtn.style.display = 'none';
+                    document.getElementById('recovery-btn').style.display = 'none';
                 }
             });
             
@@ -1119,13 +1124,18 @@
                         
                         // Check for data loss and restore from local if needed
                         cachedNotesData = checkLocalBackup(cachedNotesData);
-                        backupToLocalStorage(cachedNotesData);
+                        // backupToLocalStorage(cachedNotesData); // REMOVED: Don't overwrite backup on load
 
                         const data = cachedNotesData;
 
                         // Check phase based on archive existence
                         if (doc.data().archive_part1) {
                             currentHomeworkPhase = 2;
+                            // Notify if notes are empty in Phase 2 (User might be confused)
+                            const currentCount = Object.values(data).reduce((acc, val) => acc + val.length, 0);
+                            if(currentCount === 0) {
+                                showToast("⚠️ تێبینی: واجبێ ١ یێ د ئەرشیفی دا. ئەڤە واجبێ ٢ یە.", 6000);
+                            }
                         } else {
                             currentHomeworkPhase = 1;
                         }
@@ -1404,7 +1414,11 @@
             document.getElementById('show-report-btn').addEventListener('click', () => {
                 reportBody.innerHTML = '';
                 const data = cachedNotesData || {};
-                
+
+                // Update Report Title based on Phase (ناڤونیشان ل دویڤ واجبی)
+                const reportTitle = document.querySelector('#report-modal .report-title');
+                reportTitle.innerText = (currentHomeworkPhase === 1) ? 'تقرير الواجب الأول (الآيات ١-٣٠)' : 'تقرير الواجب الثاني (الآيات ٣١-٥٢)';
+
                 // Statistics Calculation (Count total verbs written)
                 let counts = {
                     total: 0,
@@ -1633,50 +1647,54 @@
                 };
                 reportBody.appendChild(txtBtn);
 
-                // Add Archive Button (New Feature for Homework 2)
-                const archiveBtn = document.createElement('button');
-                archiveBtn.className = 'clear-all-btn'; 
-                archiveBtn.style.marginTop = '15px';
-                archiveBtn.style.backgroundColor = '#f59e0b'; // Amber
-                archiveBtn.style.width = '100%';
-                archiveBtn.innerHTML = '📦 ئەرشیفکرنا واجبێ ١ (١٠٥ فعل) و دەستپێکرنا واجبێ ٢';
-                archiveBtn.onclick = () => {
-                    if(confirm('ئەرێ تۆ پشتراستی تە دڤێت واجبێ ئێکێ (ئایەت ١-٣٠) ئەرشیف بکەی و دەست ب واجبێ نوی (٣١-٥٢) بکەی؟\n\nتێبینی: داتایێن تە دێ هێنە پاراستن لێ ناهێنە نیشاندان.')) {
-                        const currentNotes = cachedNotesData;
-                        db.collection('users').doc(currentUser.uid).set({
-                            notes: {},
-                            archive_part1: currentNotes,
-                            last_archived: new Date().toISOString()
-                        }, { merge: true }).then(() => {
-                            cachedNotesData = {};
-                            alert('✅ واجبێ کەڤن هاتە ئەرشیفکرن. نوکە دشێی دەست ب واجبێ نوی بکەی.');
-                            document.getElementById('show-report-btn').click(); // Refresh report
-                            loadAllNotes(); // Refresh UI
-                        }).catch(error => {
-                            alert("خەلەتی: " + error.message);
-                        });
-                    }
-                };
-                reportBody.appendChild(archiveBtn);
-
-                // Add View Archive Button
-                const viewArchiveBtn = document.createElement('button');
-                viewArchiveBtn.className = 'copy-btn'; // A decent style
-                viewArchiveBtn.style.backgroundColor = '#64748b'; // Slate color
-                viewArchiveBtn.style.marginTop = '10px';
-                viewArchiveBtn.innerHTML = '👁️ عرض الواجب المؤرشف (واجب ١)';
-                viewArchiveBtn.onclick = () => {
-                    showToast('⏳ جاري تحميل الأرشيف...');
-                    db.collection('users').doc(currentUser.uid).get().then(doc => {
-                        if (doc.exists && doc.data().archive_part1) {
-                            displayArchiveReport(doc.data().archive_part1);
-                        } else {
-                            alert('لا يوجد واجب مؤرشف.');
-                            showToast(''); // Clear loading message
+                // Add Archive Button ONLY in Phase 1 (تەنێ بۆ واجبێ ئێکێ)
+                if (currentHomeworkPhase === 1) {
+                    const archiveBtn = document.createElement('button');
+                    archiveBtn.className = 'clear-all-btn'; 
+                    archiveBtn.style.marginTop = '15px';
+                    archiveBtn.style.backgroundColor = '#f59e0b'; // Amber
+                    archiveBtn.style.width = '100%';
+                    archiveBtn.innerHTML = '📦 ئەرشیفکرنا واجبێ ١ (١٠٥ فعل) و دەستپێکرنا واجبێ ٢';
+                    archiveBtn.onclick = () => {
+                        if(confirm('ئەرێ تۆ پشتراستی تە دڤێت واجبێ ئێکێ (ئایەت ١-٣٠) ئەرشیف بکەی و دەست ب واجبێ نوی (٣١-٥٢) بکەی؟\n\nتێبینی: داتایێن تە دێ هێنە پاراستن لێ ناهێنە نیشاندان.')) {
+                            const currentNotes = cachedNotesData;
+                            db.collection('users').doc(currentUser.uid).set({
+                                notes: {},
+                                archive_part1: currentNotes,
+                                last_archived: new Date().toISOString()
+                            }, { merge: true }).then(() => {
+                                cachedNotesData = {};
+                                alert('✅ واجبێ کەڤن هاتە ئەرشیفکرن. نوکە دشێی دەست ب واجبێ نوی بکەی.');
+                                document.getElementById('show-report-btn').click(); // Refresh report
+                                loadAllNotes(); // Refresh UI
+                            }).catch(error => {
+                                alert("خەلەتی: " + error.message);
+                            });
                         }
-                    }).catch(err => alert('حدث خطأ أثناء تحميل الأرشيف: ' + err.message));
-                };
-                reportBody.appendChild(viewArchiveBtn);
+                    };
+                    reportBody.appendChild(archiveBtn);
+                }
+
+                // Add View Archive Button ONLY in Phase 2 (تەنێ بۆ واجبێ دووێ)
+                if (currentHomeworkPhase === 2) {
+                    const viewArchiveBtn = document.createElement('button');
+                    viewArchiveBtn.className = 'copy-btn'; // A decent style
+                    viewArchiveBtn.style.backgroundColor = '#64748b'; // Slate color
+                    viewArchiveBtn.style.marginTop = '10px';
+                    viewArchiveBtn.innerHTML = '👁️ عرض الواجب المؤرشف (واجب ١)';
+                    viewArchiveBtn.onclick = () => {
+                        showToast('⏳ جاري تحميل الأرشيف...');
+                        db.collection('users').doc(currentUser.uid).get().then(doc => {
+                            if (doc.exists && doc.data().archive_part1) {
+                                displayArchiveReport(doc.data().archive_part1);
+                            } else {
+                                alert('لا يوجد واجب مؤرشف.');
+                                showToast(''); // Clear loading message
+                            }
+                        }).catch(err => alert('حدث خطأ أثناء تحميل الأرشيف: ' + err.message));
+                    };
+                    reportBody.appendChild(viewArchiveBtn);
+                }
 
                 reportModal.classList.add('active');
             });
@@ -2114,6 +2132,70 @@
             document.getElementById('close-help').addEventListener('click', () => {
                 helpModal.classList.remove('active');
             });
+            
+            // --- Recovery System UI ---
+            document.getElementById('recovery-btn').addEventListener('click', showRecoveryOptions);
+
+            function showRecoveryOptions() {
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay active';
+                modal.style.zIndex = '6000';
+                
+                // Check Local Storage Count
+                const localStr = localStorage.getItem('yusuf_notes_backup');
+                let localCount = 0;
+                if(localStr) {
+                    try {
+                        const d = JSON.parse(localStr);
+                        localCount = Object.values(d).reduce((a,v)=>a+v.length,0);
+                    } catch(e){}
+                }
+                
+                modal.innerHTML = `
+                <div class="modal-content" style="text-align:center; max-width:400px;">
+                    <h2 style="color:#ef4444;">🛠️ چارەسەرکرنا داتایان</h2>
+                    <p style="margin-bottom:20px;">ئەگەر داتایێن تە بەرزەبووینە، ئێک ژ ڤان هەڵبژێرە:</p>
+                    
+                    <button class="add-note-btn" onclick="restoreFromLocal()" style="background:#0ea5e9; width:100%; margin-bottom:10px; padding:15px;">
+                        📂 زڤڕاندن ژ موبایلێ (Local)<br>
+                        <small style="font-weight:normal">(${localCount} فعل هەنە)</small>
+                    </button>
+
+                    <button class="add-note-btn" onclick="restoreFromArchive()" style="background:#f59e0b; width:100%; margin-bottom:10px; padding:15px;">
+                        📦 زڤڕاندن ژ ئەرشیفی (Archive)<br>
+                        <small style="font-weight:normal">ئەگەر تە ب خەلەتی ئەرشیف کربیت</small>
+                    </button>
+
+                    <button class="clear-all-btn" onclick="this.closest('.modal-overlay').remove()" style="width:100%;">گرتن (Close)</button>
+                </div>`;
+                document.body.appendChild(modal);
+            }
+
+            window.restoreFromLocal = function() {
+                const localStr = localStorage.getItem('yusuf_notes_backup');
+                if(localStr && confirm("دڵنیای؟ داتایێن موبایلێ دێ کەڤنە شوینا یێن نوکە.")) {
+                    cachedNotesData = JSON.parse(localStr);
+                    saveAllNotes(true).then(() => location.reload());
+                } else if(!localStr) alert("چ داتا ل سەر موبایلێ نینن.");
+            };
+
+            window.restoreFromArchive = function() {
+                db.collection('users').doc(currentUser.uid).get().then(doc => {
+                    if(doc.exists && doc.data().archive_part1) {
+                        if(confirm("دڵنیای؟ داتایێن ئەرشیفی دێ زڤڕن.")) {
+                            db.collection('users').doc(currentUser.uid).set({
+                                notes: doc.data().archive_part1,
+                                archive_part1: firebase.firestore.FieldValue.delete()
+                            }, { merge: true }).then(() => {
+                                alert("✅ داتا ژ ئەرشیفی زڤڕین.");
+                                location.reload();
+                            });
+                        }
+                    } else {
+                        alert("چ ئەرشیف نینە.");
+                    }
+                });
+            };
 
         });
     </script>
