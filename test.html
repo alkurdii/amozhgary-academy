@@ -1049,7 +1049,7 @@
                 const data = cachedNotesData;
                 
                 // Save to Firestore
-                return db.collection('users').doc(currentUser.uid).set({ notes: data })
+                return db.collection('users').doc(currentUser.uid).set({ notes: data }, { merge: true })
                     .then(() => {
                         console.log("Data saved to Firestore");
                         if (showSuccessToast) showToast("✅ تم الحفظ في قاعدة البيانات ☁️");
@@ -1559,6 +1559,32 @@
                     document.body.removeChild(a);
                 };
                 reportBody.appendChild(txtBtn);
+
+                // Add Archive Button (New Feature for Homework 2)
+                const archiveBtn = document.createElement('button');
+                archiveBtn.className = 'clear-all-btn'; 
+                archiveBtn.style.marginTop = '15px';
+                archiveBtn.style.backgroundColor = '#f59e0b'; // Amber
+                archiveBtn.style.width = '100%';
+                archiveBtn.innerHTML = '📦 ئەرشیفکرنا واجبێ ١ (١٠٥ فعل) و دەستپێکرنا واجبێ ٢';
+                archiveBtn.onclick = () => {
+                    if(confirm('ئەرێ تۆ پشتراستی تە دڤێت واجبێ ئێکێ (ئایەت ١-٣٠) ئەرشیف بکەی و دەست ب واجبێ نوی (٣١-٥٢) بکەی؟\n\nتێبینی: داتایێن تە دێ هێنە پاراستن لێ ناهێنە نیشاندان.')) {
+                        const currentNotes = cachedNotesData;
+                        db.collection('users').doc(currentUser.uid).set({
+                            notes: {},
+                            archive_part1: currentNotes,
+                            last_archived: new Date().toISOString()
+                        }, { merge: true }).then(() => {
+                            cachedNotesData = {};
+                            alert('✅ واجبێ کەڤن هاتە ئەرشیفکرن. نوکە دشێی دەست ب واجبێ نوی بکەی.');
+                            document.getElementById('show-report-btn').click(); // Refresh report
+                            loadAllNotes(); // Refresh UI
+                        }).catch(error => {
+                            alert("خەلەتی: " + error.message);
+                        });
+                    }
+                };
+                reportBody.appendChild(archiveBtn);
 
                 reportModal.classList.add('active');
             });
