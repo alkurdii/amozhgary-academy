@@ -975,7 +975,11 @@
                         loginOverlay.classList.remove('active');
                     })
                     .catch((error) => {
-                        alert("خطأ: " + error.message);
+                        let msg = "خەلەتی: " + error.message;
+                        if(error.code === 'auth/user-not-found') msg = "ئەڤ ئیمێلە نینە. هیڤیە هەژمارەکا نوی دروست بکە.";
+                        if(error.code === 'auth/wrong-password') msg = "پاسوورد خەلەتە.";
+                        if(error.code === 'auth/invalid-email') msg = "فۆرماتێ ئیمێلی خەلەتە.";
+                        alert(msg);
                     });
             });
 
@@ -1066,6 +1070,8 @@
                 loadAllNotes();
             };
 
+            let currentHomeworkPhase = 1; // 1 = First 30 verses, 2 = Verses 31-52
+
             function loadAllNotes() {
                 if (!currentUser) return;
                 isDataLoaded = false; // Lock saving until load completes
@@ -1077,6 +1083,13 @@
                     if (doc.exists) {
                         cachedNotesData = doc.data().notes || {};
                         const data = cachedNotesData;
+
+                        // Check phase based on archive existence
+                        if (doc.data().archive_part1) {
+                            currentHomeworkPhase = 2;
+                        } else {
+                            currentHomeworkPhase = 1;
+                        }
                         
                         // ملاحظة: تم إزالة عرض الملاحظات من الشجرة لتبقى نظيفة
                         
@@ -1313,8 +1326,8 @@
             const reportBody = document.getElementById('report-body');
             const gradeBtn = document.getElementById('grade-btn');
             
-            // Master Key for Grading (حلول سورة يوسف - أول 30 آية)
-            const MASTER_KEY = {
+            // Master Key for Grading PART 1 (حلول سورة يوسف - أول 30 آية)
+            const MASTER_KEY_PART1 = {
                 "مضارع مجزوم وعلامة جزمه حذف حرف العلة لأنه معتل الآخر": ["يخل"],
                 "مضارع مجزوم وعلامة جزمه السكون": ["لا تقصص", "يلتقطه", "يرتع", "يلعب"],
                 "مضارع مرفوع وعلامة رفعه ثبوت النون": ["تعقلون", "يشعرون", "يبكون", "تصفون", "يعملون", "يعلمون"],
@@ -1332,6 +1345,11 @@
                 "ماضٍ مبني على السكون لاتصاله بـ نا الفاعلين": ["أنزلنا", "أوحينا", "أوحينا", "ذهبنا", "تركنا", "مكنا", "آتيناه", "كنا"],
                 "مضارع مرفوع وعلامة رفعه الضمة الظاهرة": ["نقص", "يعلمك", "يتم", "تأمنّا", "يحزنني", "نستبق", "يفلح", "تراود", "أخاف"],
                 "مضارع مجزوم وعلامة جزمه حذف النون لأنه من الأفعال الخمسة": ["تكونوا", "لا تقتلوا"]
+            };
+
+            // Master Key for Grading PART 2 (واجبێ دووێ - دێ ل پاشەڕۆژێ هێتە پڕکرن)
+            const MASTER_KEY_PART2 = {
+                // Empty for now
             };
             
             document.getElementById('show-report-btn').addEventListener('click', () => {
@@ -1586,9 +1604,196 @@
                 };
                 reportBody.appendChild(archiveBtn);
 
+                // Add View Archive Button
+                const viewArchiveBtn = document.createElement('button');
+                viewArchiveBtn.className = 'copy-btn'; // A decent style
+                viewArchiveBtn.style.backgroundColor = '#64748b'; // Slate color
+                viewArchiveBtn.style.marginTop = '10px';
+                viewArchiveBtn.innerHTML = '👁️ عرض الواجب المؤرشف (واجب ١)';
+                viewArchiveBtn.onclick = () => {
+                    showToast('⏳ جاري تحميل الأرشيف...');
+                    db.collection('users').doc(currentUser.uid).get().then(doc => {
+                        if (doc.exists && doc.data().archive_part1) {
+                            displayArchiveReport(doc.data().archive_part1);
+                        } else {
+                            alert('لا يوجد واجب مؤرشف.');
+                            showToast(''); // Clear loading message
+                        }
+                    }).catch(err => alert('حدث خطأ أثناء تحميل الأرشيف: ' + err.message));
+                };
+                reportBody.appendChild(viewArchiveBtn);
+
                 reportModal.classList.add('active');
             });
             
+            function displayArchiveReport(archiveData) {
+                const reportBody = document.getElementById('report-body');
+                
+                reportBody.innerHTML = ''; // Clear current report
+                document.querySelector('#report-modal .report-title').innerText = 'تقرير الواجب المؤرشف (الأرشيف)';
+                document.getElementById('grade-btn').style.display = 'none';
+
+                // --- Stats Calculation ---
+                let counts = { total: 0, madi: 0, mudari: 0, amr: 0 };
+                for (const [path, notes] of Object.entries(archiveData)) {
+                    const count = notes.length;
+                    counts.total += count;
+                    if (path.includes('ماضٍ')) counts.madi += count;
+                    else if (path.includes('مضارع')) counts.mudari += count;
+                    else if (path.includes('أمر')) counts.amr += count;
+                }
+                
+                // Add Summary Section
+                const summaryHTML = `
+                    <div class="report-summary">
+                        <div class="summary-header">
+                            <div style="font-size:1.1rem; font-weight:bold;">إجمالي الأفعال في الأرشيف</div>
+                            <div style="font-size:2.5rem; color:var(--accent-color); margin:10px 0; font-weight:bold;">${counts.total}</div>
+                        </div>
+                        <div class="summary-row"><span class="summary-label">ماضٍ</span><span class="summary-value">${counts.madi}</span></div>
+                        <div class="summary-row"><span class="summary-label">مضارع</span><span class="summary-value">${counts.mudari}</span></div>
+                        <div class="summary-row"><span class="summary-label">أمر</span><span class="summary-value">${counts.amr}</span></div>
+                    </div>
+                `;
+                reportBody.innerHTML = summaryHTML;
+
+                const hasData = Object.values(archiveData).some(arr => arr.length > 0);
+                if (!hasData) {
+                    reportBody.innerHTML += '<div style="text-align:center; padding:20px;">الأرشيف فارغ.</div>';
+                } else {
+                    for (const [path, notesArray] of Object.entries(archiveData)) {
+                        if (notesArray.length === 0) continue;
+                        
+                        const listContainer = document.createElement('div');
+                        listContainer.className = 'report-verb-list expanded';
+
+                        notesArray.forEach((noteText, index) => {
+                            const verbRow = document.createElement('div');
+                            verbRow.className = 'report-verb-row';
+                            
+                            const textDiv = document.createElement('div');
+                            textDiv.className = 'report-verb-text';
+                            textDiv.innerText = `${index + 1}. ${noteText}`;
+                            
+                            const actionsDiv = document.createElement('div');
+                            actionsDiv.className = 'report-verb-actions';
+                            
+                            const editBtn = document.createElement('button');
+                            editBtn.innerText = '✏️';
+                            editBtn.title = 'تعديل';
+                            editBtn.onclick = () => {
+                                const newText = prompt('تعديل الملاحظة (في الأرشيف):', noteText);
+                                if (newText !== null && newText.trim() !== '') {
+                                    archiveData[path][index] = newText.trim();
+                                    db.collection('users').doc(currentUser.uid).set({ archive_part1: archiveData }, { merge: true })
+                                        .then(() => { showToast('✅ تم تحديث الأرشيف'); displayArchiveReport(archiveData); })
+                                        .catch(err => alert('خطأ في الحفظ: ' + err.message));
+                                }
+                            };
+
+                            const delBtn = document.createElement('button');
+                            delBtn.innerText = '🗑️';
+                            delBtn.title = 'حذف';
+                            delBtn.onclick = () => {
+                                if (confirm('هل أنت متأكد من الحذف من الأرشيف؟')) {
+                                    archiveData[path].splice(index, 1);
+                                    db.collection('users').doc(currentUser.uid).set({ archive_part1: archiveData }, { merge: true })
+                                        .then(() => { showToast('✅ تم الحذف من الأرشيف'); displayArchiveReport(archiveData); })
+                                        .catch(err => alert('خطأ في الحفظ: ' + err.message));
+                                }
+                            };
+
+                            actionsDiv.appendChild(editBtn);
+                            actionsDiv.appendChild(delBtn);
+                            verbRow.appendChild(textDiv);
+                            verbRow.appendChild(actionsDiv);
+                            listContainer.appendChild(verbRow);
+                        });
+
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = 'report-item';
+                        
+                        const headerDiv = document.createElement('div');
+                        headerDiv.className = 'report-path';
+                        headerDiv.innerHTML = `<span>🔹 ${path} <span style="font-size:0.9em; color:#64748b; font-weight:normal;">(${notesArray.length} دانە)</span></span>`;
+
+                        itemDiv.appendChild(headerDiv);
+                        itemDiv.appendChild(listContainer);
+                        reportBody.appendChild(itemDiv);
+                    }
+                }
+
+                // --- Action Buttons ---
+                const generateArchiveReportText = (includeVerbs = false) => {
+                    let text = `📊 *تقرير الواجب المؤرشف*\n------------------\n✅ إجمالي الأفعال: ${counts.total} فعل\n\n`;
+                    if (hasData) {
+                        for (const [path, items] of Object.entries(archiveData)) {
+                            if (items.length === 0) continue;
+                            text += `🔹 ${path} (${items.length})\n`;
+                            if (includeVerbs) {
+                                items.forEach((note, idx) => { text += `   ${idx + 1}. ${note}\n`; });
+                                text += "------------------\n";
+                            }
+                        }
+                    }
+                    return text;
+                };
+
+                const shareBtn = document.createElement('button');
+                shareBtn.className = 'share-btn';
+                shareBtn.innerHTML = '📤 مشاركة الأرشيف عبر تيليجرام';
+                shareBtn.onclick = () => { window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(generateArchiveReportText(false))}`, '_blank'); };
+                reportBody.appendChild(shareBtn);
+
+                // Restore Button (To fix accidental archive)
+                const restoreBtn = document.createElement('button');
+                restoreBtn.className = 'import-btn';
+                restoreBtn.style.marginTop = '10px';
+                restoreBtn.innerHTML = '♻️ استرجاع الواجب للكتابة (Un-archive)';
+                restoreBtn.onclick = () => {
+                    if(confirm('هل أنت متأكد؟ سيتم استرجاع هذا الواجب للكتابة ومسح الواجب الحالي.')) {
+                        db.collection('users').doc(currentUser.uid).set({
+                            notes: archiveData,
+                            archive_part1: {} 
+                        }, { merge: true }).then(() => {
+                            cachedNotesData = archiveData;
+                            alert('✅ تم الاسترجاع.');
+                            document.getElementById('show-report-btn').click();
+                            loadAllNotes();
+                        });
+                    }
+                };
+                reportBody.appendChild(restoreBtn);
+
+                const backBtn = document.createElement('button');
+                backBtn.className = 'clear-all-btn';
+                backBtn.style.marginTop = '10px';
+                backBtn.innerHTML = '➡️ العودة';
+                backBtn.onclick = () => { document.getElementById('show-report-btn').click(); };
+
+                // Add Copy & TXT buttons for Archive
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-btn';
+                copyBtn.innerHTML = '📋 نسخ تقرير الأرشيف';
+                copyBtn.onclick = () => { navigator.clipboard.writeText(generateArchiveReportText(false)).then(() => alert('تم نسخ التقرير المؤرشف!')); };
+                reportBody.appendChild(copyBtn);
+
+                const txtBtn = document.createElement('button');
+                txtBtn.className = 'txt-btn';
+                txtBtn.innerHTML = '📄 تحميل الأرشيف (ملف نصي)';
+                txtBtn.onclick = () => {
+                    const blob = new Blob([generateArchiveReportText(true)], {type: 'text/plain'});
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = `Archive_Report_Yusuf_${new Date().toISOString().slice(0,10)}.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                };
+                reportBody.appendChild(txtBtn);
+                reportBody.appendChild(backBtn);
+            }
+
             // Levenshtein distance function for typo tolerance (مەودای لێڤێنشتاین)
             // This function calculates the number of edits (insertions, deletions, or substitutions)
             // required to change one word into the other. It helps forgive small spelling mistakes.
@@ -1641,9 +1846,17 @@
                         .replace(/ئ/g, 'ي');   // 6. Unify Hamza on Ya to Ya
                 }
 
+                // Select Key based on Homework Phase
+                let activeKey = (currentHomeworkPhase === 2) ? MASTER_KEY_PART2 : MASTER_KEY_PART1;
+
+                if (currentHomeworkPhase === 2 && Object.keys(activeKey).length === 0) {
+                    alert("تەسحیحا واجبێ دووێ هێشتا بەردەست نینە (Coming Soon).");
+                    return;
+                }
+
                 // Prepare available answers pool to handle duplicates correctly
                 const availableAnswers = {};
-                for (const [key, val] of Object.entries(MASTER_KEY)) {
+                for (const [key, val] of Object.entries(activeKey)) {
                     availableAnswers[key] = val.map(v => ({ text: v, used: false }));
                 }
 
@@ -1656,8 +1869,9 @@
                 let totalUserAnswers = 0;
 
                 const pathStats = {}; 
+
                 // Initialize pathStats
-                for (const path of Object.keys(MASTER_KEY)) {
+                for (const path of Object.keys(activeKey)) {
                     pathStats[path] = { correct: 0, wrong: 0, spelling: 0, missing: 0, extra: 0 };
                 }
 
@@ -1851,3 +2065,4 @@
 
 </body>
 </html>
+
