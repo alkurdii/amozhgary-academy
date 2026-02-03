@@ -1033,6 +1033,39 @@
                 if (duration > 0) toastTimeout = setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, duration);
             }
 
+            // --- Backup System (Safety Net) ---
+            function backupToLocalStorage(data) {
+                try {
+                    localStorage.setItem('yusuf_notes_backup', JSON.stringify(data));
+                } catch(e) { console.error("Backup failed", e); }
+            }
+
+            function checkLocalBackup(serverData) {
+                try {
+                    const localStr = localStorage.getItem('yusuf_notes_backup');
+                    if(localStr) {
+                        const localData = JSON.parse(localStr);
+                        const localCount = Object.values(localData).reduce((a,v)=>a+v.length,0);
+                        const serverCount = Object.values(serverData).reduce((a,v)=>a+v.length,0);
+                        
+                        // If local has significantly more data (e.g. > 2 verbs difference)
+                        if(localCount > serverCount + 2) { 
+                            if(confirm(`⚠️ ئاگەهداربە: داتایێن تە یێن پاراستی ل سەر ئامێری (${localCount} فعل) زێدەترن ژ داتایێن سێرڤەری (${serverCount} فعل).\nئەڤە نیشان ددەت کو داتایێن تە یێن بەری نوکە ژ دەست چووینە.\n\nئەرێ تە دڤێت داتایێن ئامێری بکاربینی (Restore)؟`)) {
+                                return localData;
+                            }
+                        }
+                    }
+                } catch(e) { console.error("Check backup failed", e); }
+                return serverData;
+            }
+
+            // --- Granular Update Functions (Prevent Overwrites) ---
+            function updatePathNotes(path, newArray) {
+                const updateData = {};
+                updateData[`notes.${path}`] = newArray;
+                return db.collection('users').doc(currentUser.uid).update(updateData);
+            }
+
             // --- Storage Functions ---
             function saveAllNotes(showSuccessToast = true) {
                 if (!currentUser) return Promise.reject("User not logged in"); 
@@ -1056,6 +1089,7 @@
                 return db.collection('users').doc(currentUser.uid).set({ notes: data }, { merge: true })
                     .then(() => {
                         console.log("Data saved to Firestore");
+                        backupToLocalStorage(data); // Update local backup on success
                         if (showSuccessToast) showToast("✅ تم الحفظ في قاعدة البيانات ☁️");
                     })
                     .catch((error) => {
@@ -1082,6 +1116,11 @@
                 db.collection('users').doc(currentUser.uid).get().then((doc) => {
                     if (doc.exists) {
                         cachedNotesData = doc.data().notes || {};
+                        
+                        // Check for data loss and restore from local if needed
+                        cachedNotesData = checkLocalBackup(cachedNotesData);
+                        backupToLocalStorage(cachedNotesData);
+
                         const data = cachedNotesData;
 
                         // Check phase based on archive existence
@@ -1272,7 +1311,15 @@
                                     
                                     
                                     // Save and wait for result
-                                    saveAllNotes(true)
+                                    // Use ArrayUnion for safer addition (Prevents overwriting other paths)
+                                    const updateData = {};
+                                    updateData[`notes.${path}`] = firebase.firestore.FieldValue.arrayUnion(text);
+                                    
+                                    db.collection('users').doc(currentUser.uid).update(updateData)
+                                        .catch(err => {
+                                            // Fallback if doc doesn't exist
+                                            return saveAllNotes(false);
+                                        })
                                         .then(() => {
                                             // Success
                                             textarea.value = '';
@@ -1284,6 +1331,8 @@
                                             document.querySelectorAll('.node').forEach(n => n.classList.remove('selected', 'dimmed', 'highlight-search'));
                                             document.getElementById('irab-box').classList.remove('visible');
                                             document.body.classList.remove('has-irab-box');
+                                            showToast("✅ تم الحفظ ☁️");
+                                            backupToLocalStorage(cachedNotesData);
                                         })
                                         .catch((err) => {
                                             // Error handled in saveAllNotes, but we can alert too
@@ -1466,9 +1515,12 @@
                             const newText = prompt('تعديل الملاحظة:', noteText);
                             if (newText !== null && newText.trim() !== '') {
                                 cachedNotesData[path][index] = newText.trim();
-                                saveAllNotes();
-                                document.getElementById('show-report-btn').click(); // Refresh Report
-                                loadAllNotes(); // Refresh Main UI
+                                updatePathNotes(path, cachedNotesData[path]).then(() => {
+                                    showToast("✅ تم التعديل");
+                                    backupToLocalStorage(cachedNotesData);
+                                    document.getElementById('show-report-btn').click(); 
+                                    loadAllNotes();
+                                });
                             }
                         };
 
@@ -1479,9 +1531,12 @@
                         delBtn.onclick = () => {
                             if (confirm('هل أنت متأكد؟')) {
                                 cachedNotesData[path].splice(index, 1);
-                                saveAllNotes();
-                                document.getElementById('show-report-btn').click(); // Refresh Report
-                                loadAllNotes(); // Refresh Main UI
+                                updatePathNotes(path, cachedNotesData[path]).then(() => {
+                                    showToast("✅ تم الحذف");
+                                    backupToLocalStorage(cachedNotesData);
+                                    document.getElementById('show-report-btn').click(); 
+                                    loadAllNotes();
+                                });
                             }
                         };
 
@@ -2065,4 +2120,3 @@
 
 </body>
 </html>
-
