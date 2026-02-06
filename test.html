@@ -726,6 +726,43 @@
             gap: 5px;
         }
 
+        /* AI Button Styles */
+        .ai-config-btn {
+            position: fixed;
+            bottom: 160px; /* Above help button */
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #8b5cf6;
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 2500;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .ai-config-btn:active { transform: scale(0.95); }
+
+        .ai-analyze-btn {
+            background-color: #8b5cf6;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+            margin-right: 5px;
+        }
+        .ai-analyze-btn:hover { background-color: #7c3aed; }
+        .ai-analyze-btn:disabled { background-color: #cbd5e1; cursor: not-allowed; }
+
         .node.selected {
             background-color: var(--accent-color) !important;
             color: white !important;
@@ -743,6 +780,50 @@
             color: black !important;
             border-color: #eab308 !important;
         }
+
+        /* AI Global Box */
+        .ai-global-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto 20px auto;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        #ai-global-response {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: right;
+            white-space: pre-wrap;
+            color: #0c4a6e;
+            margin-top: 10px;
+            display: none;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        #ai-global-response.visible { display: block; }
+
+        /* AI Validation Styles in Report */
+        .report-verb-row.correct {
+            border-right: 5px solid #22c55e; /* Green border */
+            background-color: #f0fdf4;
+        }
+        .report-verb-row.incorrect {
+            border-right: 5px solid #ef4444; /* Red border */
+            background-color: #fef2f2;
+        }
+        .validation-note {
+            display: block;
+            width: 95%;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            padding: 5px;
+            color: #b91c1c;
+            font-weight: normal;
+        }
     </style>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -755,6 +836,14 @@
         <div class="search-container">
             <input type="text" id="search-input" placeholder="بگەڕێ... (نموونە: السكون)">
         </div>
+        
+        <!-- AI Global Interaction Area -->
+        <div class="ai-global-container">
+            <textarea id="ai-global-input" class="leaf-input" style="width:100%; height:60px;" placeholder="پرسیارێ ژ ئەی ئای بکە (نموونە: إعراب يكتبون)..."></textarea>
+            <button id="ai-global-btn" class="add-note-btn" style="background-color: #8b5cf6;">🤖 شلوڤەکرن (AI)</button>
+            <div id="ai-global-response"></div>
+        </div>
+
         <div class="tab-buttons">
             <button class="tab-button" data-target="madi">ماضٍ</button>
             <button class="tab-button" data-target="mudari">مضارع</button>
@@ -931,6 +1020,24 @@
         </div>
     </div>
 
+    <!-- AI Settings Modal -->
+    <div class="modal-overlay" id="ai-modal">
+        <div class="modal-content" style="text-align: center;">
+            <button class="close-modal" id="close-ai">إغلاق</button>
+            <div class="report-title">إعدادات الذكاء الاصطناعي 🤖</div>
+            <p>يرجى إدخال مفتاح API الخاص بـ Google Gemini:</p>
+            <input type="password" id="gemini-api-key" class="leaf-input" style="width: 100%; margin-bottom: 10px;" placeholder="Paste API Key here...">
+            <label style="display:block; margin-top:10px; font-weight:bold; color: var(--node-text);">زمانێ بەرسڤدانێ / لغة الإجابة:</label>
+            <select id="ai-language-select" class="leaf-input" style="width:100%; margin-bottom:15px; height: 40px;">
+                <option value="ar">العربية</option>
+                <option value="ku">Badînî (Kurdî)</option>
+            </select>
+            <button id="save-api-key" class="add-note-btn" style="width: 100%;">حفظ المفتاح 🔑</button>
+            <p style="font-size: 0.8rem; color: #64748b; margin-top: 10px;">سيتم حفظ المفتاح في متصفحك فقط.</p>
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" style="font-size: 0.8rem; color: var(--accent-color);">احصل على مفتاح مجاني من هنا</a>
+        </div>
+    </div>
+
     <!-- Floating Report Button -->
     <button id="show-report-btn" title="تقرير الطالب">
         📊 <span id="report-badge" style="display:none">0</span>
@@ -939,6 +1046,7 @@
         خروج 🚪
     </button>
     <button id="help-btn" title="دليل">؟</button>
+    <button id="ai-config-btn" class="ai-config-btn" title="إعدادات AI">🤖</button>
 
     <!-- Toast Container -->
     <div id="toast"></div>
@@ -1456,6 +1564,7 @@
                     notesArray.forEach((noteText, index) => {
                         const verbRow = document.createElement('div');
                         verbRow.className = 'report-verb-row';
+                        verbRow.dataset.path = path; // Store path for AI check
                         
                         const textDiv = document.createElement('div');
                         textDiv.className = 'report-verb-text';
@@ -1516,6 +1625,81 @@
                     itemDiv.appendChild(listContainer);
                     reportBody.appendChild(itemDiv);
                 }
+
+                // --- AI Check Button (New Feature) ---
+                const aiCheckBtn = document.createElement('button');
+                aiCheckBtn.className = 'share-btn';
+                aiCheckBtn.style.backgroundColor = '#7c3aed'; // Violet color
+                aiCheckBtn.innerHTML = '🤖 پشکنینا بەرسڤان (AI Check)';
+                aiCheckBtn.style.marginBottom = '10px';
+                
+                aiCheckBtn.addEventListener('click', async () => {
+                    const apiKey = localStorage.getItem('gemini_api_key');
+                    if (!apiKey) {
+                        alert('تکایە سەرەتا مفتاحێ API داخل بکە ژ بەشێ سێتینگان 🤖');
+                        return;
+                    }
+
+                    const rows = document.querySelectorAll('.report-verb-row');
+                    if (rows.length === 0) return;
+
+                    aiCheckBtn.disabled = true;
+                    aiCheckBtn.innerText = '⏳ جارێ پشکنینێ دکەت...';
+
+                    // Prepare data for AI
+                    const itemsToCheck = [];
+                    rows.forEach((row, idx) => {
+                        // Clean text to get just the verb
+                        const verbText = row.querySelector('.report-verb-text').childNodes[0].textContent.replace(/^\d+\.\s*/, '').trim();
+                        itemsToCheck.push({ id: idx, verb: verbText, path: row.dataset.path });
+                        
+                        // Reset previous styles
+                        row.classList.remove('correct', 'incorrect');
+                        const oldNote = row.querySelector('.validation-note');
+                        if(oldNote) oldNote.remove();
+                    });
+
+                    const prompt = `
+                    You are an Arabic Grammar teacher. Check if these verbs are correctly classified.
+                    Input JSON: ${JSON.stringify(itemsToCheck)}
+                    
+                    Task: Return a JSON array with objects: { "id": number, "is_correct": boolean, "comment": "Short explanation in Kurdish Badini if wrong" }.
+                    If correct, comment can be empty.
+                    IMPORTANT: Return ONLY raw JSON. No markdown.
+                    `;
+
+                    try {
+                        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                        });
+                        const data = await response.json();
+                        let textRes = data.candidates[0].content.parts[0].text;
+                        textRes = textRes.replace(/```json|```/g, '').trim(); // Clean markdown
+                        const results = JSON.parse(textRes);
+
+                        results.forEach(res => {
+                            const row = rows[res.id];
+                            if (res.is_correct) {
+                                row.classList.add('correct');
+                            } else {
+                                row.classList.add('incorrect');
+                                const note = document.createElement('div');
+                                note.className = 'validation-note';
+                                note.innerText = '⚠️ ' + (res.comment || 'خەلەتە');
+                                row.querySelector('.report-verb-text').appendChild(note);
+                            }
+                        });
+
+                    } catch (err) {
+                        alert('چێ نەبوو: ' + err.message);
+                    } finally {
+                        aiCheckBtn.disabled = false;
+                        aiCheckBtn.innerHTML = '🤖 پشکنینا بەرسڤان (AI Check)';
+                    }
+                });
+                reportBody.appendChild(aiCheckBtn);
 
                 // Add Share to Telegram Button
                 const shareBtn = document.createElement('button');
@@ -1597,6 +1781,92 @@
             });
             document.getElementById('close-help').addEventListener('click', () => {
                 helpModal.classList.remove('active');
+            });
+
+            // AI Modal Logic
+            const aiModal = document.getElementById('ai-modal');
+            const geminiInput = document.getElementById('gemini-api-key');
+            const languageSelect = document.getElementById('ai-language-select');
+            
+            document.getElementById('ai-config-btn').addEventListener('click', () => {
+                geminiInput.value = localStorage.getItem('gemini_api_key') || '';
+                languageSelect.value = localStorage.getItem('ai_language') || 'ar';
+                aiModal.classList.add('active');
+            });
+            
+            document.getElementById('close-ai').addEventListener('click', () => {
+                aiModal.classList.remove('active');
+            });
+
+            document.getElementById('save-api-key').addEventListener('click', () => {
+                const key = geminiInput.value.trim();
+                const lang = languageSelect.value;
+                if(key) {
+                    localStorage.setItem('gemini_api_key', key);
+                    localStorage.setItem('ai_language', lang);
+                    showToast('✅ تم حفظ المفتاح بنجاح');
+                    aiModal.classList.remove('active');
+                }
+            });
+
+            // Global AI Button Logic
+            const aiGlobalBtn = document.getElementById('ai-global-btn');
+            const aiGlobalInput = document.getElementById('ai-global-input');
+            const aiGlobalResponse = document.getElementById('ai-global-response');
+
+            aiGlobalBtn.addEventListener('click', async () => {
+                const text = aiGlobalInput.value.trim();
+                const apiKey = localStorage.getItem('gemini_api_key');
+                const lang = localStorage.getItem('ai_language') || 'ar';
+
+                if (!apiKey) {
+                    alert('يرجى إدخال مفتاح API أولاً من زر الإعدادات 🤖 (الزر البنفسجي)');
+                    return;
+                }
+                if (!text) {
+                    alert('اكتب سؤالاً أو فعلاً أولاً!');
+                    return;
+                }
+
+                aiGlobalBtn.disabled = true;
+                aiGlobalBtn.innerText = '⏳ جاري التحليل...';
+                aiGlobalResponse.classList.remove('visible');
+                aiGlobalResponse.innerText = '';
+
+                const langPrompt = lang === 'ku' ? 'Kurdish (Badini dialect)' : 'Arabic';
+                const prompt = `You are an expert in Arabic Grammar (Nahw). The user is asking: "${text}".
+Please respond in ${langPrompt}.
+Target Audience: Beginners (Level 1) who know nothing about grammar.
+Instructions:
+1. Follow the logical structure of the grammar tree (Table) for verbs (Madi, Mudari, Amr).
+2. Explain clearly WHY the verb is classified this way (e.g., Why is it Madi? Because it accepts Taa al-Fa'il...).
+3. Explain clearly WHY the sign is what it is (e.g., Why Thubut Nun? Because it is one of the Five Verbs...).
+4. Keep the explanation simple and educational, matching the design of a grammar tree.
+
+Structure your response exactly as follows:
+1. **Short Answer**: A concise direct I'rab.
+2. **Detailed Explanation (For Beginners)**: Step-by-step reasoning covering the verb type and the sign.`;
+
+                try {
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: prompt }] }]
+                        })
+                    });
+                    const data = await response.json();
+                    if(data.error) throw new Error(data.error.message);
+                    
+                    const result = data.candidates[0].content.parts[0].text;
+                    aiGlobalResponse.innerText = result;
+                    aiGlobalResponse.classList.add('visible');
+                } catch (err) {
+                    alert('خطأ في الاتصال: ' + err.message);
+                } finally {
+                    aiGlobalBtn.disabled = false;
+                    aiGlobalBtn.innerText = '🤖 شلوڤەکرن (AI)';
+                }
             });
 
         });
