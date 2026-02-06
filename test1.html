@@ -330,6 +330,34 @@
         }
         .add-note-btn:hover { background-color: #0284c7; }
         
+        .saved-notes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 10px;
+            width: 100%;
+            align-items: center;
+            max-height: 100px; /* Limit height to keep UI clean */
+            overflow-y: auto;  /* Enable scrolling for many verbs */
+            padding-bottom: 5px;
+        }
+        .saved-notes-list::-webkit-scrollbar { width: 4px; }
+        .saved-notes-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+        .saved-note-item {
+            background-color: #dbeafe;
+            color: #1e40af;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            border: 1px solid #93c5fd;
+            width: 120px;
+            word-wrap: break-word;
+            text-align: right;
+            white-space: pre-wrap;
+            animation: fadeIn 0.3s ease;
+        }
+
         .leaf-input:focus {
             border-color: var(--accent-color);
             outline: none;
@@ -698,6 +726,43 @@
             gap: 5px;
         }
 
+        /* AI Button Styles */
+        .ai-config-btn {
+            position: fixed;
+            bottom: 160px; /* Above help button */
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #8b5cf6;
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 2500;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .ai-config-btn:active { transform: scale(0.95); }
+
+        .ai-analyze-btn {
+            background-color: #8b5cf6;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+            margin-right: 5px;
+        }
+        .ai-analyze-btn:hover { background-color: #7c3aed; }
+        .ai-analyze-btn:disabled { background-color: #cbd5e1; cursor: not-allowed; }
+
         .node.selected {
             background-color: var(--accent-color) !important;
             color: white !important;
@@ -715,15 +780,78 @@
             color: black !important;
             border-color: #eab308 !important;
         }
-        
-        /* Grading Styles */
-        .report-verb-row.correct { background-color: #dcfce7; border-color: #86efac; }
-        .report-verb-row.correct .report-verb-text { color: #166534; }
-        
-        .report-verb-row.wrong { background-color: #fee2e2; border-color: #fca5a5; }
-        .report-verb-row.wrong .report-verb-text { color: #991b1b; }
-        
-        .correction-hint { display: block; font-size: 0.85rem; color: #b91c1c; margin-top: 4px; font-weight: bold; }
+
+        /* AI Global Box */
+        .ai-global-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto 20px auto;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        #ai-global-response {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: right;
+            white-space: pre-wrap;
+            color: #0c4a6e;
+            margin-top: 10px;
+            display: none;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        #ai-global-response.visible { display: block; }
+
+        /* Type Selection Styles */
+        .type-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+        }
+        .type-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            transition: transform 0.2s;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .type-btn:active { transform: scale(0.98); }
+        .type-btn.verbs { background-color: #3b82f6; }
+        .type-btn.nouns { background-color: #10b981; }
+
+        /* AI Validation Styles in Report */
+        .report-verb-row.correct {
+            border-right: 5px solid #22c55e; /* Green border */
+            background-color: #f0fdf4;
+        }
+        .report-verb-row.incorrect {
+            border-right: 5px solid #ef4444; /* Red border */
+            background-color: #fef2f2;
+        }
+        .validation-note {
+            display: block;
+            width: 95%;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            padding: 5px;
+            color: #b91c1c;
+            font-weight: normal;
+        }
     </style>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -735,7 +863,20 @@
     <div class="tab-container">
         <div class="search-container">
             <input type="text" id="search-input" placeholder="بگەڕێ... (نموونە: السكون)">
+            <button id="switch-type-btn" style="margin-top: 10px; background: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); padding: 5px 10px; border-radius: 5px; cursor: pointer; font-family: inherit; display:none;">
+                🔄 گوهڕینا بەشی (Switch)
+            </button>
         </div>
+        
+        <!-- AI Global Interaction Area -->
+        <div class="ai-global-container">
+            <textarea id="ai-global-input" class="leaf-input" style="width:100%; height:60px;" placeholder="پرسیارێ ژ ئەی ئای بکە (نموونە: إعراب يكتبون)..."></textarea>
+            <button id="ai-global-btn" class="add-note-btn" style="background-color: #8b5cf6;">🤖 شلوڤەکرن (AI)</button>
+            <div id="ai-global-response"></div>
+        </div>
+
+        <!-- Verbs Container -->
+        <div id="verbs-container" style="display:none;">
         <div class="tab-buttons">
             <button class="tab-button" data-target="madi">ماضٍ</button>
             <button class="tab-button" data-target="mudari">مضارع</button>
@@ -748,6 +889,7 @@
                 <ul>
                     <li>
                         <div class="node" style="position: relative;">
+                            <span class="start-label">البداية 👇</span>
                             ماضٍ مبني على
                         </div>
                         <ul>
@@ -773,6 +915,7 @@
                 <ul>
                     <li>
                         <div class="node" style="position: relative;">
+                            <span class="start-label">البداية 👇</span>
                             مضارع
                         </div>
                         <ul>
@@ -841,6 +984,7 @@
                 <ul>
                     <li>
                         <div class="node" style="position: relative;">
+                            <span class="start-label">البداية 👇</span>
                             أمر مبني على
                         </div>
                         <ul>
@@ -866,6 +1010,133 @@
                 </ul>
             </div>
         </div>
+        </div> <!-- End Verbs Container -->
+
+        <!-- Nouns Container -->
+        <div id="nouns-container" style="display:none;">
+            <div class="tab-buttons">
+                <button class="tab-button" data-target="marfuat">مرفوعات</button>
+                <button class="tab-button" data-target="mansubat">منصوبات</button>
+                <button class="tab-button" data-target="majrurat">مجرورات</button>
+            </div>
+
+            <!-- المرفوعات -->
+            <div id="marfuat" class="tab-content">
+                <div class="tree">
+                    <ul>
+                        <li>
+                            <div class="node" style="position: relative;">
+                                <span class="start-label">البداية 👇</span>
+                                اسم مرفوع وعلامة رفعه
+                            </div>
+                            <ul>
+                                <li>
+                                    <div class="node">الضمة</div>
+                                    <ul>
+                                        <li><div class="node">الاسم المفرد</div></li>
+                                        <li><div class="node">جمع التكسير</div></li>
+                                        <li><div class="node">جمع المؤنث السالم</div></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <div class="node">الألف</div>
+                                    <ul>
+                                        <li><div class="node">الاسم المثنى</div></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <div class="node">الواو</div>
+                                    <ul>
+                                        <li><div class="node">جمع المذكر السالم</div></li>
+                                        <li><div class="node">الأسماء الخمسة</div></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- المنصوبات -->
+            <div id="mansubat" class="tab-content">
+                <div class="tree">
+                    <ul>
+                        <li>
+                            <div class="node" style="position: relative;">
+                                <span class="start-label">البداية 👇</span>
+                                اسم منصوب وعلامة نصبه
+                            </div>
+                            <ul>
+                                <li>
+                                    <div class="node">الفتحة</div>
+                                    <ul>
+                                        <li><div class="node">الاسم المفرد</div></li>
+                                        <li><div class="node">جمع التكسير</div></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <div class="node">الألف</div>
+                                    <ul>
+                                        <li><div class="node">الأسماء الخمسة</div></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <div class="node">الكسرة</div>
+                                    <ul>
+                                        <li><div class="node">جمع المؤنث السالم</div></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <div class="node">الياء</div>
+                                    <ul>
+                                        <li><div class="node">جمع المذكر السالم</div></li>
+                                        <li><div class="node">الاسم المثنى</div></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- المجرورات -->
+            <div id="majrurat" class="tab-content">
+                <div class="tree">
+                    <ul>
+                        <li>
+                            <div class="node" style="position: relative;">
+                                <span class="start-label">البداية 👇</span>
+                                اسم مجرور وعلامة جره
+                            </div>
+                            <ul>
+                                <li>
+                                    <div class="node">الكسرة</div>
+                                    <ul>
+                                        <li><div class="node">الاسم المفرد المنصرف</div></li>
+                                        <li><div class="node">جمع التكسير المنصرف</div></li>
+                                        <li><div class="node">جمع المؤنث السالم</div></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <div class="node">الياء</div>
+                                    <ul>
+                                        <li><div class="node">الأسماء الخمسة</div></li>
+                                        <li><div class="node">جمع المذكر السالم</div></li>
+                                        <li><div class="node">الاسم المثنى</div></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <div class="node">الفتحة</div>
+                                    <ul>
+                                        <li><div class="node">الاسم الممنوع من الصرف</div></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div> <!-- End Nouns Container -->
     </div>
 
     <!-- Login Overlay -->
@@ -876,6 +1147,15 @@
             <input type="email" id="login-email" placeholder="البريد الإلكتروني" class="leaf-input" style="width: 100%; height: 45px; margin-bottom: 10px;">
             <input type="password" id="login-password" placeholder="كلمة المرور" class="leaf-input" style="width: 100%; height: 45px; margin-bottom: 20px;">
             <button id="login-submit-btn" class="add-note-btn" style="width: 100%; padding: 12px; font-size: 1rem; margin-bottom: 10px;">دخول 🔐</button>
+        </div>
+    </div>
+
+    <!-- Type Selection Overlay -->
+    <div id="type-selection-overlay" class="modal-overlay" style="z-index: 4800; background: var(--bg-color);">
+        <div class="type-card">
+            <h2 style="margin-bottom: 20px; color: var(--node-text);">هەلبژێرە / اختر القسم</h2>
+            <button id="select-verbs-btn" class="type-btn verbs">الأفعال (Verbs)</button>
+            <button id="select-nouns-btn" class="type-btn nouns">الأسماء (Nouns)</button>
         </div>
     </div>
 
@@ -893,7 +1173,6 @@
         <div class="modal-content">
             <button class="close-modal" id="close-report">إغلاق</button>
             <div class="report-title">تقرير تحليل سورة يوسف</div>
-            <button id="grade-btn" class="add-note-btn" style="width:100%; margin-bottom:15px; background-color:#8b5cf6; display:none;">✅ تصحيح الإجابات (مقارنة مع الحل)</button>
             <div id="report-body"></div>
         </div>
     </div>
@@ -910,6 +1189,24 @@
         </div>
     </div>
 
+    <!-- AI Settings Modal -->
+    <div class="modal-overlay" id="ai-modal">
+        <div class="modal-content" style="text-align: center;">
+            <button class="close-modal" id="close-ai">إغلاق</button>
+            <div class="report-title">إعدادات الذكاء الاصطناعي 🤖</div>
+            <p>يرجى إدخال مفتاح API الخاص بـ Google Gemini:</p>
+            <input type="password" id="gemini-api-key" class="leaf-input" style="width: 100%; margin-bottom: 10px;" placeholder="Paste API Key here...">
+            <label style="display:block; margin-top:10px; font-weight:bold; color: var(--node-text);">زمانێ بەرسڤدانێ / لغة الإجابة:</label>
+            <select id="ai-language-select" class="leaf-input" style="width:100%; margin-bottom:15px; height: 40px;">
+                <option value="ar">العربية</option>
+                <option value="ku">Badînî (Kurdî)</option>
+            </select>
+            <button id="save-api-key" class="add-note-btn" style="width: 100%;">حفظ المفتاح 🔑</button>
+            <p style="font-size: 0.8rem; color: #64748b; margin-top: 10px;">سيتم حفظ المفتاح في متصفحك فقط.</p>
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" style="font-size: 0.8rem; color: var(--accent-color);">احصل على مفتاح مجاني من هنا</a>
+        </div>
+    </div>
+
     <!-- Floating Report Button -->
     <button id="show-report-btn" title="تقرير الطالب">
         📊 <span id="report-badge" style="display:none">0</span>
@@ -918,6 +1215,7 @@
         خروج 🚪
     </button>
     <button id="help-btn" title="دليل">؟</button>
+    <button id="ai-config-btn" class="ai-config-btn" title="إعدادات AI">🤖</button>
 
     <!-- Toast Container -->
     <div id="toast"></div>
@@ -963,6 +1261,42 @@
             const emailInput = document.getElementById('login-email');
             const passwordInput = document.getElementById('login-password');
 
+            // --- Type Selection Logic ---
+            let currentType = 'verbs'; // Default
+            const typeOverlay = document.getElementById('type-selection-overlay');
+            const verbsContainer = document.getElementById('verbs-container');
+            const nounsContainer = document.getElementById('nouns-container');
+            const switchTypeBtn = document.getElementById('switch-type-btn');
+
+            function showTypeSelection() {
+                typeOverlay.classList.add('active');
+                verbsContainer.style.display = 'none';
+                nounsContainer.style.display = 'none';
+                switchTypeBtn.style.display = 'none';
+            }
+
+            document.getElementById('select-verbs-btn').addEventListener('click', () => {
+                currentType = 'verbs';
+                typeOverlay.classList.remove('active');
+                verbsContainer.style.display = 'block';
+                nounsContainer.style.display = 'none';
+                switchTypeBtn.style.display = 'inline-block';
+                switchTab('madi'); // Default tab
+                updateBadgeCount();
+            });
+
+            document.getElementById('select-nouns-btn').addEventListener('click', () => {
+                currentType = 'nouns';
+                typeOverlay.classList.remove('active');
+                verbsContainer.style.display = 'none';
+                nounsContainer.style.display = 'block';
+                switchTypeBtn.style.display = 'inline-block';
+                switchTab('marfuat'); // Default tab
+                updateBadgeCount();
+            });
+
+            switchTypeBtn.addEventListener('click', showTypeSelection);
+
             // Handle Login
             loginSubmitBtn.addEventListener('click', () => {
                 const email = emailInput.value.trim();
@@ -985,6 +1319,7 @@
                     currentUser = user;
                     loginOverlay.classList.remove('active');
                     logoutBtn.style.display = 'block';
+                    showTypeSelection(); // Show selection after login
                     loadAllNotes(); // Load from Firestore
                 } else {
                     currentUser = null;
@@ -1008,7 +1343,7 @@
                 while (current) {
                     // Clean the text to remove the start label and extra spaces
                     // Use textContent instead of innerText to read hidden tabs correctly
-                    let text = current.textContent.trim();
+                    let text = current.textContent.replace('البداية 👇', '').trim();
                     textParts.unshift(text);
                     let parentLi = current.closest('li').parentElement.closest('li');
                     current = parentLi ? parentLi.querySelector('.node') : null;
@@ -1078,7 +1413,7 @@
                         cachedNotesData = doc.data().notes || {};
                         const data = cachedNotesData;
                         
-                        // ملاحظة: تم إزالة عرض الملاحظات من الشجرة لتبقى نظيفة
+                        // (تێبینی: مە کۆدێ نیشاندانا نموونەیان ل سەر دارێ لابرد دا دار یا پاک بیت)
                         
                         // Count total notes
                         const count = Object.values(data).reduce((acc, val) => acc + val.length, 0);
@@ -1095,7 +1430,15 @@
             }
 
             function updateBadgeCount() {
-                const count = Object.values(cachedNotesData).reduce((acc, val) => acc + val.length, 0);
+                let count = 0;
+                for (const [path, notes] of Object.entries(cachedNotesData)) {
+                    const isVerb = path.includes('ماضٍ') || path.includes('مضارع') || path.includes('أمر');
+                    if (currentType === 'verbs' && isVerb) {
+                        count += notes.length;
+                    } else if (currentType === 'nouns' && !isVerb) {
+                        count += notes.length;
+                    }
+                }
                 const badge = document.getElementById('report-badge');
                 if (count > 0) {
                     badge.style.display = 'flex';
@@ -1103,6 +1446,33 @@
                 } else {
                     badge.style.display = 'none';
                 }
+            }
+
+            function addNoteToUI(listContainer, text, path) {
+                const item = document.createElement('div');
+                item.className = 'saved-note-item';
+                item.innerHTML = `<span class="note-text">${text}</span><span class="delete-note" title="حذف">×</span>`;
+                
+                item.querySelector('.delete-note').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if(confirm('هل أنت متأكد من الحذف؟')) {
+                        // Remove the last item (since UI shows last)
+                        if (cachedNotesData[path]) cachedNotesData[path].pop();
+                        
+                        // Re-render
+                        listContainer.innerHTML = '';
+                        if (cachedNotesData[path] && cachedNotesData[path].length > 0) {
+                            addNoteToUI(listContainer, cachedNotesData[path][cachedNotesData[path].length - 1], path);
+                        }
+                        
+                        saveAllNotes(false).then(() => showToast("🗑️ تم الحذف"));
+                        updateBadgeCount();
+                    }
+                });
+                
+                listContainer.appendChild(item);
+                updateBadgeCount();
+                listContainer.scrollTop = listContainer.scrollHeight; // Auto-scroll to show new item
             }
 
             function switchTab(targetId) {
@@ -1119,7 +1489,7 @@
             });
 
             // Default
-            switchTab('madi');
+            // switchTab('madi'); // Removed default call here, handled in selection logic
             
             // Note: loadAllNotes() is now called inside handleLogin()
             // updateBadgeCount();
@@ -1197,7 +1567,7 @@
                     let pathNodes = []; // To store the active path
                     
                     while (current) {
-                        textParts.unshift(current.textContent.trim());
+                        textParts.unshift(current.textContent.replace('البداية 👇', '').trim());
                         pathNodes.push(current);
                         // Traverse up: Node -> LI -> UL -> Parent LI -> Parent Node
                         let parentLi = current.closest('li').parentElement.closest('li');
@@ -1206,6 +1576,9 @@
 
                     // Focus Mode: Dim all other nodes
                     nodes.forEach(n => {
+                        // Only dim nodes within the currently visible container
+                        if (!n.closest('.tab-content').classList.contains('active')) return;
+                        
                         if (!pathNodes.includes(n)) {
                             n.classList.add('dimmed');
                         } else {
@@ -1311,28 +1684,6 @@
             // Report Logic
             const reportModal = document.getElementById('report-modal');
             const reportBody = document.getElementById('report-body');
-            const gradeBtn = document.getElementById('grade-btn');
-            
-            // Master Key for Grading (حلول سورة يوسف - أول 30 آية)
-            const MASTER_KEY = {
-                "مضارع مجزوم وعلامة جزمه حذف حرف العلة لأنه معتل الآخر": ["يخل"],
-                "مضارع مجزوم وعلامة جزمه السكون": ["لا تقصص", "يلتقطه", "يرتع", "يلعب"],
-                "مضارع مرفوع وعلامة رفعه ثبوت النون": ["تعقلون", "يشعرون", "يبكون", "تصفون", "يعملون", "يعلمون"],
-                "ماضٍ مبني على الفتح لأنه لم يتصل بآخره شيء": ["قال", "أتمها", "كان", "قال", "قال", "أكله", "فأكله", "سولت", "جاءت", "فأدلى", "قال", "اشترى", "بلغ", "راودت", "غلقت", "قالت", "قال", "أحسن", "همت", "هم", "رأى", "استبقا", "قدت", "ألفيا", "قالت", "أراد", "راودتني", "شهد", "كان", "قد", "صدقت", "كان", "قد", "كذبت", "رأى", "قد", "قال", "قال", "شغفها"],
-                "ماضٍ مبني على الضم لاتصاله بواو الجماعة": ["قالوا", "قالوا", "ذهبوا", "أجمعوا", "جاءوا", "قالوا", "وجاءوا", "ارسلوا", "أسروه", "شروه", "كانوا"],
-                "أمر مبني على حذف النون لاتصاله بـ ياء المخاطبة": ["أكرمي", "استغفري"],
-                "أمر مبني على السكون": ["أرسله", "أعرض"],
-                "مضارع منصوب وعلامة نصبه الفتحة الظاهرة": ["يأكله", "ينفعنا", "نتخذه", "ولنعلمه", "لنصرف", "يسجن"],
-                "مضارع منصوب وعلامة نصبه حذف النون": ["فيكيدوا", "تذهبوا", "أن يجعلوه"],
-                "مضارع مرفوع وعلامة رفعه الضمة المقدرة على (الواو) أو (الياء) للثقل": ["يجتبيك", "نجزي"],
-                "أمر مبني على حذف النون لاتصاله بـ واو الجماعة": ["اقتلوا", "اطرحوا", "ألقوا"],
-                "مضارع مرفوع وعلامة رفعه الضمة المقدرة على الألف للتعذر": ["لنراها"],
-                "مضارع مبني على الفتح لاتصاله بنون التوكيد الثقيلة": ["لتنبأنّهم"],
-                "ماضٍ مبني على السكون لاتصاله بـ تاء الفاعل": ["كنت", "رأيت", "رأيتهم", "كنتم", "كنت"],
-                "ماضٍ مبني على السكون لاتصاله بـ نا الفاعلين": ["أنزلنا", "أوحينا", "أوحينا", "ذهبنا", "تركنا", "مكنا", "آتيناه", "كنا"],
-                "مضارع مرفوع وعلامة رفعه الضمة الظاهرة": ["نقص", "يعلمك", "يتم", "تأمنّا", "يحزنني", "نستبق", "يفلح", "تراود", "أخاف"],
-                "مضارع مجزوم وعلامة جزمه حذف النون لأنه من الأفعال الخمسة": ["تكونوا", "لا تقتلوا"]
-            };
             
             document.getElementById('show-report-btn').addEventListener('click', () => {
                 reportBody.innerHTML = '';
@@ -1343,7 +1694,8 @@
                     total: 0,
                     madi: 0,
                     mudari: 0,
-                    amr: 0
+                    amr: 0,
+                    nouns: 0
                 };
 
                 for (const [path, notes] of Object.entries(data)) {
@@ -1352,21 +1704,32 @@
                     if (path.includes('ماضٍ')) counts.madi += count;
                     else if (path.includes('مضارع')) counts.mudari += count;
                     else if (path.includes('أمر')) counts.amr += count;
+                    else counts.nouns += count;
                 }
+
+                // Determine Summary Content based on Type
+                let summaryTitle = currentType === 'verbs' ? 'إجمالي الأفعال' : 'إجمالي الأسماء';
+                let summaryCount = currentType === 'verbs' ? (counts.madi + counts.mudari + counts.amr) : counts.nouns;
+                let summaryUnit = currentType === 'verbs' ? 'فعل مسجل' : 'اسم مسجل';
                 
-                gradeBtn.style.display = 'block'; // Show grade button
+                let summaryRows = '';
+                if (currentType === 'verbs') {
+                    summaryRows += `<div class="summary-row"><span class="summary-label">ماضٍ</span><span class="summary-value">${counts.madi}</span></div>`;
+                    summaryRows += `<div class="summary-row"><span class="summary-label">مضارع</span><span class="summary-value">${counts.mudari}</span></div>`;
+                    summaryRows += `<div class="summary-row"><span class="summary-label">أمر</span><span class="summary-value">${counts.amr}</span></div>`;
+                } else {
+                    summaryRows += `<div class="summary-row"><span class="summary-label">الأسماء</span><span class="summary-value">${counts.nouns}</span></div>`;
+                }
 
                 // Add Summary Section
                 const summaryHTML = `
                     <div class="report-summary">
                         <div class="summary-header">
-                            <div style="font-size:1.1rem; font-weight:bold;">إجمالي الأفعال</div>
-                            <div style="font-size:2.5rem; color:var(--accent-color); margin:10px 0; font-weight:bold;">${counts.total}</div>
-                            <div style="color:#64748b;">فعل مسجل</div>
+                            <div style="font-size:1.1rem; font-weight:bold;">${summaryTitle}</div>
+                            <div style="font-size:2.5rem; color:var(--accent-color); margin:10px 0; font-weight:bold;">${summaryCount}</div>
+                            <div style="color:#64748b;">${summaryUnit}</div>
                         </div>
-                        <div class="summary-row"><span class="summary-label">ماضٍ</span><span class="summary-value">${counts.madi}</span></div>
-                        <div class="summary-row"><span class="summary-label">مضارع</span><span class="summary-value">${counts.mudari}</span></div>
-                        <div class="summary-row"><span class="summary-label">أمر</span><span class="summary-value">${counts.amr}</span></div>
+                        ${summaryRows}
                     </div>
                 `;
                 reportBody.innerHTML = summaryHTML;
@@ -1423,6 +1786,14 @@
                 }
 
                 // Render Grouped Data
+                const verbsContainer = document.createElement('div');
+                verbsContainer.innerHTML = '<h3 style="color:#3b82f6; border-bottom:2px solid #cbd5e1; padding-bottom:5px; margin-top:10px;">الأفعال (Verbs)</h3>';
+                let hasVerbs = false;
+
+                const nounsContainer = document.createElement('div');
+                nounsContainer.innerHTML = '<h3 style="color:#10b981; border-bottom:2px solid #cbd5e1; padding-bottom:5px; margin-top:20px;">الأسماء (Nouns)</h3>';
+                let hasNouns = false;
+
                 for (const [path, notesArray] of Object.entries(data)) {
                     if (notesArray.length === 0) continue;
                     
@@ -1432,6 +1803,7 @@
                     notesArray.forEach((noteText, index) => {
                         const verbRow = document.createElement('div');
                         verbRow.className = 'report-verb-row';
+                        verbRow.dataset.path = path; // Store path for AI check
                         
                         const textDiv = document.createElement('div');
                         textDiv.className = 'report-verb-text';
@@ -1477,7 +1849,6 @@
 
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'report-item';
-                    itemDiv.dataset.path = path; // Store path for accurate grading
                     
                     // Header with Toggle
                     const headerDiv = document.createElement('div');
@@ -1491,8 +1862,98 @@
 
                     itemDiv.appendChild(headerDiv);
                     itemDiv.appendChild(listContainer);
-                    reportBody.appendChild(itemDiv);
+                    
+                    // Separate Verbs and Nouns
+                    if (path.includes('ماضٍ') || path.includes('مضارع') || path.includes('أمر')) {
+                        if (currentType === 'verbs') {
+                            verbsContainer.appendChild(itemDiv);
+                            hasVerbs = true;
+                        }
+                    } else {
+                        if (currentType === 'nouns') {
+                            nounsContainer.appendChild(itemDiv);
+                            hasNouns = true;
+                        }
+                    }
                 }
+                
+                if (hasVerbs) reportBody.appendChild(verbsContainer);
+                if (hasNouns) reportBody.appendChild(nounsContainer);
+
+                // --- AI Check Button (New Feature) ---
+                const aiCheckBtn = document.createElement('button');
+                aiCheckBtn.className = 'share-btn';
+                aiCheckBtn.style.backgroundColor = '#7c3aed'; // Violet color
+                aiCheckBtn.innerHTML = '🤖 پشکنینا بەرسڤان (AI Check)';
+                aiCheckBtn.style.marginBottom = '10px';
+                
+                aiCheckBtn.addEventListener('click', async () => {
+                    const apiKey = localStorage.getItem('gemini_api_key');
+                    if (!apiKey) {
+                        alert('تکایە سەرەتا مفتاحێ API داخل بکە ژ بەشێ سێتینگان 🤖');
+                        return;
+                    }
+
+                    const rows = document.querySelectorAll('.report-verb-row');
+                    if (rows.length === 0) return;
+
+                    aiCheckBtn.disabled = true;
+                    aiCheckBtn.innerText = '⏳ جارێ پشکنینێ دکەت...';
+
+                    // Prepare data for AI
+                    const itemsToCheck = [];
+                    rows.forEach((row, idx) => {
+                        // Clean text to get just the verb
+                        const verbText = row.querySelector('.report-verb-text').childNodes[0].textContent.replace(/^\d+\.\s*/, '').trim();
+                        itemsToCheck.push({ id: idx, verb: verbText, path: row.dataset.path });
+                        
+                        // Reset previous styles
+                        row.classList.remove('correct', 'incorrect');
+                        const oldNote = row.querySelector('.validation-note');
+                        if(oldNote) oldNote.remove();
+                    });
+
+                    const prompt = `
+                    You are an Arabic Grammar teacher. Check if these verbs are correctly classified.
+                    Input JSON: ${JSON.stringify(itemsToCheck)}
+                    
+                    Task: Return a JSON array with objects: { "id": number, "is_correct": boolean, "comment": "Short explanation in Kurdish Badini if wrong" }.
+                    If correct, comment can be empty.
+                    IMPORTANT: Return ONLY raw JSON. No markdown.
+                    `;
+
+                    try {
+                        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                        });
+                        const data = await response.json();
+                        let textRes = data.candidates[0].content.parts[0].text;
+                        textRes = textRes.replace(/```json|```/g, '').trim(); // Clean markdown
+                        const results = JSON.parse(textRes);
+
+                        results.forEach(res => {
+                            const row = rows[res.id];
+                            if (res.is_correct) {
+                                row.classList.add('correct');
+                            } else {
+                                row.classList.add('incorrect');
+                                const note = document.createElement('div');
+                                note.className = 'validation-note';
+                                note.innerText = '⚠️ ' + (res.comment || 'خەلەتە');
+                                row.querySelector('.report-verb-text').appendChild(note);
+                            }
+                        });
+
+                    } catch (err) {
+                        alert('چێ نەبوو: ' + err.message);
+                    } finally {
+                        aiCheckBtn.disabled = false;
+                        aiCheckBtn.innerHTML = '🤖 پشکنینا بەرسڤان (AI Check)';
+                    }
+                });
+                reportBody.appendChild(aiCheckBtn);
 
                 // Add Share to Telegram Button
                 const shareBtn = document.createElement('button');
@@ -1562,269 +2023,6 @@
 
                 reportModal.classList.add('active');
             });
-            
-            // Levenshtein distance function for typo tolerance (مەودای لێڤێنشتاین)
-            // This function calculates the number of edits (insertions, deletions, or substitutions)
-            // required to change one word into the other. It helps forgive small spelling mistakes.
-            function levenshtein(a, b) {
-                if (a.length === 0) return b.length;
-                if (b.length === 0) return a.length;
-                const matrix = [];
-                for (let i = 0; i <= b.length; i++) { matrix[i] = [i]; }
-                for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
-                for (let i = 1; i <= b.length; i++) {
-                    for (let j = 1; j <= a.length; j++) {
-                        const cost = b.charAt(i - 1) === a.charAt(j - 1) ? 0 : 1;
-                        matrix[i][j] = Math.min(
-                            matrix[i - 1][j - 1] + cost, // substitution
-                            matrix[i][j - 1] + 1,        // insertion
-                            matrix[i - 1][j] + 1         // deletion
-                        );
-                    }
-                }
-                return matrix[b.length][a.length];
-            }
-
-            // Grading Logic
-            gradeBtn.addEventListener('click', () => {
-                // 1. Reset Headers (Remove old status badges)
-                document.querySelectorAll('.report-status-badge').forEach(el => el.remove());
-                document.querySelectorAll('.correction-hint').forEach(el => el.remove());
-                document.querySelectorAll('.report-verb-row').forEach(el => {
-                    el.classList.remove('correct', 'wrong');
-                });
-
-                const rows = document.querySelectorAll('.report-verb-row');
-                const lists = document.querySelectorAll('.report-verb-list');
-                
-                // Expand all lists to show results
-                lists.forEach(l => l.classList.add('expanded'));
-                document.querySelectorAll('.toggle-icon').forEach(i => i.innerText = '▲ إخفاء');
-
-                // Advanced helper function to normalize Arabic text for forgiving comparison
-                // This handles diacritics (tashkeel) and common spelling variations (hamza, ta marbuta, etc.)
-                function normalizeForGrading(text) {
-                    if (!text) return "";
-                    return text
-                        .replace(/[.,،;:\-!؟?"'()\[\]]/g, '') // Remove punctuation
-                        .replace(/[\u064B-\u0652\u0640\u0670\u0674\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED\u200c\u200d]/g, '') // 1. Remove diacritics & hidden chars
-                        .replace(/[أإآ]/g, 'ا') // 2. Unify Alef forms
-                        .replace(/ى/g, 'ي')    // 3. Unify Alef Maqsura to Ya
-                        .replace(/ة/g, 'ه')    // 4. Unify Ta Marbuta to Ha
-                        .replace(/ؤ/g, 'و')    // 5. Unify Hamza on Waw to Waw
-                        .replace(/ئ/g, 'ي');   // 6. Unify Hamza on Ya to Ya
-                }
-
-                // Prepare available answers pool to handle duplicates correctly
-                const availableAnswers = {};
-                for (const [key, val] of Object.entries(MASTER_KEY)) {
-                    availableAnswers[key] = val.map(v => ({ text: v, used: false }));
-                }
-
-                // Stats
-                let totalCorrect = 0;
-                let totalWrong = 0;
-                let totalSpelling = 0;
-                let totalMissing = 0;
-                let totalExtra = 0;
-                let totalUserAnswers = 0;
-
-                const pathStats = {}; 
-                // Initialize pathStats
-                for (const path of Object.keys(MASTER_KEY)) {
-                    pathStats[path] = { correct: 0, wrong: 0, spelling: 0, missing: 0, extra: 0 };
-                }
-
-                rows.forEach(row => {
-                    totalUserAnswers++;
-                    const textDiv = row.querySelector('.report-verb-text');
-                    // Extract verb text, ignoring numbering and any previous correction hints
-                    let verb = textDiv.innerText.split('\n')[0].replace(/^\d+\.\s*/, '').trim();
-                    let normalizedVerb = normalizeForGrading(verb);
-                    
-                    // Find current path of this row
-                    const listContainer = row.closest('.report-verb-list');
-                    const itemDiv = listContainer.closest('.report-item');
-                    const currentPath = itemDiv.dataset.path; // Use dataset for accuracy
-
-                    if (!pathStats[currentPath]) {
-                         pathStats[currentPath] = { correct: 0, wrong: 0, spelling: 0, missing: 0, extra: 0 };
-                    }
-
-                    // Check against available pool for this path
-                    const pool = availableAnswers[currentPath] || [];
-                    let matchIndex = -1;
-                    let isSpelling = false;
-                    
-                    // 1. Try Exact Match first
-                    matchIndex = pool.findIndex(item => !item.used && normalizeForGrading(item.text) === normalizedVerb);
-
-                    // --- NEW UPDATE: Partial Match Rules (First 3 chars OR 2nd-4th chars) ---
-                    if (matchIndex === -1) {
-                        matchIndex = pool.findIndex(item => {
-                            if (item.used) return false;
-                            const normItem = normalizeForGrading(item.text);
-                            
-                            // Rule 1: First 3 letters match (Indices 0, 1, 2)
-                            if (normalizedVerb.length >= 3 && normItem.length >= 3) {
-                                if (normalizedVerb.substring(0, 3) === normItem.substring(0, 3)) return true;
-                            }
-                            
-                            // Rule 2: 2nd, 3rd, 4th letters match (Indices 1, 2, 3)
-                            if (normalizedVerb.length >= 4 && normItem.length >= 4) {
-                                if (normalizedVerb.substring(1, 4) === normItem.substring(1, 4)) return true;
-                            }
-                            return false;
-                        });
-                    }
-
-                    // 2. If not found, try Fuzzy Match (Spelling)
-                    if (matchIndex === -1) {
-                        let bestDist = 3; // Max allowed distance
-                        let bestIdx = -1;
-                        
-                        pool.forEach((item, idx) => {
-                            if (!item.used) {
-                                const normItem = normalizeForGrading(item.text);
-                                const dist = levenshtein(normalizedVerb, normItem);
-                                // STRICTER THRESHOLD: Exact match for short words (<=3), 1 error for others
-                                const threshold = normItem.length <= 3 ? 0 : 1; 
-                                if (dist <= threshold && dist < bestDist) {
-                                    bestDist = dist;
-                                    bestIdx = idx;
-                                }
-                            }
-                        });
-
-                        if (bestIdx !== -1) {
-                            matchIndex = bestIdx;
-                            isSpelling = true;
-                        }
-                    }
-
-                    if (matchIndex !== -1) {
-                        // Correct Answer Found
-                        pool[matchIndex].used = true; // Mark as used
-                        
-                        row.classList.add('correct');
-                        row.classList.remove('wrong');
-                        pathStats[currentPath].correct++;
-                        totalCorrect++;
-                        
-                        // Add hint if spelling mistake
-                        if (isSpelling) {
-                            pathStats[currentPath].spelling++;
-                            totalSpelling++;
-                            let hintElement = document.createElement('span'); 
-                            hintElement.className = 'correction-hint'; 
-                            hintElement.style.color = '#d97706'; // Orange for warning
-                            hintElement.innerText = `⚠️ خەلەتیا ئیملایە (دروست: ${pool[matchIndex].text})`;
-                            textDiv.appendChild(hintElement);
-                        }
-                    } else {
-                        // Wrong Answer
-                        row.classList.add('wrong');
-                        row.classList.remove('correct');
-                        pathStats[currentPath].wrong++;
-                        totalWrong++;
-                        
-                        // Check if it was a duplicate (Correct word but already used)
-                        const isDuplicate = (availableAnswers[currentPath] || []).some(item => item.used && normalizeForGrading(item.text) === normalizedVerb);
-                        
-                        // Check if it belongs to another category (Cross-Check)
-                        let otherCategory = null;
-                        if (!isDuplicate) {
-                            for (const [otherPath, otherPool] of Object.entries(availableAnswers)) {
-                                if (otherPath === currentPath) continue;
-                                if (otherPool.some(i => normalizeForGrading(i.text) === normalizedVerb)) {
-                                    otherCategory = otherPath;
-                                    break;
-                                }
-                            }
-                        }
-
-                        let hintText = "";
-                        if (isDuplicate) {
-                            hintText = `⚠️ خەلەتە! (ئەڤە یا زێدەیە - Duplicate)`;
-                        } else if (otherCategory) {
-                            hintText = `⚠️ خەلەتە! (ئەڤە یا بەشێ: "${otherCategory}" یە)`;
-                        } else {
-                            hintText = `⚠️ خەلەتە! (ئەڤە یا زێدەیە)`;
-                            pathStats[currentPath].extra++;
-                            totalExtra++;
-                        }
-
-                        let hintElement = row.querySelector('.correction-hint');
-                        if (!hintElement) { hintElement = document.createElement('span'); hintElement.className = 'correction-hint'; textDiv.appendChild(hintElement); }
-                        hintElement.innerText = hintText;
-                    }
-                });
-
-                // Calculate Missing
-                for (const [path, items] of Object.entries(availableAnswers)) {
-                    const unusedCount = items.filter(i => !i.used).length;
-                    if (pathStats[path]) {
-                        pathStats[path].missing = unusedCount;
-                    }
-                    totalMissing += unusedCount;
-                }
-
-                // Check for Missing Answers (Under-answering)
-                document.querySelectorAll('.report-item').forEach(itemDiv => {
-                    const currentPath = itemDiv.dataset.path;
-                    const pathSpan = itemDiv.querySelector('.report-path span');
-                    const stats = pathStats[currentPath];
-                    
-                    if (stats) {
-                        const statusSpan = document.createElement('span');
-                        statusSpan.className = 'report-status-badge';
-                        statusSpan.style.marginRight = '10px';
-                        statusSpan.style.fontSize = '0.85rem';
-                        statusSpan.style.fontWeight = 'bold';
-
-                        if (stats.missing > 0) {
-                            statusSpan.style.color = '#d97706'; // Orange
-                            statusSpan.innerText = `(هێشتا ${stats.missing} پێتڤینە)`;
-                        } else if (stats.wrong === 0) {
-                            statusSpan.style.color = '#10b981'; // Green
-                            statusSpan.innerText = `(تەمامە ✅)`;
-                        } else {
-                            statusSpan.style.color = '#ef4444';
-                            statusSpan.innerText = `(تەمامە بەلێ خەلەتی تێدانە)`;
-                        }
-                        pathSpan.appendChild(statusSpan);
-                    }
-                });
-                
-                // Show Summary at Top
-                const summaryDiv = document.createElement('div');
-                summaryDiv.className = 'report-summary';
-                summaryDiv.style.border = '2px solid #3b82f6';
-                summaryDiv.style.backgroundColor = '#eff6ff';
-                summaryDiv.innerHTML = `
-                    <div class="summary-header">
-                        <div style="font-size:1.2rem; font-weight:bold; color:#1e3a8a;">ئەنجامێ کۆتایی (Result)</div>
-                    </div>
-                    <div class="summary-row"><span class="summary-label">دروست (Correct):</span><span class="summary-value" style="color:#10b981">${totalCorrect}</span></div>
-                    <div class="summary-row"><span class="summary-label">خەلەتیێن ئیملای (Spelling):</span><span class="summary-value" style="color:#d97706">${totalSpelling}</span></div>
-                    <div class="summary-row"><span class="summary-label">خەلەت/زێدە (Wrong/Extra):</span><span class="summary-value" style="color:#ef4444">${totalWrong}</span></div>
-                    <div class="summary-row"><span class="summary-label">کێم (Missing):</span><span class="summary-value" style="color:#f59e0b">${totalMissing}</span></div>
-                `;
-                
-                const reportBody = document.getElementById('report-body');
-                // Remove old summary if exists (to avoid duplicates)
-                const oldSummaries = reportBody.querySelectorAll('.report-summary');
-                oldSummaries.forEach(s => s.remove());
-                
-                // Insert at top
-                reportBody.insertBefore(summaryDiv, reportBody.firstChild);
-
-                gradeBtn.style.display = 'none'; // Hide button after grading
-                showToast("✅ تم تصحيح الإجابات!", 3000);
-                
-                // Scroll to top
-                document.querySelector('.modal-content').scrollTop = 0;
-            });
 
             document.getElementById('close-report').addEventListener('click', () => {
                 reportModal.classList.remove('active');
@@ -1837,6 +2035,92 @@
             });
             document.getElementById('close-help').addEventListener('click', () => {
                 helpModal.classList.remove('active');
+            });
+
+            // AI Modal Logic
+            const aiModal = document.getElementById('ai-modal');
+            const geminiInput = document.getElementById('gemini-api-key');
+            const languageSelect = document.getElementById('ai-language-select');
+            
+            document.getElementById('ai-config-btn').addEventListener('click', () => {
+                geminiInput.value = localStorage.getItem('gemini_api_key') || '';
+                languageSelect.value = localStorage.getItem('ai_language') || 'ar';
+                aiModal.classList.add('active');
+            });
+            
+            document.getElementById('close-ai').addEventListener('click', () => {
+                aiModal.classList.remove('active');
+            });
+
+            document.getElementById('save-api-key').addEventListener('click', () => {
+                const key = geminiInput.value.trim();
+                const lang = languageSelect.value;
+                if(key) {
+                    localStorage.setItem('gemini_api_key', key);
+                    localStorage.setItem('ai_language', lang);
+                    showToast('✅ تم حفظ المفتاح بنجاح');
+                    aiModal.classList.remove('active');
+                }
+            });
+
+            // Global AI Button Logic
+            const aiGlobalBtn = document.getElementById('ai-global-btn');
+            const aiGlobalInput = document.getElementById('ai-global-input');
+            const aiGlobalResponse = document.getElementById('ai-global-response');
+
+            aiGlobalBtn.addEventListener('click', async () => {
+                const text = aiGlobalInput.value.trim();
+                const apiKey = localStorage.getItem('gemini_api_key');
+                const lang = localStorage.getItem('ai_language') || 'ar';
+
+                if (!apiKey) {
+                    alert('يرجى إدخال مفتاح API أولاً من زر الإعدادات 🤖 (الزر البنفسجي)');
+                    return;
+                }
+                if (!text) {
+                    alert('اكتب سؤالاً أو فعلاً أولاً!');
+                    return;
+                }
+
+                aiGlobalBtn.disabled = true;
+                aiGlobalBtn.innerText = '⏳ جاري التحليل...';
+                aiGlobalResponse.classList.remove('visible');
+                aiGlobalResponse.innerText = '';
+
+                const langPrompt = lang === 'ku' ? 'Kurdish (Badini dialect)' : 'Arabic';
+                const prompt = `You are an expert in Arabic Grammar (Nahw). The user is asking: "${text}".
+Please respond in ${langPrompt}.
+Target Audience: Beginners (Level 1) who know nothing about grammar.
+Instructions:
+1. Follow the logical structure of the grammar tree (Table) for verbs (Madi, Mudari, Amr).
+2. Explain clearly WHY the verb is classified this way (e.g., Why is it Madi? Because it accepts Taa al-Fa'il...).
+3. Explain clearly WHY the sign is what it is (e.g., Why Thubut Nun? Because it is one of the Five Verbs...).
+4. Keep the explanation simple and educational, matching the design of a grammar tree.
+
+Structure your response exactly as follows:
+1. **Short Answer**: A concise direct I'rab.
+2. **Detailed Explanation (For Beginners)**: Step-by-step reasoning covering the verb type and the sign.`;
+
+                try {
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: prompt }] }]
+                        })
+                    });
+                    const data = await response.json();
+                    if(data.error) throw new Error(data.error.message);
+                    
+                    const result = data.candidates[0].content.parts[0].text;
+                    aiGlobalResponse.innerText = result;
+                    aiGlobalResponse.classList.add('visible');
+                } catch (err) {
+                    alert('خطأ في الاتصال: ' + err.message);
+                } finally {
+                    aiGlobalBtn.disabled = false;
+                    aiGlobalBtn.innerText = '🤖 شلوڤەکرن (AI)';
+                }
             });
 
         });
