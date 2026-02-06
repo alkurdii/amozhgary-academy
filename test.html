@@ -330,6 +330,34 @@
         }
         .add-note-btn:hover { background-color: #0284c7; }
         
+        .saved-notes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 10px;
+            width: 100%;
+            align-items: center;
+            max-height: 100px; /* Limit height to keep UI clean */
+            overflow-y: auto;  /* Enable scrolling for many verbs */
+            padding-bottom: 5px;
+        }
+        .saved-notes-list::-webkit-scrollbar { width: 4px; }
+        .saved-notes-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+        .saved-note-item {
+            background-color: #dbeafe;
+            color: #1e40af;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            border: 1px solid #93c5fd;
+            width: 120px;
+            word-wrap: break-word;
+            text-align: right;
+            white-space: pre-wrap;
+            animation: fadeIn 0.3s ease;
+        }
+
         .leaf-input:focus {
             border-color: var(--accent-color);
             outline: none;
@@ -715,15 +743,6 @@
             color: black !important;
             border-color: #eab308 !important;
         }
-        
-        /* Grading Styles */
-        .report-verb-row.correct { background-color: #dcfce7; border-color: #86efac; }
-        .report-verb-row.correct .report-verb-text { color: #166534; }
-        
-        .report-verb-row.wrong { background-color: #fee2e2; border-color: #fca5a5; }
-        .report-verb-row.wrong .report-verb-text { color: #991b1b; }
-        
-        .correction-hint { display: block; font-size: 0.85rem; color: #b91c1c; margin-top: 4px; font-weight: bold; }
     </style>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -748,6 +767,7 @@
                 <ul>
                     <li>
                         <div class="node" style="position: relative;">
+                            <span class="start-label">البداية 👇</span>
                             ماضٍ مبني على
                         </div>
                         <ul>
@@ -773,6 +793,7 @@
                 <ul>
                     <li>
                         <div class="node" style="position: relative;">
+                            <span class="start-label">البداية 👇</span>
                             مضارع
                         </div>
                         <ul>
@@ -841,6 +862,7 @@
                 <ul>
                     <li>
                         <div class="node" style="position: relative;">
+                            <span class="start-label">البداية 👇</span>
                             أمر مبني على
                         </div>
                         <ul>
@@ -893,7 +915,6 @@
         <div class="modal-content">
             <button class="close-modal" id="close-report">إغلاق</button>
             <div class="report-title">تقرير تحليل سورة يوسف</div>
-            <button id="grade-btn" class="add-note-btn" style="width:100%; margin-bottom:15px; background-color:#8b5cf6; display:none;">✅ تصحيح الإجابات (مقارنة مع الحل)</button>
             <div id="report-body"></div>
         </div>
     </div>
@@ -916,9 +937,6 @@
     </button>
     <button id="logout-btn" title="تسجيل الخروج" style="position: fixed; top: 10px; left: 10px; z-index: 1100; background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; display: none; font-family: 'Tajawal'; font-weight: bold;">
         خروج 🚪
-    </button>
-    <button id="recovery-btn" title="استرجاع البيانات" style="position: fixed; top: 50px; left: 10px; z-index: 1100; background: #f59e0b; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; display: none; font-family: 'Tajawal'; font-weight: bold;">
-        🛠️ چارەسەر
     </button>
     <button id="help-btn" title="دليل">؟</button>
 
@@ -978,11 +996,7 @@
                         loginOverlay.classList.remove('active');
                     })
                     .catch((error) => {
-                        let msg = "خەلەتی: " + error.message;
-                        if(error.code === 'auth/user-not-found') msg = "ئەڤ ئیمێلە نینە. هیڤیە هەژمارەکا نوی دروست بکە.";
-                        if(error.code === 'auth/wrong-password') msg = "پاسوورد خەلەتە.";
-                        if(error.code === 'auth/invalid-email') msg = "فۆرماتێ ئیمێلی خەلەتە.";
-                        alert(msg);
+                        alert("خطأ: " + error.message);
                     });
             });
 
@@ -992,13 +1006,11 @@
                     currentUser = user;
                     loginOverlay.classList.remove('active');
                     logoutBtn.style.display = 'block';
-                    document.getElementById('recovery-btn').style.display = 'block';
                     loadAllNotes(); // Load from Firestore
                 } else {
                     currentUser = null;
                     loginOverlay.classList.add('active');
                     logoutBtn.style.display = 'none';
-                    document.getElementById('recovery-btn').style.display = 'none';
                 }
             });
             
@@ -1017,7 +1029,7 @@
                 while (current) {
                     // Clean the text to remove the start label and extra spaces
                     // Use textContent instead of innerText to read hidden tabs correctly
-                    let text = current.textContent.trim();
+                    let text = current.textContent.replace('البداية 👇', '').trim();
                     textParts.unshift(text);
                     let parentLi = current.closest('li').parentElement.closest('li');
                     current = parentLi ? parentLi.querySelector('.node') : null;
@@ -1036,39 +1048,6 @@
                 
                 if (toastTimeout) clearTimeout(toastTimeout);
                 if (duration > 0) toastTimeout = setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, duration);
-            }
-
-            // --- Backup System (Safety Net) ---
-            function backupToLocalStorage(data) {
-                try {
-                    localStorage.setItem('yusuf_notes_backup', JSON.stringify(data));
-                } catch(e) { console.error("Backup failed", e); }
-            }
-
-            function checkLocalBackup(serverData) {
-                try {
-                    const localStr = localStorage.getItem('yusuf_notes_backup');
-                    if(localStr) {
-                        const localData = JSON.parse(localStr);
-                        const localCount = Object.values(localData).reduce((a,v)=>a+v.length,0);
-                        const serverCount = Object.values(serverData).reduce((a,v)=>a+v.length,0);
-                        
-                        // If local has significantly more data (e.g. > 2 verbs difference)
-                        if(localCount > serverCount + 2) { 
-                            if(confirm(`⚠️ ئاگەهداربە: داتایێن تە یێن پاراستی ل سەر ئامێری (${localCount} فعل) زێدەترن ژ داتایێن سێرڤەری (${serverCount} فعل).\nئەڤە نیشان ددەت کو داتایێن تە یێن بەری نوکە ژ دەست چووینە.\n\nئەرێ تە دڤێت داتایێن ئامێری بکاربینی (Restore)؟`)) {
-                                return localData;
-                            }
-                        }
-                    }
-                } catch(e) { console.error("Check backup failed", e); }
-                return serverData;
-            }
-
-            // --- Granular Update Functions (Prevent Overwrites) ---
-            function updatePathNotes(path, newArray) {
-                const updateData = {};
-                updateData[`notes.${path}`] = newArray;
-                return db.collection('users').doc(currentUser.uid).update(updateData);
             }
 
             // --- Storage Functions ---
@@ -1091,10 +1070,9 @@
                 const data = cachedNotesData;
                 
                 // Save to Firestore
-                return db.collection('users').doc(currentUser.uid).set({ notes: data }, { merge: true })
+                return db.collection('users').doc(currentUser.uid).set({ notes: data })
                     .then(() => {
                         console.log("Data saved to Firestore");
-                        backupToLocalStorage(data); // Update local backup on success
                         if (showSuccessToast) showToast("✅ تم الحفظ في قاعدة البيانات ☁️");
                     })
                     .catch((error) => {
@@ -1109,8 +1087,6 @@
                 loadAllNotes();
             };
 
-            let currentHomeworkPhase = 1; // 1 = First 30 verses, 2 = Verses 31-52
-
             function loadAllNotes() {
                 if (!currentUser) return;
                 isDataLoaded = false; // Lock saving until load completes
@@ -1121,26 +1097,9 @@
                 db.collection('users').doc(currentUser.uid).get().then((doc) => {
                     if (doc.exists) {
                         cachedNotesData = doc.data().notes || {};
-                        
-                        // Check for data loss and restore from local if needed
-                        cachedNotesData = checkLocalBackup(cachedNotesData);
-                        // backupToLocalStorage(cachedNotesData); // REMOVED: Don't overwrite backup on load
-
                         const data = cachedNotesData;
-
-                        // Check phase based on archive existence
-                        if (doc.data().archive_part1) {
-                            currentHomeworkPhase = 2;
-                            // Notify if notes are empty in Phase 2 (User might be confused)
-                            const currentCount = Object.values(data).reduce((acc, val) => acc + val.length, 0);
-                            if(currentCount === 0) {
-                                showToast("⚠️ تێبینی: واجبێ ١ یێ د ئەرشیفی دا. ئەڤە واجبێ ٢ یە.", 6000);
-                            }
-                        } else {
-                            currentHomeworkPhase = 1;
-                        }
                         
-                        // ملاحظة: تم إزالة عرض الملاحظات من الشجرة لتبقى نظيفة
+                        // (تێبینی: مە کۆدێ نیشاندانا نموونەیان ل سەر دارێ لابرد دا دار یا پاک بیت)
                         
                         // Count total notes
                         const count = Object.values(data).reduce((acc, val) => acc + val.length, 0);
@@ -1165,6 +1124,33 @@
                 } else {
                     badge.style.display = 'none';
                 }
+            }
+
+            function addNoteToUI(listContainer, text, path) {
+                const item = document.createElement('div');
+                item.className = 'saved-note-item';
+                item.innerHTML = `<span class="note-text">${text}</span><span class="delete-note" title="حذف">×</span>`;
+                
+                item.querySelector('.delete-note').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if(confirm('هل أنت متأكد من الحذف؟')) {
+                        // Remove the last item (since UI shows last)
+                        if (cachedNotesData[path]) cachedNotesData[path].pop();
+                        
+                        // Re-render
+                        listContainer.innerHTML = '';
+                        if (cachedNotesData[path] && cachedNotesData[path].length > 0) {
+                            addNoteToUI(listContainer, cachedNotesData[path][cachedNotesData[path].length - 1], path);
+                        }
+                        
+                        saveAllNotes(false).then(() => showToast("🗑️ تم الحذف"));
+                        updateBadgeCount();
+                    }
+                });
+                
+                listContainer.appendChild(item);
+                updateBadgeCount();
+                listContainer.scrollTop = listContainer.scrollHeight; // Auto-scroll to show new item
             }
 
             function switchTab(targetId) {
@@ -1259,7 +1245,7 @@
                     let pathNodes = []; // To store the active path
                     
                     while (current) {
-                        textParts.unshift(current.textContent.trim());
+                        textParts.unshift(current.textContent.replace('البداية 👇', '').trim());
                         pathNodes.push(current);
                         // Traverse up: Node -> LI -> UL -> Parent LI -> Parent Node
                         let parentLi = current.closest('li').parentElement.closest('li');
@@ -1321,15 +1307,7 @@
                                     
                                     
                                     // Save and wait for result
-                                    // Use ArrayUnion for safer addition (Prevents overwriting other paths)
-                                    const updateData = {};
-                                    updateData[`notes.${path}`] = firebase.firestore.FieldValue.arrayUnion(text);
-                                    
-                                    db.collection('users').doc(currentUser.uid).update(updateData)
-                                        .catch(err => {
-                                            // Fallback if doc doesn't exist
-                                            return saveAllNotes(false);
-                                        })
+                                    saveAllNotes(true)
                                         .then(() => {
                                             // Success
                                             textarea.value = '';
@@ -1341,8 +1319,6 @@
                                             document.querySelectorAll('.node').forEach(n => n.classList.remove('selected', 'dimmed', 'highlight-search'));
                                             document.getElementById('irab-box').classList.remove('visible');
                                             document.body.classList.remove('has-irab-box');
-                                            showToast("✅ تم الحفظ ☁️");
-                                            backupToLocalStorage(cachedNotesData);
                                         })
                                         .catch((err) => {
                                             // Error handled in saveAllNotes, but we can alert too
@@ -1383,42 +1359,11 @@
             // Report Logic
             const reportModal = document.getElementById('report-modal');
             const reportBody = document.getElementById('report-body');
-            const gradeBtn = document.getElementById('grade-btn');
-            
-            // Master Key for Grading PART 1 (حلول سورة يوسف - أول 30 آية)
-            const MASTER_KEY_PART1 = {
-                "مضارع مجزوم وعلامة جزمه حذف حرف العلة لأنه معتل الآخر": ["يخل"],
-                "مضارع مجزوم وعلامة جزمه السكون": ["لا تقصص", "يلتقطه", "يرتع", "يلعب"],
-                "مضارع مرفوع وعلامة رفعه ثبوت النون": ["تعقلون", "يشعرون", "يبكون", "تصفون", "يعملون", "يعلمون"],
-                "ماضٍ مبني على الفتح لأنه لم يتصل بآخره شيء": ["قال", "أتمها", "كان", "قال", "قال", "أكله", "فأكله", "سولت", "جاءت", "فأدلى", "قال", "اشترى", "بلغ", "راودت", "غلقت", "قالت", "قال", "أحسن", "همت", "هم", "رأى", "استبقا", "قدت", "ألفيا", "قالت", "أراد", "راودتني", "شهد", "كان", "قد", "صدقت", "كان", "قد", "كذبت", "رأى", "قد", "قال", "قال", "شغفها"],
-                "ماضٍ مبني على الضم لاتصاله بواو الجماعة": ["قالوا", "قالوا", "ذهبوا", "أجمعوا", "جاءوا", "قالوا", "وجاءوا", "ارسلوا", "أسروه", "شروه", "كانوا"],
-                "أمر مبني على حذف النون لاتصاله بـ ياء المخاطبة": ["أكرمي", "استغفري"],
-                "أمر مبني على السكون": ["أرسله", "أعرض"],
-                "مضارع منصوب وعلامة نصبه الفتحة الظاهرة": ["يأكله", "ينفعنا", "نتخذه", "ولنعلمه", "لنصرف", "يسجن"],
-                "مضارع منصوب وعلامة نصبه حذف النون": ["فيكيدوا", "تذهبوا", "أن يجعلوه"],
-                "مضارع مرفوع وعلامة رفعه الضمة المقدرة على (الواو) أو (الياء) للثقل": ["يجتبيك", "نجزي"],
-                "أمر مبني على حذف النون لاتصاله بـ واو الجماعة": ["اقتلوا", "اطرحوا", "ألقوا"],
-                "مضارع مرفوع وعلامة رفعه الضمة المقدرة على الألف للتعذر": ["لنراها"],
-                "مضارع مبني على الفتح لاتصاله بنون التوكيد الثقيلة": ["لتنبأنّهم"],
-                "ماضٍ مبني على السكون لاتصاله بـ تاء الفاعل": ["كنت", "رأيت", "رأيتهم", "كنتم", "كنت"],
-                "ماضٍ مبني على السكون لاتصاله بـ نا الفاعلين": ["أنزلنا", "أوحينا", "أوحينا", "ذهبنا", "تركنا", "مكنا", "آتيناه", "كنا"],
-                "مضارع مرفوع وعلامة رفعه الضمة الظاهرة": ["نقص", "يعلمك", "يتم", "تأمنّا", "يحزنني", "نستبق", "يفلح", "تراود", "أخاف"],
-                "مضارع مجزوم وعلامة جزمه حذف النون لأنه من الأفعال الخمسة": ["تكونوا", "لا تقتلوا"]
-            };
-
-            // Master Key for Grading PART 2 (واجبێ دووێ - دێ ل پاشەڕۆژێ هێتە پڕکرن)
-            const MASTER_KEY_PART2 = {
-                // Empty for now
-            };
             
             document.getElementById('show-report-btn').addEventListener('click', () => {
                 reportBody.innerHTML = '';
                 const data = cachedNotesData || {};
-
-                // Update Report Title based on Phase (ناڤونیشان ل دویڤ واجبی)
-                const reportTitle = document.querySelector('#report-modal .report-title');
-                reportTitle.innerText = (currentHomeworkPhase === 1) ? 'تقرير الواجب الأول (الآيات ١-٣٠)' : 'تقرير الواجب الثاني (الآيات ٣١-٥٢)';
-
+                
                 // Statistics Calculation (Count total verbs written)
                 let counts = {
                     total: 0,
@@ -1434,8 +1379,6 @@
                     else if (path.includes('مضارع')) counts.mudari += count;
                     else if (path.includes('أمر')) counts.amr += count;
                 }
-                
-                gradeBtn.style.display = 'block'; // Show grade button
 
                 // Add Summary Section
                 const summaryHTML = `
@@ -1529,12 +1472,9 @@
                             const newText = prompt('تعديل الملاحظة:', noteText);
                             if (newText !== null && newText.trim() !== '') {
                                 cachedNotesData[path][index] = newText.trim();
-                                updatePathNotes(path, cachedNotesData[path]).then(() => {
-                                    showToast("✅ تم التعديل");
-                                    backupToLocalStorage(cachedNotesData);
-                                    document.getElementById('show-report-btn').click(); 
-                                    loadAllNotes();
-                                });
+                                saveAllNotes();
+                                document.getElementById('show-report-btn').click(); // Refresh Report
+                                loadAllNotes(); // Refresh Main UI
                             }
                         };
 
@@ -1545,12 +1485,9 @@
                         delBtn.onclick = () => {
                             if (confirm('هل أنت متأكد؟')) {
                                 cachedNotesData[path].splice(index, 1);
-                                updatePathNotes(path, cachedNotesData[path]).then(() => {
-                                    showToast("✅ تم الحذف");
-                                    backupToLocalStorage(cachedNotesData);
-                                    document.getElementById('show-report-btn').click(); 
-                                    loadAllNotes();
-                                });
+                                saveAllNotes();
+                                document.getElementById('show-report-btn').click(); // Refresh Report
+                                loadAllNotes(); // Refresh Main UI
                             }
                         };
 
@@ -1564,7 +1501,6 @@
 
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'report-item';
-                    itemDiv.dataset.path = path; // Store path for accurate grading
                     
                     // Header with Toggle
                     const headerDiv = document.createElement('div');
@@ -1647,477 +1583,7 @@
                 };
                 reportBody.appendChild(txtBtn);
 
-                // Add Archive Button ONLY in Phase 1 (تەنێ بۆ واجبێ ئێکێ)
-                if (currentHomeworkPhase === 1) {
-                    const archiveBtn = document.createElement('button');
-                    archiveBtn.className = 'clear-all-btn'; 
-                    archiveBtn.style.marginTop = '15px';
-                    archiveBtn.style.backgroundColor = '#f59e0b'; // Amber
-                    archiveBtn.style.width = '100%';
-                    archiveBtn.innerHTML = '📦 ئەرشیفکرنا واجبێ ١ (١٠٥ فعل) و دەستپێکرنا واجبێ ٢';
-                    archiveBtn.onclick = () => {
-                        if(confirm('ئەرێ تۆ پشتراستی تە دڤێت واجبێ ئێکێ (ئایەت ١-٣٠) ئەرشیف بکەی و دەست ب واجبێ نوی (٣١-٥٢) بکەی؟\n\nتێبینی: داتایێن تە دێ هێنە پاراستن لێ ناهێنە نیشاندان.')) {
-                            const currentNotes = cachedNotesData;
-                            db.collection('users').doc(currentUser.uid).set({
-                                notes: {},
-                                archive_part1: currentNotes,
-                                last_archived: new Date().toISOString()
-                            }, { merge: true }).then(() => {
-                                cachedNotesData = {};
-                                alert('✅ واجبێ کەڤن هاتە ئەرشیفکرن. نوکە دشێی دەست ب واجبێ نوی بکەی.');
-                                document.getElementById('show-report-btn').click(); // Refresh report
-                                loadAllNotes(); // Refresh UI
-                            }).catch(error => {
-                                alert("خەلەتی: " + error.message);
-                            });
-                        }
-                    };
-                    reportBody.appendChild(archiveBtn);
-                }
-
-                // Add View Archive Button ONLY in Phase 2 (تەنێ بۆ واجبێ دووێ)
-                if (currentHomeworkPhase === 2) {
-                    const viewArchiveBtn = document.createElement('button');
-                    viewArchiveBtn.className = 'copy-btn'; // A decent style
-                    viewArchiveBtn.style.backgroundColor = '#64748b'; // Slate color
-                    viewArchiveBtn.style.marginTop = '10px';
-                    viewArchiveBtn.innerHTML = '👁️ عرض الواجب المؤرشف (واجب ١)';
-                    viewArchiveBtn.onclick = () => {
-                        showToast('⏳ جاري تحميل الأرشيف...');
-                        db.collection('users').doc(currentUser.uid).get().then(doc => {
-                            if (doc.exists && doc.data().archive_part1) {
-                                displayArchiveReport(doc.data().archive_part1);
-                            } else {
-                                alert('لا يوجد واجب مؤرشف.');
-                                showToast(''); // Clear loading message
-                            }
-                        }).catch(err => alert('حدث خطأ أثناء تحميل الأرشيف: ' + err.message));
-                    };
-                    reportBody.appendChild(viewArchiveBtn);
-                }
-
                 reportModal.classList.add('active');
-            });
-            
-            function displayArchiveReport(archiveData) {
-                const reportBody = document.getElementById('report-body');
-                
-                reportBody.innerHTML = ''; // Clear current report
-                document.querySelector('#report-modal .report-title').innerText = 'تقرير الواجب المؤرشف (الأرشيف)';
-                document.getElementById('grade-btn').style.display = 'none';
-
-                // --- Stats Calculation ---
-                let counts = { total: 0, madi: 0, mudari: 0, amr: 0 };
-                for (const [path, notes] of Object.entries(archiveData)) {
-                    const count = notes.length;
-                    counts.total += count;
-                    if (path.includes('ماضٍ')) counts.madi += count;
-                    else if (path.includes('مضارع')) counts.mudari += count;
-                    else if (path.includes('أمر')) counts.amr += count;
-                }
-                
-                // Add Summary Section
-                const summaryHTML = `
-                    <div class="report-summary">
-                        <div class="summary-header">
-                            <div style="font-size:1.1rem; font-weight:bold;">إجمالي الأفعال في الأرشيف</div>
-                            <div style="font-size:2.5rem; color:var(--accent-color); margin:10px 0; font-weight:bold;">${counts.total}</div>
-                        </div>
-                        <div class="summary-row"><span class="summary-label">ماضٍ</span><span class="summary-value">${counts.madi}</span></div>
-                        <div class="summary-row"><span class="summary-label">مضارع</span><span class="summary-value">${counts.mudari}</span></div>
-                        <div class="summary-row"><span class="summary-label">أمر</span><span class="summary-value">${counts.amr}</span></div>
-                    </div>
-                `;
-                reportBody.innerHTML = summaryHTML;
-
-                const hasData = Object.values(archiveData).some(arr => arr.length > 0);
-                if (!hasData) {
-                    reportBody.innerHTML += '<div style="text-align:center; padding:20px;">الأرشيف فارغ.</div>';
-                } else {
-                    for (const [path, notesArray] of Object.entries(archiveData)) {
-                        if (notesArray.length === 0) continue;
-                        
-                        const listContainer = document.createElement('div');
-                        listContainer.className = 'report-verb-list expanded';
-
-                        notesArray.forEach((noteText, index) => {
-                            const verbRow = document.createElement('div');
-                            verbRow.className = 'report-verb-row';
-                            
-                            const textDiv = document.createElement('div');
-                            textDiv.className = 'report-verb-text';
-                            textDiv.innerText = `${index + 1}. ${noteText}`;
-                            
-                            const actionsDiv = document.createElement('div');
-                            actionsDiv.className = 'report-verb-actions';
-                            
-                            const editBtn = document.createElement('button');
-                            editBtn.innerText = '✏️';
-                            editBtn.title = 'تعديل';
-                            editBtn.onclick = () => {
-                                const newText = prompt('تعديل الملاحظة (في الأرشيف):', noteText);
-                                if (newText !== null && newText.trim() !== '') {
-                                    archiveData[path][index] = newText.trim();
-                                    db.collection('users').doc(currentUser.uid).set({ archive_part1: archiveData }, { merge: true })
-                                        .then(() => { showToast('✅ تم تحديث الأرشيف'); displayArchiveReport(archiveData); })
-                                        .catch(err => alert('خطأ في الحفظ: ' + err.message));
-                                }
-                            };
-
-                            const delBtn = document.createElement('button');
-                            delBtn.innerText = '🗑️';
-                            delBtn.title = 'حذف';
-                            delBtn.onclick = () => {
-                                if (confirm('هل أنت متأكد من الحذف من الأرشيف؟')) {
-                                    archiveData[path].splice(index, 1);
-                                    db.collection('users').doc(currentUser.uid).set({ archive_part1: archiveData }, { merge: true })
-                                        .then(() => { showToast('✅ تم الحذف من الأرشيف'); displayArchiveReport(archiveData); })
-                                        .catch(err => alert('خطأ في الحفظ: ' + err.message));
-                                }
-                            };
-
-                            actionsDiv.appendChild(editBtn);
-                            actionsDiv.appendChild(delBtn);
-                            verbRow.appendChild(textDiv);
-                            verbRow.appendChild(actionsDiv);
-                            listContainer.appendChild(verbRow);
-                        });
-
-                        const itemDiv = document.createElement('div');
-                        itemDiv.className = 'report-item';
-                        
-                        const headerDiv = document.createElement('div');
-                        headerDiv.className = 'report-path';
-                        headerDiv.innerHTML = `<span>🔹 ${path} <span style="font-size:0.9em; color:#64748b; font-weight:normal;">(${notesArray.length} دانە)</span></span>`;
-
-                        itemDiv.appendChild(headerDiv);
-                        itemDiv.appendChild(listContainer);
-                        reportBody.appendChild(itemDiv);
-                    }
-                }
-
-                // --- Action Buttons ---
-                const generateArchiveReportText = (includeVerbs = false) => {
-                    let text = `📊 *تقرير الواجب المؤرشف*\n------------------\n✅ إجمالي الأفعال: ${counts.total} فعل\n\n`;
-                    if (hasData) {
-                        for (const [path, items] of Object.entries(archiveData)) {
-                            if (items.length === 0) continue;
-                            text += `🔹 ${path} (${items.length})\n`;
-                            if (includeVerbs) {
-                                items.forEach((note, idx) => { text += `   ${idx + 1}. ${note}\n`; });
-                                text += "------------------\n";
-                            }
-                        }
-                    }
-                    return text;
-                };
-
-                const shareBtn = document.createElement('button');
-                shareBtn.className = 'share-btn';
-                shareBtn.innerHTML = '📤 مشاركة الأرشيف عبر تيليجرام';
-                shareBtn.onclick = () => { window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(generateArchiveReportText(false))}`, '_blank'); };
-                reportBody.appendChild(shareBtn);
-
-                // Restore Button (To fix accidental archive)
-                const restoreBtn = document.createElement('button');
-                restoreBtn.className = 'import-btn';
-                restoreBtn.style.marginTop = '10px';
-                restoreBtn.innerHTML = '♻️ استرجاع الواجب للكتابة (Un-archive)';
-                restoreBtn.onclick = () => {
-                    if(confirm('هل أنت متأكد؟ سيتم استرجاع هذا الواجب للكتابة ومسح الواجب الحالي.')) {
-                        db.collection('users').doc(currentUser.uid).set({
-                            notes: archiveData,
-                            archive_part1: {} 
-                        }, { merge: true }).then(() => {
-                            cachedNotesData = archiveData;
-                            alert('✅ تم الاسترجاع.');
-                            document.getElementById('show-report-btn').click();
-                            loadAllNotes();
-                        });
-                    }
-                };
-                reportBody.appendChild(restoreBtn);
-
-                const backBtn = document.createElement('button');
-                backBtn.className = 'clear-all-btn';
-                backBtn.style.marginTop = '10px';
-                backBtn.innerHTML = '➡️ العودة';
-                backBtn.onclick = () => { document.getElementById('show-report-btn').click(); };
-
-                // Add Copy & TXT buttons for Archive
-                const copyBtn = document.createElement('button');
-                copyBtn.className = 'copy-btn';
-                copyBtn.innerHTML = '📋 نسخ تقرير الأرشيف';
-                copyBtn.onclick = () => { navigator.clipboard.writeText(generateArchiveReportText(false)).then(() => alert('تم نسخ التقرير المؤرشف!')); };
-                reportBody.appendChild(copyBtn);
-
-                const txtBtn = document.createElement('button');
-                txtBtn.className = 'txt-btn';
-                txtBtn.innerHTML = '📄 تحميل الأرشيف (ملف نصي)';
-                txtBtn.onclick = () => {
-                    const blob = new Blob([generateArchiveReportText(true)], {type: 'text/plain'});
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(blob);
-                    a.download = `Archive_Report_Yusuf_${new Date().toISOString().slice(0,10)}.txt`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                };
-                reportBody.appendChild(txtBtn);
-                reportBody.appendChild(backBtn);
-            }
-
-            // Levenshtein distance function for typo tolerance (مەودای لێڤێنشتاین)
-            // This function calculates the number of edits (insertions, deletions, or substitutions)
-            // required to change one word into the other. It helps forgive small spelling mistakes.
-            function levenshtein(a, b) {
-                if (a.length === 0) return b.length;
-                if (b.length === 0) return a.length;
-                const matrix = [];
-                for (let i = 0; i <= b.length; i++) { matrix[i] = [i]; }
-                for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
-                for (let i = 1; i <= b.length; i++) {
-                    for (let j = 1; j <= a.length; j++) {
-                        const cost = b.charAt(i - 1) === a.charAt(j - 1) ? 0 : 1;
-                        matrix[i][j] = Math.min(
-                            matrix[i - 1][j - 1] + cost, // substitution
-                            matrix[i][j - 1] + 1,        // insertion
-                            matrix[i - 1][j] + 1         // deletion
-                        );
-                    }
-                }
-                return matrix[b.length][a.length];
-            }
-
-            // Grading Logic
-            gradeBtn.addEventListener('click', () => {
-                // 1. Reset Headers (Remove old status badges)
-                document.querySelectorAll('.report-status-badge').forEach(el => el.remove());
-                document.querySelectorAll('.correction-hint').forEach(el => el.remove());
-                document.querySelectorAll('.report-verb-row').forEach(el => {
-                    el.classList.remove('correct', 'wrong');
-                });
-
-                const rows = document.querySelectorAll('.report-verb-row');
-                const lists = document.querySelectorAll('.report-verb-list');
-                
-                // Expand all lists to show results
-                lists.forEach(l => l.classList.add('expanded'));
-                document.querySelectorAll('.toggle-icon').forEach(i => i.innerText = '▲ إخفاء');
-
-                // Advanced helper function to normalize Arabic text for forgiving comparison
-                // This handles diacritics (tashkeel) and common spelling variations (hamza, ta marbuta, etc.)
-                function normalizeForGrading(text) {
-                    if (!text) return "";
-                    return text
-                        .replace(/[.,،;:\-!؟?"'()\[\]]/g, '') // Remove punctuation
-                        .replace(/[\u064B-\u0652\u0640\u0670\u0674\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED\u200c\u200d]/g, '') // 1. Remove diacritics & hidden chars
-                        .replace(/[أإآ]/g, 'ا') // 2. Unify Alef forms
-                        .replace(/ى/g, 'ي')    // 3. Unify Alef Maqsura to Ya
-                        .replace(/ة/g, 'ه')    // 4. Unify Ta Marbuta to Ha
-                        .replace(/ؤ/g, 'و')    // 5. Unify Hamza on Waw to Waw
-                        .replace(/ئ/g, 'ي');   // 6. Unify Hamza on Ya to Ya
-                }
-
-                // Select Key based on Homework Phase
-                let activeKey = (currentHomeworkPhase === 2) ? MASTER_KEY_PART2 : MASTER_KEY_PART1;
-
-                if (currentHomeworkPhase === 2 && Object.keys(activeKey).length === 0) {
-                    alert("تەسحیحا واجبێ دووێ هێشتا بەردەست نینە (Coming Soon).");
-                    return;
-                }
-
-                // Prepare available answers pool to handle duplicates correctly
-                const availableAnswers = {};
-                for (const [key, val] of Object.entries(activeKey)) {
-                    availableAnswers[key] = val.map(v => ({ text: v, used: false }));
-                }
-
-                // Stats
-                let totalCorrect = 0;
-                let totalWrong = 0;
-                let totalSpelling = 0;
-                let totalMissing = 0;
-                let totalExtra = 0;
-                let totalUserAnswers = 0;
-
-                const pathStats = {}; 
-
-                // Initialize pathStats
-                for (const path of Object.keys(activeKey)) {
-                    pathStats[path] = { correct: 0, wrong: 0, spelling: 0, missing: 0, extra: 0 };
-                }
-
-                rows.forEach(row => {
-                    totalUserAnswers++;
-                    const textDiv = row.querySelector('.report-verb-text');
-                    // Extract verb text, ignoring numbering and any previous correction hints
-                    let verb = textDiv.innerText.split('\n')[0].replace(/^\d+\.\s*/, '').trim();
-                    let normalizedVerb = normalizeForGrading(verb);
-                    
-                    // Find current path of this row
-                    const listContainer = row.closest('.report-verb-list');
-                    const itemDiv = listContainer.closest('.report-item');
-                    const currentPath = itemDiv.dataset.path; // Use dataset for accuracy
-
-                    if (!pathStats[currentPath]) {
-                         pathStats[currentPath] = { correct: 0, wrong: 0, spelling: 0, missing: 0, extra: 0 };
-                    }
-
-                    // Check against available pool for this path
-                    const pool = availableAnswers[currentPath] || [];
-                    let matchIndex = -1;
-                    let isSpelling = false;
-                    
-                    // 1. Try Exact Match first
-                    matchIndex = pool.findIndex(item => !item.used && normalizeForGrading(item.text) === normalizedVerb);
-
-                    // 2. If not found, try Fuzzy Match (Spelling)
-                    if (matchIndex === -1) {
-                        let bestDist = 3; // Max allowed distance
-                        let bestIdx = -1;
-                        
-                        pool.forEach((item, idx) => {
-                            if (!item.used) {
-                                const normItem = normalizeForGrading(item.text);
-                                const dist = levenshtein(normalizedVerb, normItem);
-                                // STRICTER THRESHOLD: Exact match for short words (<=3), 1 error for others
-                                const threshold = normItem.length <= 3 ? 0 : 1; 
-                                if (dist <= threshold && dist < bestDist) {
-                                    bestDist = dist;
-                                    bestIdx = idx;
-                                }
-                            }
-                        });
-
-                        if (bestIdx !== -1) {
-                            matchIndex = bestIdx;
-                            isSpelling = true;
-                        }
-                    }
-
-                    if (matchIndex !== -1) {
-                        // Correct Answer Found
-                        pool[matchIndex].used = true; // Mark as used
-                        
-                        row.classList.add('correct');
-                        row.classList.remove('wrong');
-                        pathStats[currentPath].correct++;
-                        totalCorrect++;
-                        
-                        // Add hint if spelling mistake
-                        if (isSpelling) {
-                            pathStats[currentPath].spelling++;
-                            totalSpelling++;
-                            let hintElement = document.createElement('span'); 
-                            hintElement.className = 'correction-hint'; 
-                            hintElement.style.color = '#d97706'; // Orange for warning
-                            hintElement.innerText = `⚠️ خەلەتیا ئیملایە (دروست: ${pool[matchIndex].text})`;
-                            textDiv.appendChild(hintElement);
-                        }
-                    } else {
-                        // Wrong Answer
-                        row.classList.add('wrong');
-                        row.classList.remove('correct');
-                        pathStats[currentPath].wrong++;
-                        totalWrong++;
-                        
-                        // Check if it was a duplicate (Correct word but already used)
-                        const isDuplicate = (availableAnswers[currentPath] || []).some(item => item.used && normalizeForGrading(item.text) === normalizedVerb);
-                        
-                        // Check if it belongs to another category (Cross-Check)
-                        let otherCategory = null;
-                        if (!isDuplicate) {
-                            for (const [otherPath, otherPool] of Object.entries(availableAnswers)) {
-                                if (otherPath === currentPath) continue;
-                                if (otherPool.some(i => normalizeForGrading(i.text) === normalizedVerb)) {
-                                    otherCategory = otherPath;
-                                    break;
-                                }
-                            }
-                        }
-
-                        let hintText = "";
-                        if (isDuplicate) {
-                            hintText = `⚠️ خەلەتە! (ئەڤە یا زێدەیە - Duplicate)`;
-                        } else if (otherCategory) {
-                            hintText = `⚠️ خەلەتە! (ئەڤە یا بەشێ: "${otherCategory}" یە)`;
-                        } else {
-                            hintText = `⚠️ خەلەتە! (ئەڤە یا زێدەیە)`;
-                            pathStats[currentPath].extra++;
-                            totalExtra++;
-                        }
-
-                        let hintElement = row.querySelector('.correction-hint');
-                        if (!hintElement) { hintElement = document.createElement('span'); hintElement.className = 'correction-hint'; textDiv.appendChild(hintElement); }
-                        hintElement.innerText = hintText;
-                    }
-                });
-
-                // Calculate Missing
-                for (const [path, items] of Object.entries(availableAnswers)) {
-                    const unusedCount = items.filter(i => !i.used).length;
-                    if (pathStats[path]) {
-                        pathStats[path].missing = unusedCount;
-                    }
-                    totalMissing += unusedCount;
-                }
-
-                // Check for Missing Answers (Under-answering)
-                document.querySelectorAll('.report-item').forEach(itemDiv => {
-                    const currentPath = itemDiv.dataset.path;
-                    const pathSpan = itemDiv.querySelector('.report-path span');
-                    const stats = pathStats[currentPath];
-                    
-                    if (stats) {
-                        const statusSpan = document.createElement('span');
-                        statusSpan.className = 'report-status-badge';
-                        statusSpan.style.marginRight = '10px';
-                        statusSpan.style.fontSize = '0.85rem';
-                        statusSpan.style.fontWeight = 'bold';
-
-                        if (stats.missing > 0) {
-                            statusSpan.style.color = '#d97706'; // Orange
-                            statusSpan.innerText = `(هێشتا ${stats.missing} پێتڤینە)`;
-                        } else if (stats.wrong === 0) {
-                            statusSpan.style.color = '#10b981'; // Green
-                            statusSpan.innerText = `(تەمامە ✅)`;
-                        } else {
-                            statusSpan.style.color = '#ef4444';
-                            statusSpan.innerText = `(تەمامە بەلێ خەلەتی تێدانە)`;
-                        }
-                        pathSpan.appendChild(statusSpan);
-                    }
-                });
-                
-                // Show Summary at Top
-                const summaryDiv = document.createElement('div');
-                summaryDiv.className = 'report-summary';
-                summaryDiv.style.border = '2px solid #3b82f6';
-                summaryDiv.style.backgroundColor = '#eff6ff';
-                summaryDiv.innerHTML = `
-                    <div class="summary-header">
-                        <div style="font-size:1.2rem; font-weight:bold; color:#1e3a8a;">ئەنجامێ کۆتایی (Result)</div>
-                    </div>
-                    <div class="summary-row"><span class="summary-label">دروست (Correct):</span><span class="summary-value" style="color:#10b981">${totalCorrect}</span></div>
-                    <div class="summary-row"><span class="summary-label">خەلەتیێن ئیملای (Spelling):</span><span class="summary-value" style="color:#d97706">${totalSpelling}</span></div>
-                    <div class="summary-row"><span class="summary-label">خەلەت/زێدە (Wrong/Extra):</span><span class="summary-value" style="color:#ef4444">${totalWrong}</span></div>
-                    <div class="summary-row"><span class="summary-label">کێم (Missing):</span><span class="summary-value" style="color:#f59e0b">${totalMissing}</span></div>
-                `;
-                
-                const reportBody = document.getElementById('report-body');
-                // Remove old summary if exists (to avoid duplicates)
-                const oldSummaries = reportBody.querySelectorAll('.report-summary');
-                oldSummaries.forEach(s => s.remove());
-                
-                // Insert at top
-                reportBody.insertBefore(summaryDiv, reportBody.firstChild);
-
-                gradeBtn.style.display = 'none'; // Hide button after grading
-                showToast("✅ تم تصحيح الإجابات!", 3000);
-                
-                // Scroll to top
-                document.querySelector('.modal-content').scrollTop = 0;
             });
 
             document.getElementById('close-report').addEventListener('click', () => {
@@ -2132,70 +1598,6 @@
             document.getElementById('close-help').addEventListener('click', () => {
                 helpModal.classList.remove('active');
             });
-            
-            // --- Recovery System UI ---
-            document.getElementById('recovery-btn').addEventListener('click', showRecoveryOptions);
-
-            function showRecoveryOptions() {
-                const modal = document.createElement('div');
-                modal.className = 'modal-overlay active';
-                modal.style.zIndex = '6000';
-                
-                // Check Local Storage Count
-                const localStr = localStorage.getItem('yusuf_notes_backup');
-                let localCount = 0;
-                if(localStr) {
-                    try {
-                        const d = JSON.parse(localStr);
-                        localCount = Object.values(d).reduce((a,v)=>a+v.length,0);
-                    } catch(e){}
-                }
-                
-                modal.innerHTML = `
-                <div class="modal-content" style="text-align:center; max-width:400px;">
-                    <h2 style="color:#ef4444;">🛠️ چارەسەرکرنا داتایان</h2>
-                    <p style="margin-bottom:20px;">ئەگەر داتایێن تە بەرزەبووینە، ئێک ژ ڤان هەڵبژێرە:</p>
-                    
-                    <button class="add-note-btn" onclick="restoreFromLocal()" style="background:#0ea5e9; width:100%; margin-bottom:10px; padding:15px;">
-                        📂 زڤڕاندن ژ موبایلێ (Local)<br>
-                        <small style="font-weight:normal">(${localCount} فعل هەنە)</small>
-                    </button>
-
-                    <button class="add-note-btn" onclick="restoreFromArchive()" style="background:#f59e0b; width:100%; margin-bottom:10px; padding:15px;">
-                        📦 زڤڕاندن ژ ئەرشیفی (Archive)<br>
-                        <small style="font-weight:normal">ئەگەر تە ب خەلەتی ئەرشیف کربیت</small>
-                    </button>
-
-                    <button class="clear-all-btn" onclick="this.closest('.modal-overlay').remove()" style="width:100%;">گرتن (Close)</button>
-                </div>`;
-                document.body.appendChild(modal);
-            }
-
-            window.restoreFromLocal = function() {
-                const localStr = localStorage.getItem('yusuf_notes_backup');
-                if(localStr && confirm("دڵنیای؟ داتایێن موبایلێ دێ کەڤنە شوینا یێن نوکە.")) {
-                    cachedNotesData = JSON.parse(localStr);
-                    saveAllNotes(true).then(() => location.reload());
-                } else if(!localStr) alert("چ داتا ل سەر موبایلێ نینن.");
-            };
-
-            window.restoreFromArchive = function() {
-                db.collection('users').doc(currentUser.uid).get().then(doc => {
-                    if(doc.exists && doc.data().archive_part1) {
-                        if(confirm("دڵنیای؟ داتایێن ئەرشیفی دێ زڤڕن.")) {
-                            db.collection('users').doc(currentUser.uid).set({
-                                notes: doc.data().archive_part1,
-                                archive_part1: firebase.firestore.FieldValue.delete()
-                            }, { merge: true }).then(() => {
-                                alert("✅ داتا ژ ئەرشیفی زڤڕین.");
-                                location.reload();
-                            });
-                        }
-                    } else {
-                        alert("چ ئەرشیف نینە.");
-                    }
-                });
-            };
 
         });
     </script>
