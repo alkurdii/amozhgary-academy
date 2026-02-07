@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پلانا ڕەمەزانێ - ١٠ سلاید</title>
+    
+    <!-- فۆنتێ کوردی یێ ستاندارد -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- کتێبخانەیا PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        :root {
+            --dark: #0b0f19;
+            --gold: #d4af37;
+            --gold-light: #f1d279;
+            --white: #ffffff;
+            --gray: #94a3b8;
+        }
+
+        body {
+            font-family: 'Noto Kufi Arabic', sans-serif;
+            background-color: #1e1e1e;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* دوگمەیا داونلۆدێ */
+        .controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+
+        .btn-pdf {
+            background: var(--gold);
+            color: black;
+            border: none;
+            padding: 12px 25px;
+            font-family: 'Noto Kufi Arabic', sans-serif;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        /* ستایلێ سلایدان */
+        .presentation-container {
+            width: 900px;
+        }
+
+        .slide {
+            width: 100%;
+            height: 550px; /* وەک قەبارێ پاوەرپۆینتێ */
+            background: radial-gradient(circle at center, #161e2e 0%, #0b0f19 100%);
+            margin-bottom: 30px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 8px solid #05080f;
+            box-sizing: border-box;
+            color: var(--white);
+            text-align: center;
+            overflow: hidden;
+        }
+
+        /* چوارچۆڤێ زێری */
+        .slide::after {
+            content: "";
+            position: absolute;
+            top: 20px; left: 20px; right: 20px; bottom: 20px;
+            border: 1px solid var(--gold);
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        .slide-number {
+            position: absolute;
+            bottom: 30px;
+            left: 40px;
+            color: var(--gold);
+            font-size: 14px;
+        }
+
+        h1 { font-size: 45px; color: var(--gold); margin: 10px 0; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        h2 { font-size: 32px; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 10px; margin-bottom: 30px; }
+        p { font-size: 20px; color: var(--gray); }
+        
+        ul { list-style: none; padding: 0; width: 80%; }
+        li { 
+            font-size: 22px; 
+            margin-bottom: 15px; 
+            text-align: right; 
+            display: flex; 
+            align-items: center;
+            background: rgba(255,255,255,0.03);
+            padding: 10px 20px;
+            border-right: 5px solid var(--gold);
+        }
+        li::before { content: "✦"; color: var(--gold); margin-left: 15px; }
+
+        .swot-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 80%;
+        }
+        .swot-box {
+            background: rgba(212, 175, 55, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--gold);
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .highlight { color: var(--gold-light); font-weight: bold; }
+
+        /* ستایل بۆ کاتی PDF دروستکردن */
+        .presentation-container.pdf-mode .slide {
+            margin-bottom: 0;
+            page-break-after: always;
+            background-color: #0b0f19; /* دڵنیابوون لەوەی پاشبنەما ڕەش بێت */
+        }
+        
+        .presentation-container.pdf-mode .slide:last-child {
+            page-break-after: avoid;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <button class="btn-pdf" onclick="generatePDF()">داونلۆدکرن وەک PDF</button>
+    </div>
+
+    <div class="presentation-container" id="presentation">
+        
+        <!-- Slide 1: Title -->
+        <div class="slide">
+            <p>بسم اللە الرحمن الرحیم</p>
+            <h1>پلانا هەیڤا ڕەمەزانێ</h1>
+            <p class="highlight">ئامادەکرن وپێشکێشکرن ملاڕۆژمانێ گرشینی</p>
+            <div class="slide-number">١</div>
+        </div>
+
+        <!-- Slide 2: Verse -->
+        <div class="slide">
+            <h1 style="font-size: 60px;">[ٲیاما معدودات]</h1>
+            <div class="slide-number">٢</div>
+        </div>
+
+        <!-- Slide 3: Introductory Plan -->
+        <div class="slide">
+            <h2>#پلانا بەراهیێ(تمهیدی)</h2>
+            <ul>
+                <li>پێداچونا بیروباوەران چونکێ بنەمایێ قەبیلبونا کریارانە.</li>
+                <li>گرتنا ڕۆژیێن شەعبانێ.</li>
+                <li>خواندنا قۆڕئانێ (شهر القراء).</li>
+                <li>دانا زکاتێ پێشوەخت.</li>
+                <li>خوفێرکرنا احکامێن ڕوژیێ.</li>
+            </ul>
+            <div class="slide-number">٣</div>
+        </div>
+
+        <!-- Slide 4: Abandonment Plan -->
+        <div class="slide">
+            <h2>#پلانا تەرکاندنێ(المهجورات)</h2>
+            <p class="highlight">((خالیکە پاشی تژیکە))</p>
+            <ul>
+                <li>ژدەستدان وزەعێکرنا دەمی.</li>
+                <li>تورێن کومەڵایەتی.</li>
+                <li>ڕێگرێن ڕێکێ بناسی.</li>
+                <li>بێ بەڕنامجی(تەبەرنامە نەبی دێ بێ بەڕنامجی بیتە بەڕنامەبوتە)</li>
+            </ul>
+            <div class="slide-number">٤</div>
+        </div>
+
+        <!-- Slide 5: Worship Plan -->
+        <div class="slide">
+            <h2>#پلانا عیبادەتان.</h2>
+            <p style="width: 80%; font-size: 18px;">پلان ئارمانجێ دکەت د نەستیدا(لاشعوری)وزەنگە بو کارپێکرنێ ئەگەر بتەمامیژی نەبیت.</p>
+            <ul>
+                <li>خواندنا قوڕئانێ(تفسیر)</li>
+                <li>نڤێژ (بجماعەت)</li>
+                <li>ئەنجامدانا خێرو صدقا ئەگەر کێمژی بیت.</li>
+                <li>تەڕاویح بلا ببیتە ڕحا ڕەمەزاناتە.</li>
+                <li>باشترین باشترینە بوخەلکی.</li>
+            </ul>
+            <div class="slide-number">٥</div>
+        </div>
+
+        <!-- Slide 6: Support System -->
+        <div class="slide">
+            <h2>#هاریکارێن پلانێ.</h2>
+            <p style="width: 80%;">((پێغمبەران علیهم الصلاة والسلام بهاریکاریا هاریکاران دین گەهاند))</p>
+            <ul>
+                <li>خێزان.[ذرية بعضها من بعض]</li>
+                <li>هەڤال(المرا علی دین خلیلە)</li>
+                <li>مزگەفت،مالاخودێ بوئیماندارا.</li>
+            </ul>
+            <div class="slide-number">٦</div>
+        </div>
+
+        <!-- Slide 7: Projects -->
+        <div class="slide">
+            <h2>#پلانا پڕوژان.</h2>
+            <ul>
+                <li>هندەکافێری خاندنا قوڕئانێ بکە(فاتیحێ)</li>
+                <li>دبوارێ خودا(کومپانی،دختور،دکاندار...)</li>
+                <li>مەل شەڤابقەدر ژڤانە[خیر من الف شهر]</li>
+                <li>دانا فتارێ.</li>
+            </ul>
+            <div class="slide-number">٧</div>
+        </div>
+
+        <!-- Slide 8: Structure -->
+        <div class="slide">
+            <h2>پێکهاتێن پلانێ</h2>
+            <ul>
+                <li>ئارمانج</li>
+                <li>ڕێکا گهشتنێ</li>
+                <li>ئامادەکاری بوگهشتنێ</li>
+            </ul>
+            <div class="slide-number">٨</div>
+        </div>
+
+        <!-- Slide 9: SWOT -->
+        <div class="slide">
+            <h2>داپلاناتەیا بهێزبیت ڤان زانیاریا بزانە.</h2>
+            <div class="swot-grid">
+                <div class="swot-box">💪 خالێن بهێز</div>
+                <div class="swot-box">📉 خالێن لاواز</div>
+                <div class="swot-box">🌟 دەرفەت</div>
+                <div class="swot-box">⚠️ مەتڕسی</div>
+            </div>
+            <div class="slide-number">٩</div>
+        </div>
+
+        <!-- Slide 10: Conclusion -->
+        <div class="slide">
+            <h2>ئەگەر من نەشیا پلاناخو جێبەجێ بکەمچبکەم؟😔</h2>
+            <p style="color: white; width: 70%; font-size: 22px;">بخەم نەکەڤه هەڕە پلانا (ب)پلانا یەدەگ.</p>
+            <h1 style="font-size: 30px; margin-top: 40px;">سوپاس بو گوهداریا هەوە.</h1>
+            <p class="highlight">الحمدللە بدوماهیک هات.</p>
+            <div class="slide-number">١٠</div>
+        </div>
+
+    </div>
+
+    <script>
+        function generatePDF() {
+            const element = document.getElementById('presentation');
+            
+            // زیادکردنی کلاس بۆ لابردنی بۆشاییەکان
+            element.classList.add('pdf-mode');
+
+            const opt = {
+                margin: 0,
+                filename: 'Plana_Ramazan_Mala_Rojman.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, scrollY: 0, backgroundColor: '#0b0f19' },
+                jsPDF: { unit: 'px', format: [900, 550], orientation: 'landscape' }
+            };
+            
+            html2pdf().set(opt).from(element).save().then(() => {
+                // لابردنی کلاسەکە دوای تەواوبوون
+                element.classList.remove('pdf-mode');
+            });
+        }
+    </script>
+</body>
+</html>
