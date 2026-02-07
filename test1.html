@@ -862,16 +862,16 @@
 
     <div class="tab-container">
         <div class="search-container">
-            <input type="text" id="search-input" placeholder="بگەڕێ... (نموونە: السكون)">
+            <input type="text" id="search-input" placeholder="بحث... (مثال: السكون)">
             <button id="switch-type-btn" style="margin-top: 10px; background: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); padding: 5px 10px; border-radius: 5px; cursor: pointer; font-family: inherit; display:none;">
-                🔄 گوهڕینا بەشی (Switch)
+                🔄 تغيير القسم
             </button>
         </div>
         
         <!-- AI Global Interaction Area -->
         <div class="ai-global-container">
-            <textarea id="ai-global-input" class="leaf-input" style="width:100%; height:60px;" placeholder="پرسیارێ ژ ئەی ئای بکە (نموونە: إعراب يكتبون)..."></textarea>
-            <button id="ai-global-btn" class="add-note-btn" style="background-color: #8b5cf6;">🤖 شلوڤەکرن (AI)</button>
+            <textarea id="ai-global-input" class="leaf-input" style="width:100%; height:60px;" placeholder="اسأل الذكاء الاصطناعي (مثال: إعراب يكتبون)..."></textarea>
+            <button id="ai-global-btn" class="add-note-btn" style="background-color: #8b5cf6;">🤖 تحليل (AI)</button>
             <div id="ai-global-response"></div>
         </div>
 
@@ -890,19 +890,19 @@
                     <li>
                         <div class="node" style="position: relative;">
                             <span class="start-label">البداية 👇</span>
-                            ماضٍ مبني على
+                            مَاضٍ مَبْنِيٌّ عَلَى
                         </div>
                         <ul>
-                            <li><div class="node">الفتح لأنه لم يتصل بآخره شيء</div></li>
+                            <li><div class="node">الْفَتْحِ لِأَنَّهُ لَمْ يَتَّصِلْ بِآخِرِهِ شَيْءٌ</div></li>
                             <li>
-                                <div class="node">السكون لاتصاله بـ</div>
+                                <div class="node">السُّكُونِ لِاتِّصَالِهِ بِـ</div>
                                 <ul>
-                                    <li><div class="node">تاء الفاعل</div></li>
-                                    <li><div class="node">نا الفاعلين</div></li>
-                                    <li><div class="node">نون النسوة</div></li>
+                                    <li><div class="node">تَاءِ الْفَاعِلِ</div></li>
+                                    <li><div class="node">نَا الْفَاعِلِينَ</div></li>
+                                    <li><div class="node">نُونِ النِّسْوَةِ</div></li>
                                 </ul>
                             </li>
-                            <li><div class="node">الضم لاتصاله بواو الجماعة</div></li>
+                            <li><div class="node">الضَّمِّ لِاتِّصَالِهِ بِوَاوِ الْجَمَاعَةِ</div></li>
                         </ul>
                     </li>
                 </ul>
@@ -916,60 +916,60 @@
                     <li>
                         <div class="node" style="position: relative;">
                             <span class="start-label">البداية 👇</span>
-                            مضارع
+                            مُضَارِعٌ
                         </div>
                         <ul>
                             <li>
-                                <div class="node">مبني على</div>
+                                <div class="node">مَبْنِيٌّ عَلَى</div>
                                 <ul>
-                                    <li><div class="node">السكون لاتصاله بنون النسوة</div></li>
+                                    <li><div class="node">السُّكُونِ لِاتِّصَالِهِ بِنُونِ النِّسْوَةِ</div></li>
                                     <li>
-                                        <div class="node">الفتح لاتصاله بنون التوكيد</div>
+                                        <div class="node">الْفَتْحِ لِاتِّصَالِهِ بِنُونِ التَّوْكِيدِ</div>
                                         <ul>
-                                            <li><div class="node">الثقيلة</div></li>
-                                            <li><div class="node">الخفيفة</div></li>
+                                            <li><div class="node">الثَّقِيلَةِ</div></li>
+                                            <li><div class="node">الْخَفِيفَةِ</div></li>
                                         </ul>
                                     </li>
                                 </ul>
                             </li>
                             <li>
-                                <div class="node">مرفوع وعلامة رفعه</div>
+                                <div class="node">مَرْفُوعٌ وَعَلَامَةُ رَفْعِهِ</div>
                                 <ul>
                                     <li>
-                                        <div class="node">الضمة</div>
+                                        <div class="node">الضَّمَّةُ</div>
                                         <ul>
-                                            <li><div class="node">الظاهرة</div></li>
+                                            <li><div class="node">الظَّاهِرَةُ</div></li>
                                             <li>
-                                                <div class="node">المقدرة على</div>
+                                                <div class="node">الْمُقَدَّرَةُ عَلَى</div>
                                                 <ul>
-                                                    <li><div class="node">الألف للتعذر</div></li>
-                                                    <li><div class="node">(الواو) أو (الياء) للثقل</div></li>
+                                                    <li><div class="node">الْأَلِفِ لِلتَّعَذُّرِ</div></li>
+                                                    <li><div class="node">(الْوَاوِ) أَوِ (الْيَاءِ) لِلثِّقَلِ</div></li>
                                                 </ul>
                                             </li>
                                         </ul>
                                     </li>
-                                    <li><div class="node">ثبوت النون</div></li>
+                                    <li><div class="node">ثُبُوتُ النُّونِ</div></li>
                                 </ul>
                             </li>
                             <li>
-                                <div class="node">منصوب وعلامة نصبه</div>
+                                <div class="node">مَنْصُوبٌ وَعَلَامَةُ نَصْبِهِ</div>
                                 <ul>
                                     <li>
-                                        <div class="node">الفتحة</div>
+                                        <div class="node">الْفَتْحَةُ</div>
                                         <ul>
-                                            <li><div class="node">الظاهرة</div></li>
-                                            <li><div class="node">المقدرة على الألف للتعذر</div></li>
+                                            <li><div class="node">الظَّاهِرَةُ</div></li>
+                                            <li><div class="node">الْمُقَدَّرَةُ عَلَى الْأَلِفِ لِلتَّعَذُّرِ</div></li>
                                         </ul>
                                     </li>
-                                    <li><div class="node">حذف النون</div></li>
+                                    <li><div class="node">حَذْفُ النُّونِ</div></li>
                                 </ul>
                             </li>
                             <li>
-                                <div class="node">مجزوم وعلامة جزمه</div>
+                                <div class="node">مَجْزُومٌ وَعَلَامَةُ جَزْمِهِ</div>
                                 <ul>
-                                    <li><div class="node">السكون</div></li>
-                                    <li><div class="node">حذف حرف العلة لأنه معتل الآخر</div></li>
-                                    <li><div class="node">حذف النون لأنه من الأفعال الخمسة</div></li>
+                                    <li><div class="node">السُّكُونُ</div></li>
+                                    <li><div class="node">حَذْفُ حَرْفِ الْعِلَّةِ لِأَنَّهُ مُعْتَلُّ الْآخِرِ</div></li>
+                                    <li><div class="node">حَذْفُ النُّونِ لِأَنَّهُ مِنَ الْأَفْعَالِ الْخَمْسَةِ</div></li>
                                 </ul>
                             </li>
                         </ul>
@@ -985,24 +985,24 @@
                     <li>
                         <div class="node" style="position: relative;">
                             <span class="start-label">البداية 👇</span>
-                            أمر مبني على
+                            أَمْرٌ مَبْنِيٌّ عَلَى
                         </div>
                         <ul>
-                            <li><div class="node">السكون</div></li>
-                            <li><div class="node">حذف حرف العلة لأنه معتل الآخر</div></li>
+                            <li><div class="node">السُّكُونِ</div></li>
+                            <li><div class="node">حَذْفُ حَرْفِ الْعِلَّةِ لِأَنَّهُ مُعْتَلُّ الْآخِرِ</div></li>
                             <li>
-                                <div class="node">حذف النون لاتصاله بـ</div>
+                                <div class="node">حَذْفُ النُّونِ لِاتِّصَالِهِ بِـ</div>
                                 <ul>
-                                    <li><div class="node">ألف الاثنين</div></li>
-                                    <li><div class="node">واو الجماعة</div></li>
-                                    <li><div class="node">ياء المخاطبة</div></li>
+                                    <li><div class="node">أَلِفِ الِاثْنَيْنِ</div></li>
+                                    <li><div class="node">وَاوِ الْجَمَاعَةِ</div></li>
+                                    <li><div class="node">يَاءِ الْمُخَاطَبَةِ</div></li>
                                 </ul>
                             </li>
                             <li>
-                                <div class="node">الفتح لاتصاله بنون التوكيد</div>
+                                <div class="node">الْفَتْحِ لِاتِّصَالِهِ بِنُونِ التَّوْكِيدِ</div>
                                 <ul>
-                                    <li><div class="node">الخفيفة</div></li>
-                                    <li><div class="node">الثقيلة</div></li>
+                                    <li><div class="node">الْخَفِيفَةِ</div></li>
+                                    <li><div class="node">الثَّقِيلَةِ</div></li>
                                 </ul>
                             </li>
                         </ul>
@@ -1028,28 +1028,28 @@
                         <li>
                             <div class="node" style="position: relative;">
                                 <span class="start-label">البداية 👇</span>
-                                اسم مرفوع وعلامة رفعه
+                                ... مَرْفُوعٌ وَعَلَامَةُ رَفْعِهِ
                             </div>
                             <ul>
                                 <li>
-                                    <div class="node">الضمة</div>
+                                    <div class="node">الضَّمَّةُ</div>
                                     <ul>
-                                        <li><div class="node">لأنه اسم مفرد</div></li>
-                                        <li><div class="node">لأنه جمع تكسير</div></li>
-                                        <li><div class="node">لأنه جمع مؤنث سالم</div></li>
+                                        <li><div class="node">لِأَنَّهُ اسْمٌ مُفْرَدٌ</div></li>
+                                        <li><div class="node">لِأَنَّهُ جَمْعُ تَكْسِيرٍ</div></li>
+                                        <li><div class="node">لِأَنَّهُ جَمْعُ مُؤَنَّثٍ سَالِمٌ</div></li>
                                     </ul>
                                 </li>
                                 <li>
-                                    <div class="node">الألف</div>
+                                    <div class="node">الْأَلِفُ</div>
                                     <ul>
-                                        <li><div class="node">لأنه مثنى</div></li>
+                                        <li><div class="node">لِأَنَّهُ مُثَنًّى</div></li>
                                     </ul>
                                 </li>
                                 <li>
-                                    <div class="node">الواو</div>
+                                    <div class="node">الْوَاوُ</div>
                                     <ul>
-                                        <li><div class="node">لأنه جمع مذكر سالم</div></li>
-                                        <li><div class="node">لأنه من الأسماء الخمسة</div></li>
+                                        <li><div class="node">لِأَنَّهُ جَمْعُ مُذَكَّرٍ سَالِمٌ</div></li>
+                                        <li><div class="node">لِأَنَّهُ مِنَ الْأَسْمَاءِ الْخَمْسَةِ</div></li>
                                     </ul>
                                 </li>
                             </ul>
@@ -1065,33 +1065,33 @@
                         <li>
                             <div class="node" style="position: relative;">
                                 <span class="start-label">البداية 👇</span>
-                                اسم منصوب وعلامة نصبه
+                                ... مَنْصُوبٌ وَعَلَامَةُ نَصْبِهِ
                             </div>
                             <ul>
                                 <li>
-                                    <div class="node">الفتحة</div>
+                                    <div class="node">الْفَتْحَةُ</div>
                                     <ul>
-                                        <li><div class="node">لأنه اسم مفرد</div></li>
-                                        <li><div class="node">لأنه جمع تكسير</div></li>
+                                        <li><div class="node">لِأَنَّهُ اسْمٌ مُفْرَدٌ</div></li>
+                                        <li><div class="node">لِأَنَّهُ جَمْعُ تَكْسِيرٍ</div></li>
                                     </ul>
                                 </li>
                                 <li>
-                                    <div class="node">الألف</div>
+                                    <div class="node">الْأَلِفُ</div>
                                     <ul>
-                                        <li><div class="node">لأنه من الأسماء الخمسة</div></li>
+                                        <li><div class="node">لِأَنَّهُ مِنَ الْأَسْمَاءِ الْخَمْسَةِ</div></li>
                                     </ul>
                                 </li>
                                 <li>
-                                    <div class="node">الكسرة</div>
+                                    <div class="node">الْكَسْرَةُ</div>
                                     <ul>
-                                        <li><div class="node">لأنه جمع مؤنث سالم</div></li>
+                                        <li><div class="node">لِأَنَّهُ جَمْعُ مُؤَنَّثٍ سَالِمٌ</div></li>
                                     </ul>
                                 </li>
                                 <li>
-                                    <div class="node">الياء</div>
+                                    <div class="node">الْيَاءُ</div>
                                     <ul>
-                                        <li><div class="node">لأنه جمع مذكر سالم</div></li>
-                                        <li><div class="node">لأنه مثنى</div></li>
+                                        <li><div class="node">لِأَنَّهُ جَمْعُ مُذَكَّرٍ سَالِمٌ</div></li>
+                                        <li><div class="node">لِأَنَّهُ مُثَنًّى</div></li>
                                     </ul>
                                 </li>
                             </ul>
@@ -1107,29 +1107,29 @@
                         <li>
                             <div class="node" style="position: relative;">
                                 <span class="start-label">البداية 👇</span>
-                                اسم مجرور وعلامة جره
+                                ... مَجْرُورٌ وَعَلَامَةُ جَرِّهِ
                             </div>
                             <ul>
                                 <li>
-                                    <div class="node">الكسرة</div>
+                                    <div class="node">الْكَسْرَةُ</div>
                                     <ul>
-                                        <li><div class="node">لأنه اسم مفرد</div></li>
-                                        <li><div class="node">لأنه جمع تكسير</div></li>
-                                        <li><div class="node">لأنه جمع مؤنث سالم</div></li>
+                                        <li><div class="node">لِأَنَّهُ اسْمٌ مُفْرَدٌ</div></li>
+                                        <li><div class="node">لِأَنَّهُ جَمْعُ تَكْسِيرٍ</div></li>
+                                        <li><div class="node">لِأَنَّهُ جَمْعُ مُؤَنَّثٍ سَالِمٌ</div></li>
                                     </ul>
                                 </li>
                                 <li>
-                                    <div class="node">الياء</div>
+                                    <div class="node">الْيَاءُ</div>
                                     <ul>
-                                        <li><div class="node">لأنه من الأسماء الخمسة</div></li>
-                                        <li><div class="node">لأنه جمع مذكر سالم</div></li>
-                                        <li><div class="node">لأنه مثنى</div></li>
+                                        <li><div class="node">لِأَنَّهُ مِنَ الْأَسْمَاءِ الْخَمْسَةِ</div></li>
+                                        <li><div class="node">لِأَنَّهُ جَمْعُ مُذَكَّرٍ سَالِمٌ</div></li>
+                                        <li><div class="node">لِأَنَّهُ مُثَنًّى</div></li>
                                     </ul>
                                 </li>
                                 <li>
-                                    <div class="node">الفتحة</div>
+                                    <div class="node">الْفَتْحَةُ</div>
                                     <ul>
-                                        <li><div class="node">لأنه ممنوع من الصرف</div></li>
+                                        <li><div class="node">لِأَنَّهُ مَمْنُوعٌ مِنَ الصَّرْفِ</div></li>
                                     </ul>
                                 </li>
                             </ul>
@@ -1145,21 +1145,21 @@
                         <li>
                             <div class="node" style="position: relative;">
                                 <span class="start-label">البداية 👇</span>
-                                الأسماء المبنية
+                                الْأَسْمَاءُ الْمَبْنِيَّةُ
                             </div>
                             <ul>
                                 <li>
-                                    <div class="node">الضمير المنفصل</div>
+                                    <div class="node">الضَّمِيرُ الْمُنْفَصِلُ</div>
                                     <ul>
-                                        <li><div class="node">في محل رفع...</div></li>
-                                        <li><div class="node">في محل نصب...</div></li>
+                                        <li><div class="node">فِي مَحَلِّ رَفْعٍ...</div></li>
+                                        <li><div class="node">فِي مَحَلِّ نَصْبٍ...</div></li>
                                     </ul>
                                 </li>
                                 <li>
-                                    <div class="node">الضمير المتصل</div>
+                                    <div class="node">الضَّمِيرُ الْمُتَّصِلُ</div>
                                     <ul>
-                                        <li><div class="node">في محل رفع...</div></li>
-                                        <li><div class="node">في محل نصب أو جر...</div></li>
+                                        <li><div class="node">فِي مَحَلِّ رَفْعٍ...</div></li>
+                                        <li><div class="node">فِي مَحَلِّ نَصْبٍ أَوْ جَرٍّ...</div></li>
                                     </ul>
                                 </li>
                             </ul>
@@ -1184,7 +1184,7 @@
     <!-- Type Selection Overlay -->
     <div id="type-selection-overlay" class="modal-overlay" style="z-index: 4800; background: var(--bg-color);">
         <div class="type-card">
-            <h2 style="margin-bottom: 20px; color: var(--node-text);">هەلبژێرە / اختر القسم</h2>
+            <h2 style="margin-bottom: 20px; color: var(--node-text);">اختر القسم</h2>
             <button id="select-verbs-btn" class="type-btn verbs">الأفعال (Verbs)</button>
             <button id="select-nouns-btn" class="type-btn nouns">الأسماء (Nouns)</button>
         </div>
@@ -1227,7 +1227,7 @@
             <div class="report-title">إعدادات الذكاء الاصطناعي 🤖</div>
             <p>يرجى إدخال مفتاح API الخاص بـ Google Gemini:</p>
             <input type="password" id="gemini-api-key" class="leaf-input" style="width: 100%; margin-bottom: 10px;" placeholder="Paste API Key here...">
-            <label style="display:block; margin-top:10px; font-weight:bold; color: var(--node-text);">زمانێ بەرسڤدانێ / لغة الإجابة:</label>
+            <label style="display:block; margin-top:10px; font-weight:bold; color: var(--node-text);">لغة الإجابة:</label>
             <select id="ai-language-select" class="leaf-input" style="width:100%; margin-bottom:15px; height: 40px;">
                 <option value="ar">العربية</option>
                 <option value="ku">Badînî (Kurdî)</option>
@@ -1884,7 +1884,7 @@
                     // Header with Toggle
                     const headerDiv = document.createElement('div');
                     headerDiv.className = 'report-path';
-                    headerDiv.innerHTML = `<span>🔹 ${path} <span style="font-size:0.9em; color:#64748b; font-weight:normal;">(${notesArray.length} دانە)</span></span> <span class="toggle-icon">▼ عرض</span>`;
+                    headerDiv.innerHTML = `<span>🔹 ${path} <span style="font-size:0.9em; color:#64748b; font-weight:normal;">(${notesArray.length} عنصر)</span></span> <span class="toggle-icon">▼ عرض</span>`;
                     headerDiv.onclick = () => {
                         listContainer.classList.toggle('expanded');
                         const icon = headerDiv.querySelector('.toggle-icon');
@@ -1915,13 +1915,13 @@
                 const aiCheckBtn = document.createElement('button');
                 aiCheckBtn.className = 'share-btn';
                 aiCheckBtn.style.backgroundColor = '#7c3aed'; // Violet color
-                aiCheckBtn.innerHTML = '🤖 پشکنینا بەرسڤان (AI Check)';
+                aiCheckBtn.innerHTML = '🤖 تدقيق الإجابات (AI Check)';
                 aiCheckBtn.style.marginBottom = '10px';
                 
                 aiCheckBtn.addEventListener('click', async () => {
                     const apiKey = localStorage.getItem('gemini_api_key');
                     if (!apiKey) {
-                        alert('تکایە سەرەتا مفتاحێ API داخل بکە ژ بەشێ سێتینگان 🤖');
+                        alert('يرجى إدخال مفتاح API أولاً من الإعدادات 🤖');
                         return;
                     }
 
@@ -1929,7 +1929,7 @@
                     if (rows.length === 0) return;
 
                     aiCheckBtn.disabled = true;
-                    aiCheckBtn.innerText = '⏳ جارێ پشکنینێ دکەت...';
+                    aiCheckBtn.innerText = '⏳ جاري التدقيق...';
 
                     // Prepare data for AI
                     const itemsToCheck = [];
@@ -1972,16 +1972,16 @@
                                 row.classList.add('incorrect');
                                 const note = document.createElement('div');
                                 note.className = 'validation-note';
-                                note.innerText = '⚠️ ' + (res.comment || 'خەلەتە');
+                                note.innerText = '⚠️ ' + (res.comment || 'خطأ');
                                 row.querySelector('.report-verb-text').appendChild(note);
                             }
                         });
 
                     } catch (err) {
-                        alert('چێ نەبوو: ' + err.message);
+                        alert('حدث خطأ: ' + err.message);
                     } finally {
                         aiCheckBtn.disabled = false;
-                        aiCheckBtn.innerHTML = '🤖 پشکنینا بەرسڤان (AI Check)';
+                        aiCheckBtn.innerHTML = '🤖 تدقيق الإجابات (AI Check)';
                     }
                 });
                 reportBody.appendChild(aiCheckBtn);
