@@ -53,6 +53,7 @@
         /* ستایلێ سلایدان */
         .presentation-container {
             width: 900px;
+            max-width: 100%;
         }
 
         .slide {
@@ -129,11 +130,45 @@
             margin-bottom: 0;
             page-break-after: always;
             background-color: #0b0f19; /* دڵنیابوون لەوەی پاشبنەما ڕەش بێت */
+            width: 100% !important;
+            height: 550px !important;
         }
         
         .presentation-container.pdf-mode .slide:last-child {
             page-break-after: avoid;
         }
+
+        /* ڕێکخستن بۆ مۆبایل (Responsive) */
+        @media (max-width: 920px) {
+            .presentation-container {
+                width: 100%;
+                padding: 10px;
+                box-sizing: border-box;
+            }
+            .slide {
+                height: auto;
+                min-height: 400px;
+                padding: 20px 10px;
+            }
+            h1 { font-size: 26px; }
+            h2 { font-size: 22px; }
+            p { font-size: 16px; }
+            li { font-size: 16px; }
+            .swot-grid { grid-template-columns: 1fr; }
+            .slide h1[style*="font-size: 60px"] { font-size: 36px !important; }
+        }
+
+        /* گەڕاندنەوەی ستایلەکان بۆ کاتی PDF دروستکردن */
+        .presentation-container.pdf-mode {
+            width: 900px !important;
+            padding: 0 !important;
+        }
+        .presentation-container.pdf-mode h1 { font-size: 45px !important; }
+        .presentation-container.pdf-mode h2 { font-size: 32px !important; }
+        .presentation-container.pdf-mode p { font-size: 20px !important; }
+        .presentation-container.pdf-mode li { font-size: 22px !important; }
+        .presentation-container.pdf-mode .swot-grid { grid-template-columns: 1fr 1fr !important; }
+        .presentation-container.pdf-mode .slide h1[style*="font-size: 60px"] { font-size: 60px !important; }
     </style>
 </head>
 <body>
