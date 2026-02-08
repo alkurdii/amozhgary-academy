@@ -1129,23 +1129,29 @@
                             </div>
                             <ul>
                                 <li>
-                                    <div class="node">الضَّمِيرُ الْمُنْفَصِلُ</div>
+                                    <div class="node">الضَّمِيرُ</div>
                                     <ul>
-                                        <li><div class="node">فِي مَحَلِّ رَفْعٍ...</div></li>
-                                        <li><div class="node">فِي مَحَلِّ نَصْبٍ...</div></li>
-                                    </ul>
-                                </li>
-                                <li>
-                                    <div class="node">الضَّمِيرُ الْمُتَّصِلُ</div>
-                                    <ul>
-                                        <li><div class="node">فِي مَحَلِّ رَفْعٍ...</div></li>
-                                        <li><div class="node">فِي مَحَلِّ نَصْبٍ أَوْ جَرٍّ...</div></li>
+                                        <li>
+                                            <div class="node">الْمُنْفَصِلُ</div>
+                                            <ul>
+                                                <li><div class="node">فِي مَحَلِّ رَفْعٍ...</div></li>
+                                                <li><div class="node">فِي مَحَلِّ نَصْبٍ...</div></li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            <div class="node">الْمُتَّصِلُ</div>
+                                            <ul>
+                                                <li><div class="node">فِي مَحَلِّ رَفْعٍ...</div></li>
+                                                <li><div class="node">فِي مَحَلِّ نَصْبٍ أَوْ جَرٍّ...</div></li>
+                                            </ul>
+                                        </li>
                                     </ul>
                                 </li>
                                 <li><div class="node">اسْمُ الْإِشَارَةِ مَبْنِيٌّ فِي مَحَلِّ...</div></li>
                                 <li><div class="node">الِاسْمُ الْمَوْصُولُ مَبْنِيٌّ فِي مَحَلِّ...</div></li>
                                 <li><div class="node">اسْمُ الِاسْتِفْهَامِ مَبْنِيٌّ فِي مَحَلِّ...</div></li>
                                 <li><div class="node">اسْمُ الشَّرْطِ مَبْنِيٌّ فِي مَحَلِّ...</div></li>
+                                <li><div class="node">الْأَعْدَادُ الْمُرَكَّبَةُ (١١-١٩) مَبْنِيٌّ فِي مَحَلِّ...</div></li>
                             </ul>
                         </li>
                     </ul>
@@ -2035,6 +2041,44 @@
                     document.body.removeChild(a);
                 };
                 reportBody.appendChild(txtBtn);
+
+                // Add Format/Clear All Button (Hidden/Danger Zone)
+                const clearAllBtn = document.createElement('button');
+                clearAllBtn.className = 'clear-all-btn';
+                // Styling to make it "not obvious" (نە دیار)
+                clearAllBtn.style.backgroundColor = 'transparent';
+                clearAllBtn.style.color = '#ef4444';
+                clearAllBtn.style.border = '1px dashed #ef4444';
+                clearAllBtn.style.marginTop = '40px';
+                clearAllBtn.style.fontSize = '0.8rem';
+                clearAllBtn.style.opacity = '0.6';
+                clearAllBtn.style.transition = 'opacity 0.3s';
+                clearAllBtn.onmouseover = () => clearAllBtn.style.opacity = '1';
+                clearAllBtn.onmouseout = () => clearAllBtn.style.opacity = '0.6';
+                clearAllBtn.innerHTML = '⚠️ حذف جميع البيانات (Format)';
+                
+                clearAllBtn.onclick = () => {
+                    // 3 Levels of Warning as requested
+                    if (!confirm("⚠️ تحذير (1/3):\nهل أنت متأكد أنك تريد حذف جميع الإعرابات المحفوظة؟")) return;
+                    if (!confirm("⚠️ تحذير (2/3):\nسيتم مسح كل شيء نهائياً ولا يمكن استرجاعه!\nهل أنت متأكد؟")) return;
+                    if (!confirm("⚠️ تحذير أخير (3/3):\nاضغط 'موافق' لتأكيد عملية الفرمتة (Format).")) return;
+
+                    // Execute Clear
+                    cachedNotesData = {}; 
+                    clearAllBtn.innerText = "جاري الحذف...";
+                    clearAllBtn.disabled = true;
+
+                    saveAllNotes(false).then(() => {
+                        showToast("🗑️ تم فرمتة البيانات بنجاح");
+                        document.getElementById('show-report-btn').click(); // Refresh Report
+                        loadAllNotes(); // Refresh UI
+                    }).catch(err => {
+                        alert("خطأ: " + err.message);
+                        clearAllBtn.disabled = false;
+                        clearAllBtn.innerHTML = '⚠️ حذف جميع البيانات (Format)';
+                    });
+                };
+                reportBody.appendChild(clearAllBtn);
 
                 reportModal.classList.add('active');
             });
