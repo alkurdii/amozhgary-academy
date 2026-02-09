@@ -19,6 +19,44 @@
             --hover-color: #3b82f6;
             --accent-color: #0ea5e9;
         }
+        
+        /* Dark Mode Variables */
+        body.dark-mode {
+            --bg-color: #0f172a;
+            --line-color: #334155;
+            --root-bg: #1e293b;
+            --root-text: #e2e8f0;
+            --node-bg: #1e293b;
+            --node-text: #f1f5f9;
+            --hover-color: #60a5fa;
+            --accent-color: #38bdf8;
+        }
+        
+        /* Fix specific elements for dark mode */
+        body.dark-mode .modal-content,
+        body.dark-mode .login-box,
+        body.dark-mode .type-card,
+        body.dark-mode #irab-box,
+        body.dark-mode .leaf-input,
+        body.dark-mode #search-input,
+        body.dark-mode #gemini-api-key,
+        body.dark-mode #ai-language-select {
+            background-color: var(--node-bg);
+            color: var(--node-text);
+            border-color: var(--line-color);
+        }
+        body.dark-mode .report-verb-row,
+        body.dark-mode .report-answer,
+        body.dark-mode .report-summary,
+        body.dark-mode #ai-global-response {
+            background-color: #334155;
+            color: var(--node-text);
+            border-color: #475569;
+        }
+        body.dark-mode .report-verb-text,
+        body.dark-mode .summary-label {
+            color: #cbd5e1;
+        }
 
         body {
             font-family: 'Noto Sans Arabic', 'Tajawal', sans-serif;
@@ -1237,6 +1275,7 @@
     </button>
     <button id="help-btn" title="دليل">؟</button>
     <button id="ai-config-btn" class="ai-config-btn" title="إعدادات AI">🤖</button>
+    <button id="theme-toggle-btn" class="ai-config-btn" style="bottom: 230px; background-color: #475569;" title="الوضع الليلي">🌙</button>
 
     <!-- Toast Container -->
     <div id="toast"></div>
@@ -1270,6 +1309,19 @@
             db.enablePersistence().catch(err => {
                 if (err.code == 'failed-precondition') console.log("Multiple tabs open, persistence disabled");
                 else if (err.code == 'unimplemented') console.log("Browser doesn't support persistence");
+            });
+
+            // --- Theme Toggle Logic (مودێ شەڤێ) ---
+            const themeBtn = document.getElementById('theme-toggle-btn');
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-mode');
+                themeBtn.innerText = '☀️';
+            }
+            themeBtn.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+                const isDark = document.body.classList.contains('dark-mode');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                themeBtn.innerText = isDark ? '☀️' : '🌙';
             });
 
             // --- Login System ---
@@ -1942,9 +1994,10 @@
                     You are an Arabic Grammar teacher. Check if these items are correctly classified.
                     Input JSON: ${JSON.stringify(itemsToCheck)}
                     
-                    Task: Return a JSON array with objects: { "id": number, "is_correct": boolean, "comment": "Short explanation in Kurdish Badini if wrong" }.
+                    Task: Return a JSON array with objects: { "id": number, "is_correct": boolean, "comment": "Short explanation in Kurdish Badini (Arabic Script ONLY) if wrong" }.
                     RULE: Mark "is_correct": true if the answer is grammatically correct. Ignore minor spelling mistakes (typos). Only mark false for grammatical errors or completely wrong words.
                     IMPORTANT: Return ONLY raw JSON. No markdown.
+                    NOTE: If writing in Kurdish, use Badini dialect with Arabic letters (e.g. "ئەڤە"). DO NOT use Latin script. DO NOT use Sorani.
                     `;
 
                     try {
@@ -2155,7 +2208,7 @@
                 aiGlobalResponse.classList.remove('visible');
                 aiGlobalResponse.innerText = '';
 
-                const langPrompt = lang === 'ku' ? 'Kurdish (Badini dialect)' : 'Arabic';
+                const langPrompt = lang === 'ku' ? 'Kurdish Badini dialect (Arabic Script ONLY)' : 'Arabic';
                 const contextType = currentType === 'verbs' ? 'Verb (Fi\'l)' : 'Noun (Ism)';
                 
                 let specificInstructions = "";
@@ -2183,6 +2236,11 @@
                 You are an expert Arabic Grammar Tutor. The user is asking about: "${text}".
                 Current App Section: ${contextType}.
                 Target Language: ${langPrompt}.
+                
+                IMPORTANT INSTRUCTION FOR LANGUAGE:
+                If the target language is Kurdish, you MUST use the Badini dialect written in ARABIC SCRIPT (e.g., "ئەڤە", "چەوا").
+                - DO NOT use Latin script (e.g., "Eve", "Cewa").
+                - DO NOT use Sorani specific words if possible.
                 
                 OBJECTIVE: Do NOT simply give the answer. Act as a guide helping the student use the grammar tree chart.
 
