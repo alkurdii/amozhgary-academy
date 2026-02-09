@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>أقسام الفعل - Arabic Verb Types</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&family=Tajawal:wght@400;700&display=swap');
 
         :root {
             --bg-color: #f8fafc;
@@ -21,7 +21,7 @@
         }
 
         body {
-            font-family: 'Tajawal', sans-serif;
+            font-family: 'Noto Sans Arabic', 'Tajawal', sans-serif;
             background-color: var(--bg-color);
             margin: 0;
             padding: 10px;
@@ -1939,11 +1939,11 @@
                     });
 
                     const prompt = `
-                    You are an Arabic Grammar teacher. Check if these verbs are correctly classified.
+                    You are an Arabic Grammar teacher. Check if these items are correctly classified.
                     Input JSON: ${JSON.stringify(itemsToCheck)}
                     
                     Task: Return a JSON array with objects: { "id": number, "is_correct": boolean, "comment": "Short explanation in Kurdish Badini if wrong" }.
-                    If correct, comment can be empty.
+                    RULE: Mark "is_correct": true if the answer is grammatically correct. Ignore minor spelling mistakes (typos). Only mark false for grammatical errors or completely wrong words.
                     IMPORTANT: Return ONLY raw JSON. No markdown.
                     `;
 
@@ -2170,11 +2170,12 @@
                 } else {
                     specificInstructions = `
                     - Context: The user is studying NOUNS.
-                    - Explain the case (Marfu, Mansub, Majrur).
-                    - Explain the sign (Dhamma, Fatha, Kasra, Alif, Waw, Ya).
-                    - Explain the reason (Singular, Dual, Plural, 5 Nouns).
-                    - GRADUAL EXPLANATION (Level 1): Start with the position/case, then the sign, then the reason.
-                    - Example flow: "This word is in a position of Raf', so it is Marfu'. The sign is Waw because it is Jam' Mudhakkar Salim."
+                    - METHOD: Do NOT give the direct final answer immediately. Instead, explain it gradually following the tree structure logic:
+                    1. First, identify the State (Marfu, Mansub, or Majrur) and explain why.
+                    2. Next, identify the Sign (Dhamma, Waw, etc.).
+                    3. Finally, explain the Reason (Singular, Plural, etc.).
+                    - Use the "Because... Therefore..." logic (e.g., "Since it is the subject, it is Marfu...").
+                    - Help the student solve it themselves based on the website's tree.
                     `;
                 }
 
@@ -2194,9 +2195,8 @@
                    ${specificInstructions}
 
                 Structure your response:
-                1. **Classification**: (e.g., Verb - Madi / Noun - Ism Fa'il)
-                2. **Short I'rab**: A concise direct answer.
-                3. **Level 1 Explanation**: A simple, step-by-step breakdown suitable for a beginner, following the logic of the grammar tree.
+                1. **Classification**: (e.g., Verb / Noun)
+                2. **Guided Explanation**: A step-by-step breakdown suitable for a beginner, following the logic of the grammar tree as requested.
                 `;
 
                 try {
