@@ -2161,42 +2161,43 @@
                 let specificInstructions = "";
                 if (currentType === 'verbs') {
                     specificInstructions = `
-                    - Context: The user is studying VERBS.
-                    - Explain the verb type (Madi, Mudari, Amr).
-                    - Explain the building state (Mabni) or inflection (Murab).
-                    - Explain the sign (Sukun, Fatha, Dhamma, Deletion of Nun, etc.).
-                    - Explain WHY: "It is Madi because...", "It is built on Fatha because..."
+                    - Context: The user is studying VERBS using a tree diagram.
+                    - METHOD: Do NOT give the direct final answer immediately. Guide the student step-by-step through the tree branches:
+                    1. Identify the Verb Type (Madi, Mudari, Amr).
+                    2. Identify what is attached to it (Suffixes like Waw Jama'a, Ta' Fa'il, or nothing).
+                    3. Based on the attachment, explain which branch of the tree to follow to find the Sign (Sukun, Fatha, etc.).
+                    - Explain the logic: "Because it is connected to X, we look at the branch for X, so the sign is Y."
                     `;
                 } else {
                     specificInstructions = `
-                    - Context: The user is studying NOUNS.
-                    - METHOD: Do NOT give the direct final answer immediately. Instead, explain it gradually following the tree structure logic:
-                    1. First, identify the State (Marfu, Mansub, or Majrur) and explain why.
-                    2. Next, identify the Sign (Dhamma, Waw, etc.).
-                    3. Finally, explain the Reason (Singular, Plural, etc.).
-                    - Use the "Because... Therefore..." logic (e.g., "Since it is the subject, it is Marfu...").
-                    - Help the student solve it themselves based on the website's tree.
+                    - Context: The user is studying NOUNS using a tree diagram.
+                    - METHOD: Do NOT give the direct final answer immediately. Explain it gradually following the tree structure logic:
+                    1. First, identify the State (Marfu, Mansub, or Majrur) and explain why (e.g., Subject, Object).
+                    2. Next, identify the Reason/Type (Singular, Plural, 5 Nouns).
+                    3. Finally, guide them to the correct Sign (Dhamma, Waw, etc.) based on the tree branch.
+                    - Use the "Because... Therefore..." logic.
                     `;
                 }
 
                 const prompt = `
-                You are an expert in Arabic Grammar (Nahw). The user is asking about: "${text}".
+                You are an expert Arabic Grammar Tutor. The user is asking about: "${text}".
                 Current App Section: ${contextType}.
                 Target Language: ${langPrompt}.
-                Target Audience: Beginners (Level 1).
+                
+                OBJECTIVE: Do NOT simply give the answer. Act as a guide helping the student use the grammar tree chart.
 
                 CRITICAL INSTRUCTION:
-                1. First, classify the word "${text}" as either a Noun (Ism), Verb (Fi'l), or Particle (Harf).
+                1. First, classify the word "${text}" (Noun/Verb).
                 2. VALIDATION:
-                   - If the user is in the VERBS section but the word is a NOUN: You MUST reply with an error message in ${langPrompt} saying "This is a Noun, please switch to the Nouns section." and STOP.
-                   - If the user is in the NOUNS section but the word is a VERB: You MUST reply with an error message in ${langPrompt} saying "This is a Verb, please switch to the Verbs section." and STOP.
+                   - If User is in VERBS but word is NOUN: Reply "This is a Noun, please switch to Nouns section." and STOP.
+                   - If User is in NOUNS but word is VERB: Reply "This is a Verb, please switch to Verbs section." and STOP.
                 
-                3. If the classification matches the section, proceed with the explanation:
+                3. If correct section, provide a GUIDED EXPLANATION:
                    ${specificInstructions}
 
                 Structure your response:
-                1. **Classification**: (e.g., Verb / Noun)
-                2. **Guided Explanation**: A step-by-step breakdown suitable for a beginner, following the logic of the grammar tree as requested.
+                1. **Analysis**: Briefly identify the word type.
+                2. **Step-by-Step Guide**: Walk through the logic (Type -> Reason -> Sign) as if tracing the tree lines.
                 `;
 
                 try {
