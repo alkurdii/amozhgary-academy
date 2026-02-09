@@ -1453,7 +1453,7 @@
             function updateBadgeCount() {
                 let count = 0;
                 for (const [path, notes] of Object.entries(cachedNotesData)) {
-                    const isVerb = path.includes('ماضٍ') || path.includes('مضارع') || path.includes('أمر');
+                    const isVerb = path.includes('مَاضٍ') || path.includes('مُضَارِعٌ') || path.includes('أَمْرٌ');
                     if (currentType === 'verbs' && isVerb) {
                         count += notes.length;
                     } else if (currentType === 'nouns' && !isVerb) {
@@ -1707,6 +1707,10 @@
             const reportBody = document.getElementById('report-body');
             
             document.getElementById('show-report-btn').addEventListener('click', () => {
+                // Update Title based on Type (تحديث عنوان التقرير حسب القسم)
+                document.querySelector('#report-modal .report-title').innerText = 
+                    currentType === 'verbs' ? 'تقرير الأفعال - سورة يوسف' : 'تقرير الأسماء - سورة يوسف';
+
                 reportBody.innerHTML = '';
                 const data = cachedNotesData || {};
                 
@@ -1722,9 +1726,9 @@
                 for (const [path, notes] of Object.entries(data)) {
                     const count = notes.length;
                     counts.total += count;
-                    if (path.includes('ماضٍ')) counts.madi += count;
-                    else if (path.includes('مضارع')) counts.mudari += count;
-                    else if (path.includes('أمر')) counts.amr += count;
+                    if (path.includes('مَاضٍ')) counts.madi += count;
+                    else if (path.includes('مُضَارِعٌ')) counts.mudari += count;
+                    else if (path.includes('أَمْرٌ')) counts.amr += count;
                     else counts.nouns += count;
                 }
 
@@ -1885,7 +1889,7 @@
                     itemDiv.appendChild(listContainer);
                     
                     // Separate Verbs and Nouns
-                    if (path.includes('ماضٍ') || path.includes('مضارع') || path.includes('أمر')) {
+                    if (path.includes('مَاضٍ') || path.includes('مُضَارِعٌ') || path.includes('أَمْرٌ')) {
                         if (currentType === 'verbs') {
                             verbsContainer.appendChild(itemDiv);
                             hasVerbs = true;
@@ -1976,109 +1980,114 @@
                 });
                 reportBody.appendChild(aiCheckBtn);
 
-                // Add Share to Telegram Button
-                const shareBtn = document.createElement('button');
-                shareBtn.className = 'share-btn';
-                shareBtn.innerHTML = '📤 مشاركة عبر تيليجرام';
-                
-                // Function to generate report text
-                const generateReportText = (includeVerbs = false) => {
-                    let text = "📊 *تقرير تحليل سورة يوسف*\n";
+                // Function to generate report text based on type
+                const generateReportText = (type) => {
+                    const sectionTitle = type === 'verbs' ? 'الأفعال' : (type === 'nouns' ? 'الأسماء' : 'الشامل');
+                    let text = `📊 *تقرير تحليل سورة يوسف (${sectionTitle})*\n`;
                     text += "------------------\n";
-                    text += `✅ إجمالي الأفعال: ${counts.total} فعل\n`;
-                    text += `📌 ماضٍ: ${counts.madi}\n`;
-                    text += `📌 مضارع: ${counts.mudari}\n`;
-                    text += `📌 أمر: ${counts.amr}\n\n`;
                     
-                    if (hasData) {
-                        text += "📝📝📝📝 *ملاحظات:* \n\n";
-                        for (const [path, items] of Object.entries(data)) {
-                            if (items.length === 0) continue;
-                            text += `🔹 ${path} (${items.length})\n`;
-                            if (includeVerbs) {
-                                items.forEach((noteText, idx) => {
-                                    text += `   ${idx + 1}. ${noteText}\n`;
-                                });
-                                text += "------------------\n";
-                            }
-                        }
-                    } else {
-                        text += "لا توجد ملاحظات مسجلة.\n";
+                    if (type === 'verbs' || type === 'all') {
+                        text += "📌 *قسم الأفعال*\n";
+                        text += `✅ إجمالي الأفعال: ${counts.madi + counts.mudari + counts.amr}\n`;
+                        text += `• ماضٍ: ${counts.madi}\n`;
+                        text += `• مضارع: ${counts.mudari}\n`;
+                        text += `• أمر: ${counts.amr}\n\n`;
                     }
+                    if (type === 'nouns' || type === 'all') {
+                        text += "📌 *قسم الأسماء*\n";
+                        text += `✅ إجمالي الأسماء: ${counts.nouns}\n\n`;
+                    }
+
+                    text += "📝 *الملاحظات:*\n";
+                    let hasNotes = false;
+
+                    for (const [path, items] of Object.entries(data)) {
+                        if (items.length === 0) continue;
+                        
+                        const isVerbPath = path.includes('مَاضٍ') || path.includes('مُضَارِعٌ') || path.includes('أَمْرٌ');
+                        let includeThis = false;
+
+                        if (type === 'all') includeThis = true;
+                        else if (type === 'verbs' && isVerbPath) includeThis = true;
+                        else if (type === 'nouns' && !isVerbPath) includeThis = true;
+
+                        if (includeThis) {
+                            text += `🔹 ${path} (${items.length})\n`;
+                            items.forEach((noteText, idx) => {
+                                text += `   ${idx + 1}. ${noteText}\n`;
+                            });
+                            text += "------------------\n";
+                            hasNotes = true;
+                        }
+                    }
+                    
+                    if (!hasNotes) text += "لا توجد ملاحظات مسجلة في هذا القسم.\n";
                     return text;
                 };
 
-                shareBtn.addEventListener('click', () => {
-                    const text = generateReportText(false); // No verbs for Telegram
-                    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
-                    window.open(telegramUrl, '_blank');
-                });
-                reportBody.appendChild(shareBtn);
-
-                // Add Copy Button (For large reports)
-                const copyBtn = document.createElement('button');
-                copyBtn.className = 'copy-btn';
-                copyBtn.innerHTML = '📋 نسخ التقرير';
-                copyBtn.onclick = () => {
-                    const text = generateReportText(false); // No verbs for Copy
-                    navigator.clipboard.writeText(text).then(() => alert('تم نسخ التقرير! اذهب الآن إلى مجموعة التيليجرام وقم باللصق.'));
+                // Helper to create action buttons
+                const createActionBtn = (label, color, onClick) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'share-btn';
+                    btn.style.backgroundColor = color;
+                    btn.innerHTML = label;
+                    btn.style.marginTop = '10px';
+                    btn.onclick = onClick;
+                    return btn;
                 };
-                reportBody.appendChild(copyBtn);
+
+                // Add Verbs Actions
+                if (hasVerbs) {
+                    const verbsHeader = document.createElement('div');
+                    verbsHeader.innerHTML = '<div style="margin-top:15px; font-weight:bold; color:#3b82f6; border-bottom:1px solid #cbd5e1;">خيارات الأفعال (Verbs)</div>';
+                    reportBody.appendChild(verbsHeader);
+
+                    reportBody.appendChild(createActionBtn('📤 إرسال الأفعال (Telegram)', '#229ED9', () => {
+                        const text = generateReportText('verbs');
+                        const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
+                        window.open(telegramUrl, '_blank');
+                    }));
+
+                    reportBody.appendChild(createActionBtn('📋 نسخ تقرير الأفعال', '#64748b', () => {
+                        const text = generateReportText('verbs');
+                        navigator.clipboard.writeText(text).then(() => alert('✅ تم نسخ تقرير الأفعال بنجاح!'));
+                    }));
+                }
+
+                // Add Nouns Actions
+                if (hasNouns) {
+                    const nounsHeader = document.createElement('div');
+                    nounsHeader.innerHTML = '<div style="margin-top:15px; font-weight:bold; color:#10b981; border-bottom:1px solid #cbd5e1;">خيارات الأسماء (Nouns)</div>';
+                    reportBody.appendChild(nounsHeader);
+
+                    reportBody.appendChild(createActionBtn('📤 إرسال الأسماء (Telegram)', '#229ED9', () => {
+                        const text = generateReportText('nouns');
+                        const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
+                        window.open(telegramUrl, '_blank');
+                    }));
+
+                    reportBody.appendChild(createActionBtn('📋 نسخ تقرير الأسماء', '#64748b', () => {
+                        const text = generateReportText('nouns');
+                        navigator.clipboard.writeText(text).then(() => alert('✅ تم نسخ تقرير الأسماء بنجاح!'));
+                    }));
+                }
 
                 // Add TXT Download Button (Best for large reports)
                 const txtBtn = document.createElement('button');
                 txtBtn.className = 'txt-btn';
                 txtBtn.innerHTML = '📄 تحميل التقرير (ملف نصي)';
                 txtBtn.onclick = () => {
-                    const text = generateReportText(true); // Keep verbs for TXT
+                    const text = generateReportText(currentType); // Use currentType instead of 'all' (تحميل القسم الحالي فقط)
                     const blob = new Blob([text], {type: 'text/plain'});
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `Report_Yusuf_${new Date().toISOString().slice(0,10)}.txt`;
+                    a.download = `Report_Yusuf_${currentType}_${new Date().toISOString().slice(0,10)}.txt`;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
                 };
                 reportBody.appendChild(txtBtn);
-
-                // Add Format/Clear All Button (Hidden/Danger Zone)
-                const clearAllBtn = document.createElement('button');
-                clearAllBtn.className = 'clear-all-btn';
-                // Styling to make it "not obvious" (نە دیار)
-                clearAllBtn.style.backgroundColor = 'transparent';
-                clearAllBtn.style.color = '#ef4444';
-                clearAllBtn.style.border = '1px dashed #ef4444';
-                clearAllBtn.style.marginTop = '40px';
-                clearAllBtn.style.fontSize = '0.8rem';
-                clearAllBtn.style.opacity = '0.6';
-                clearAllBtn.style.transition = 'opacity 0.3s';
-                clearAllBtn.onmouseover = () => clearAllBtn.style.opacity = '1';
-                clearAllBtn.onmouseout = () => clearAllBtn.style.opacity = '0.6';
-                clearAllBtn.innerHTML = '⚠️ حذف جميع البيانات (Format)';
-                
-                clearAllBtn.onclick = () => {
-                    // 3 Levels of Warning as requested
-                    if (!confirm("⚠️ تحذير (1/3):\nهل أنت متأكد أنك تريد حذف جميع الإعرابات المحفوظة؟")) return;
-                    if (!confirm("⚠️ تحذير (2/3):\nسيتم مسح كل شيء نهائياً ولا يمكن استرجاعه!\nهل أنت متأكد؟")) return;
-                    if (!confirm("⚠️ تحذير أخير (3/3):\nاضغط 'موافق' لتأكيد عملية الفرمتة (Format).")) return;
-
-                    // Execute Clear
-                    cachedNotesData = {}; 
-                    clearAllBtn.innerText = "جاري الحذف...";
-                    clearAllBtn.disabled = true;
-
-                    saveAllNotes(false).then(() => {
-                        showToast("🗑️ تم فرمتة البيانات بنجاح");
-                        document.getElementById('show-report-btn').click(); // Refresh Report
-                        loadAllNotes(); // Refresh UI
-                    }).catch(err => {
-                        alert("خطأ: " + err.message);
-                        clearAllBtn.disabled = false;
-                        clearAllBtn.innerHTML = '⚠️ حذف جميع البيانات (Format)';
-                    });
-                };
-                reportBody.appendChild(clearAllBtn);
 
                 reportModal.classList.add('active');
             });
