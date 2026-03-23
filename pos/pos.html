@@ -528,18 +528,33 @@
     }
 
     function getEventAmount(ev) {
-        return Number(ev?.payload?.amount || 0);
+        if (ev.type === "payment_process") return Number(ev?.payload?.amount || 0);
+        if (ev.type === "api_call") {
+            const action = ev.payload?.action;
+            if (action === "save_ledger" || action === "save_expense" || action === "save_return") {
+                return Number(ev.payload?.body?.amount || ev.payload?.amount || 0);
+            }
+        }
+        return 0;
     }
 
     function renderEventRow(ev) {
-        const at = ev.createdAt?.toDate ? ev.createdAt.toDate() : null;
+        const at = ev.createdAt?.toDate ? ev.createdAt.toDate() : (ev.updatedAt?.toDate ? ev.updatedAt.toDate() : null);
         const timeText = at ? at.toLocaleTimeString("ar-IQ", { hour: '2-digit', minute: '2-digit' }) : "-";
         const amount = getEventAmount(ev);
+        let typeText = ev.type === 'payment_process' ? 'مبيعات' : (ev.type || 'حدث');
+        if (ev.type === "api_call") {
+            const action = ev.payload?.action;
+            if (action === "save_ledger") typeText = "قيد حساب";
+            else if (action === "save_expense") typeText = "مصروفات";
+            else if (action === "save_return") typeText = "زڤڕاندن";
+            else typeText = "عملية";
+        }
         const tr = document.createElement("tr");
         tr.className = "fade-in";
         tr.innerHTML = `
             <td><span style="font-size:0.75rem; color:var(--text-muted);">${timeText}</span></td>
-            <td><span style="font-weight:500;">${ev.type === 'payment_process' ? 'مبيعات' : (ev.type || 'حدث')}</span></td>
+            <td><span style="font-weight:500;">${typeText}</span></td>
             <td><span class="${amount > 0 ? 'amount-positive' : ''}">${amount > 0 ? formatMoney(amount) : '-'}</span></td>
             <td><span style="font-size:0.75rem; color:var(--text-muted);">${ev.user || '-'}</span></td>
         `;
@@ -554,7 +569,7 @@
             data: {
                 labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
                 datasets: [{
-                    label: 'عمليات المبيعات',
+                    label: 'عمليات النظام',
                     data: Array(24).fill(0),
                     borderColor: '#10b981',
                     borderWidth: 3,
@@ -599,7 +614,7 @@
             const hourlySales = Array(24).fill(0);
             
             if (snap.empty) {
-                eventTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:32px; color:var(--text-muted);">لا توجد حركات اليوم</td></tr>';
+                eventTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:32px; color:var(--text-muted);">بانتظار وصول الحركات...</td></tr>';
             } else {
                 eventTableBody.innerHTML = "";
                 snap.forEach((d) => {
@@ -609,10 +624,11 @@
                     
                     if (isToday) {
                         opsToday++;
-                        if (ev.type === "payment_process") {
+                        const amt = getEventAmount(ev);
+                        if (ev.type === "payment_process" || (ev.type === "api_call" && ev.payload?.action === "save_ledger")) {
                             salesToday++;
-                            salesAmountToday += getEventAmount(ev);
-                            hourlySales[at.getHours()] += 1;
+                            salesAmountToday += amt;
+                            if (at) hourlySales[at.getHours()] += 1;
                         }
                         eventTableBody.appendChild(renderEventRow(ev));
                     }
@@ -640,7 +656,15 @@
         const prQ = query(collection(db, "pos_presence"), where("channelId", "==", channelId));
         unsubs.push(onSnapshot(prQ, (snap) => {
             let onlineCount = 0;
-            snap.forEach((d) => { if (d.data()?.online === true) onlineCount++; });
+            const now = Date.now();
+            snap.forEach((d) => { 
+                const data = d.data();
+                const lastPing = data.updatedAt?.toDate ? data.updatedAt.toDate().getTime() : 0;
+                // If marked online OR has pinged in last 45 seconds
+                if (data.online === true || (now - lastPing < 45000)) {
+                    onlineCount++; 
+                }
+            });
             setKpi("kpiOnline", onlineCount);
             if (onlineCount > 0) {
                 overallStatus.className = "status-pill status-online";
