@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sîstema Rêveberiyê - Manager Dashboard</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --surface: rgba(30, 41, 59, 0.7);
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.5);
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at top right, #1e3a8a, transparent 40%),
+                              radial-gradient(circle at bottom left, #064e3b, transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-attachment: fixed;
+        }
+
+        /* Glassmorphism Classes */
+        .glass {
+            background: var(--surface);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Authentication Screen */
+        #auth-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100vh;
+            z-index: 10;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .logo-icon {
+            font-size: 3.5rem;
+            color: var(--primary);
+            text-shadow: 0 0 20px var(--primary-glow);
+            margin-bottom: 10px;
+            animation: pulseIcon 2s infinite;
+        }
+
+        @keyframes pulseIcon {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); text-shadow: 0 0 30px var(--primary-glow); }
+            100% { transform: scale(1); }
+        }
+
+        .auth-form {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px 45px 15px 15px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 1.05rem;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        .input-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        .input-group input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px var(--primary-glow);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+        
+        .btn-danger:hover {
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.5);
+        }
+
+        /* Dashboard Screen */
+        #dashboard-screen {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+            animation: fadeIn 0.6s ease;
+            padding-bottom: 30px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .stat-card {
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            text-align: right;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s, background 0.3s;
+            cursor: default;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            background: rgba(30, 41, 59, 0.9);
+        }
+
+        .stat-icon {
+            position: absolute;
+            left: -15px;
+            bottom: -15px;
+            font-size: 5rem;
+            opacity: 0.08;
+            transform: rotate(-15deg);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover .stat-icon {
+            transform: rotate(0deg) scale(1.1);
+        }
+
+        .stat-title {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .color-blue { color: #60a5fa; }
+        .color-green { color: #34d399; }
+        .color-yellow { color: #fbbf24; }
+        .color-purple { color: #c084fc; }
+
+        /* Recent Activity */
+        .section-title {
+            font-size: 1.25rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .activity-item {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            transition: background 0.2s, transform 0.2s;
+            border-left: 4px solid var(--primary);
+        }
+
+        .activity-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(-5px);
+        }
+
+        .activity-info {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .activity-title {
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+
+        .activity-time {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .activity-amount {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: var(--secondary);
+            background: rgba(16, 185, 129, 0.1);
+            padding: 5px 10px;
+            border-radius: 8px;
+        }
+
+        /* Notifications & Error */
+        #toast {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 25px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 9999;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .toast-show {
+            opacity: 1 !important;
+            visibility: visible !important;
+            top: 30px !important;
+        }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Loader specific for dashboard */
+        .dash-loader {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0;
+            color: var(--primary);
+        }
+        .dash-loader i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            animation: spin 1.5s cubic-bezier(0.55, 0.085, 0.68, 0.53) infinite;
+        }
+        .dash-loader p {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Auth Screen -->
+        <div id="auth-screen">
+            <div class="logo-container">
+                <i class="fas fa-chart-pie logo-icon"></i>
+                <h1 style="font-size: 2rem; font-weight: 700;">Birêvebiriya Dikanê</h1>
+                <p style="color: var(--text-muted); margin-top: 8px; font-size: 1.1rem;">Ji kerema xwe têkeve hesabê xwe</p>
+            </div>
+
+            <form id="login-form" class="glass auth-form">
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" placeholder="Îmeyl (Gmail / Email)" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" placeholder="Şîfreya te (Password)" required>
+                </div>
+                <button type="submit" class="btn" id="login-btn">
+                    <span id="login-text">Têkeve Sîstemê</span>
+                    <div id="login-spinner" class="spinner" style="display: none;"></div>
+                </button>
+            </form>
+        </div>
+
+        <!-- Dashboard Screen -->
+        <div id="dashboard-screen">
+            <div class="header">
+                <div>
+                    <h2 style="font-size: 1.4rem; font-weight: 700; color: #f8fafc;">Rêveber - Dashboard</h2>
+                    <p style="color: var(--primary); font-size: 0.95rem; font-weight: 500; margin-top: 3px;" id="current-date">Dîrok: ...</p>
+                </div>
+                <div class="user-info">
+                    <button id="logout-btn" class="btn btn-danger" style="padding: 10px 18px; font-size: 0.95rem;">
+                        <i class="fas fa-sign-out-alt"></i> Derkeftin
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="glass stat-card">
+                    <i class="fas fa-wallet stat-icon color-blue"></i>
+                    <span class="stat-title">Dahata Îro Ya Giştî</span>
+                    <span class="stat-value color-blue" id="stat-sales">$0.00</span>
+                </div>
+                <div class="glass stat-card">
+                    <i class="fas fa-shopping-cart stat-icon color-green"></i>
+                    <span class="stat-title">Hêjmara Danûstandinan</span>
+                    <span class="stat-value color-green" id="stat-orders">0</span>
+                </div>
+                <div class="glass stat-card">
+                    <i class="fas fa-users stat-icon color-yellow"></i>
+                    <span class="stat-title">Muşteriyên Îro</span>
+                    <span class="stat-value color-yellow" id="stat-customers">0</span>
+                </div>
+                <div class="glass stat-card">
+                    <i class="fas fa-box-open stat-icon color-purple"></i>
+                    <span class="stat-title">Tiştên Kêmbûyî Hene</span>
+                    <span class="stat-value color-purple" id="stat-low-stock">0</span>
+                </div>
+            </div>
+
+            <div class="glass" style="padding: 1.5rem; margin-top: 5px;">
+                <h3 class="section-title">
+                    <i class="fas fa-chart-line" style="color: var(--primary);"></i> Tevgerên Dawî (Recent)
+                </h3>
+                <div class="activity-list" id="activity-list">
+                    <!-- Loading state -->
+                    <div class="dash-loader">
+                        <i class="fas fa-circle-notch"></i>
+                        <p>Zanyari têne barkirin...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Element -->
+    <div id="toast" class="glass">
+        <i class="fas fa-info-circle" id="toast-icon"></i>
+        <span id="toast-text">Peyam</span>
+    </div>
+
+    <!-- Firebase SDK Modular (v10) via CDN -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+        import { getFirestore, collection, query, orderBy, limit, onSnapshot, where, getDocs } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+        // Firebase Configuration as provided
+        const firebaseConfig = {
+            apiKey: "AIzaSyBsvR9uOFOTJtR_m1bRyakoBPKc5ckfBRo",
+            authDomain: "laptopduhokpos.firebaseapp.com",
+            projectId: "laptopduhokpos",
+            storageBucket: "laptopduhokpos.firebasestorage.app",
+            messagingSenderId: "189692641233",
+            appId: "1:189692641233:web:b97a404d6fb91ac150aaf0",
+            measurementId: "G-6Y526TMZN9"
+        };
+
+        // Initialize Firebase
+        let app, auth, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        } catch (e) {
+            console.error("Firebase init error", e);
+            showToast("Çewtî di girêdana fîrebaysê de heye!", "error");
+        }
+        
+        // UI Elements
+        const authScreen = document.getElementById('auth-screen');
+        const dashboardScreen = document.getElementById('dashboard-screen');
+        const loginForm = document.getElementById('login-form');
+        const logoutBtn = document.getElementById('logout-btn');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('login-btn');
+        const loginText = document.getElementById('login-text');
+        const loginSpinner = document.getElementById('login-spinner');
+        const activityList = document.getElementById('activity-list');
+        const currentDateElem = document.getElementById('current-date');
+
+        // Stats Elements
+        const statSales = document.getElementById('stat-sales');
+        const statOrders = document.getElementById('stat-orders');
+        const statCustomers = document.getElementById('stat-customers');
+        const statLowStock = document.getElementById('stat-low-stock');
+
+        // Set the current Date nicely
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        currentDateElem.innerText = new Date().toLocaleDateString('ku-IQ', options);
+
+        // Listen for Authentication State from Firebase
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is signed in
+                authScreen.style.display = 'none';
+                dashboardScreen.style.display = 'flex';
+                // Trigger animations for dashboard cards
+                const cards = document.querySelectorAll('.stat-card');
+                cards.forEach((card, index) => {
+                    card.style.animation = `fadeInUp 0.5s ease ${index * 0.1}s forwards`;
+                    card.style.opacity = '0';
+                });
+                loadDashboardData();
+            } else {
+                // User is not signed in
+                authScreen.style.display = 'flex';
+                dashboardScreen.style.display = 'none';
+            }
+        });
+
+        // Handle Login Submission
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            if(!email || !password) return;
+
+            // Show fetching state
+            loginText.style.display = 'none';
+            loginSpinner.style.display = 'block';
+            loginBtn.disabled = true;
+
+            try {
+                // Log in with Firebase
+                await signInWithEmailAndPassword(auth, email, password);
+                showToast("Serkeftî têketin! Bi xêr hatî", "success");
+            } catch (error) {
+                console.error("Login Error:", error.code, error.message);
+                let msg = "Îmeyl an Şîfre çewt e";
+                if(error.code === 'auth/network-request-failed') msg = "Peywendiya înternetê tune";
+                if(error.code === 'auth/user-not-found') msg = "Ev hesab nayê dîtin";
+                if(error.code === 'auth/invalid-credential') msg = "Zanyariyên têketinê çewt in";
+                showToast(msg, "error");
+            } finally {
+                // Revert state
+                loginText.style.display = 'block';
+                loginSpinner.style.display = 'none';
+                loginBtn.disabled = false;
+            }
+        });
+
+        // Handle Logout
+        logoutBtn.addEventListener('click', async () => {
+            if (confirm("Gelo tu dixwazî derkevî ji sîstemê?")) {
+                try {
+                    await signOut(auth);
+                    showToast("Derkeftî bi serkeftî", "success");
+                } catch (error) {
+                    showToast("Çewtî derket dema derkeftinê", "error");
+                }
+            }
+        });
+
+        // Core App Logic - Subscribing to collections in Realtime
+        const listeners = [];
+        function loadDashboardData() {
+            // First cleanup any existing listeners that might have been loaded
+            listeners.forEach(unsub => unsub());
+            listeners.length = 0;
+
+            const todayTimestamp = new Date();
+            todayTimestamp.setHours(0,0,0,0);
+
+            try {
+                // We will attempt to fetch 'transactions', 'sales', 'sales_receipts' or similar collections.
+                // If they don't exactly match the database schema created by the POS, Realtime updates might fail.
+                // We fallback gracefully.
+
+                const qActivities = query(collection(db, "transactions"), orderBy("timestamp", "desc"), limit(6));
+                const unsubActivities = onSnapshot(qActivities, (snapshot) => {
+                    activityList.innerHTML = ''; // clear loader
+                    if (snapshot.empty) {
+                        displayNoDataFallback();
+                        return;
+                    }
+
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const timeRaw = data.timestamp || data.createdAt;
+                        const time = timeRaw ? new Date(timeRaw.toDate()).toLocaleTimeString('ku-IQ', {hour: '2-digit', minute:'2-digit'}) : 'Dem diyar nîne';
+                        const amount = data.amount || data.total || data.grand_total || 0;
+                        const type = data.type || "Danûstandina Kêşeyî";
+                        
+                        // Check if amount is positive or negative logic to color code if needed UI
+                        const itemHtml = `
+                            <div class="activity-item">
+                                <div class="activity-info">
+                                    <span class="activity-title">${type} - Fatora #${doc.id.substring(0,6).toUpperCase()}</span>
+                                    <span class="activity-time"><i class="far fa-clock"></i> ${time}</span>
+                                </div>
+                                <div class="activity-amount">$${parseFloat(amount).toFixed(2)}</div>
+                            </div>
+                        `;
+                        activityList.insertAdjacentHTML('beforeend', itemHtml);
+                    });
+                }, (error) => {
+                    // This error triggers usually if index doesn't exist, collection doesn't exist, or permissions issue
+                    console.log("Listen error / No 'transactions' col. Fallback applied.");
+                    displayNoDataFallback();
+                });
+                listeners.push(unsubActivities);
+
+                // Sales Aggregation Query example
+                const qSales = query(collection(db, "sales"), where("timestamp", ">=", todayTimestamp));
+                const unsubSales = onSnapshot(qSales, (snapshot) => {
+                    let totalSales = 0;
+                    snapshot.forEach(doc => { 
+                        totalSales += (doc.data().total || doc.data().amount || doc.data().grand_total || 0); 
+                    });
+                    
+                    // Simple animate values change
+                    animateValue(statSales, parseFloat(statSales.innerText.replace('$', '')), totalSales, 1000, true);
+                    animateValue(statOrders, parseInt(statOrders.innerText), snapshot.size, 1000, false);
+                }, (err) => {
+                    console.log("No sales data available natively");
+                    statSales.innerText = "$0.00";
+                    statOrders.innerText = "0";
+                });
+                listeners.push(unsubSales);
+
+            } catch (err) {
+                console.error("Firestore Loading Error: ", err);
+                displayNoDataFallback();
+            }
+        }
+
+        // If no data exists yet or user lacks collections set up properly
+        function displayNoDataFallback() {
+            setTimeout(() => {
+                const list = document.getElementById('activity-list');
+                if(!list.innerHTML.includes('amount') || list.innerHTML.includes('dash-loader')) {
+                    list.innerHTML = `
+                        <div style="text-align:center; padding: 25px 10px; opacity: 0.8;">
+                            <i class="fas fa-database" style="font-size: 2.5rem; color: var(--text-muted); margin-bottom: 12px; display: block;"></i>
+                            <p style="color: var(--text-main); font-weight: 500;">Fîrebays vebû û amade ye!</p>
+                            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">Hê dîtayên (Data) nû ji POS nehatine anîn jibo dîtinê.</p>
+                        </div>
+                    `;
+                }
+            }, 2500); // give time for real data to arrive if internet is slow
+        }
+
+        // Simple function to animate numbers in stat cards
+        function animateValue(obj, start, end, duration, isCurrency = false) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                // easeOut function
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const current = start + (end - start) * easeOut;
+                
+                obj.innerHTML = isCurrency ? '$' + current.toFixed(2) : Math.floor(current);
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // Toast Notification System
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastText = document.getElementById('toast-text');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastText.innerText = message;
+            
+            if(type === 'error') {
+                toast.style.background = '#ef4444';
+                toastIcon.className = 'fas fa-exclamation-circle';
+            } else if (type === 'success') {
+                toast.style.background = '#10b981';
+                toastIcon.className = 'fas fa-check-circle';
+            } else {
+                toast.style.background = '#3b82f6';
+                toastIcon.className = 'fas fa-info-circle';
+            }
+
+            toast.classList.add('toast-show');
+            
+            // clear previous timeout if clicking rapidly
+            if(window.toastTimer) clearTimeout(window.toastTimer);
+            window.toastTimer = setTimeout(() => {
+                toast.classList.remove('toast-show');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
