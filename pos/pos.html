@@ -1,819 +1,689 @@
 <!DOCTYPE html>
-<html lang="ku" dir="rtl">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سیستەما ڕێڤەبەریێ - لوحة الإدارة</title>
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>لوحة المدير - Black Bear POS Monitor</title>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-color: #0f172a;
-            --surface: rgba(30, 41, 59, 0.7);
-            --primary: #3b82f6;
-            --primary-glow: rgba(59, 130, 246, 0.5);
-            --secondary: #10b981;
+            --bg: #030712;
+            --card-bg: rgba(17, 24, 39, 0.75);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --primary: #10b981;
+            --secondary: #3b82f6;
             --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
+            --accent: #6366f1;
         }
 
         * {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Tajawal', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: var(--bg-color);
-            background-image: radial-gradient(circle at top right, #1e3a8a, transparent 40%),
-                              radial-gradient(circle at bottom left, #064e3b, transparent 40%);
+            margin: 0;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: radial-gradient(circle at top left, #111827, #030712);
             color: var(--text-main);
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            line-height: 1.5;
             overflow-x: hidden;
-            background-attachment: fixed;
-        }
-
-        /* Language Switcher */
-        .lang-switcher {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            display: flex;
-            gap: 10px;
-            z-index: 100;
-        }
-
-        .lang-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-            backdrop-filter: blur(10px);
-        }
-
-        .lang-btn.active {
-            background: var(--primary);
-            border-color: var(--primary);
-            box-shadow: 0 0 10px var(--primary-glow);
-        }
-
-        /* Glassmorphism Classes */
-        .glass {
-            background: var(--surface);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
         }
 
         .container {
-            width: 100%;
-            max-width: 480px;
+            max-width: 640px;
             margin: 0 auto;
-            padding: 20px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            position: relative;
+            padding: 16px;
+            padding-bottom: 80px;
         }
 
-        /* Authentication Screen */
-        #auth-screen {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            height: 100vh;
-            z-index: 10;
-        }
-
-        .logo-container {
-            text-align: center;
-            margin-bottom: 2rem;
-            animation: fadeInDown 0.8s ease;
-        }
-
-        .logo-icon {
-            font-size: 3.5rem;
-            color: var(--primary);
-            text-shadow: 0 0 20px var(--primary-glow);
-            margin-bottom: 10px;
-            animation: pulseIcon 2s infinite;
-        }
-
-        @keyframes pulseIcon {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); text-shadow: 0 0 30px var(--primary-glow); }
-            100% { transform: scale(1); }
-        }
-
-        .auth-form {
-            padding: 2rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            animation: fadeInUp 0.8s ease;
-        }
-
-        .input-group {
-            position: relative;
-        }
-
-        .input-group i {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            font-size: 1.1rem;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 15px 45px 15px 15px;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: white;
-            font-size: 1.05rem;
-            transition: all 0.3s;
-            outline: none;
-        }
-
-        .input-group input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 15px var(--primary-glow);
-            background: rgba(15, 23, 42, 0.8);
-        }
-
-        .input-group input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .btn {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px var(--primary-glow);
-        }
-
-        .btn:active {
-            transform: translateY(1px);
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
-            padding: 8px 15px;      
-            font-size: 0.95rem;
-        }
-        
-        .btn-danger:hover {
-            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.5);
-        }
-
-        /* Dashboard Screen */
-        #dashboard-screen {
-            display: none;
-            flex-direction: column;
-            gap: 1.5rem;
-            animation: fadeIn 0.6s ease;
-            padding-bottom: 30px;
-            padding-top: 50px; /* spacing for floating lang buttons */
-        }
-
+        /* Glassmorphism Header */
         .header {
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 24px 0;
+            margin-bottom: 24px;
         }
 
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+        .header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(to right, #f8fafc, #94a3b8);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .stat-card {
-            padding: 20px 15px;
+        /* Premium Cards */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .glass-card:active {
+            transform: scale(0.99);
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0 0 16px 0;
             display: flex;
-            flex-direction: column;
+            align-items: center;
             gap: 8px;
-            text-align: right;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.3s, background 0.3s;
-            cursor: default;
+            color: #e2e8f0;
         }
 
-        .stat-card:hover {
-            transform: translateY(-4px);
-            background: rgba(30, 41, 59, 0.9);
-        }
-
-        .stat-icon {
-            position: absolute;
-            left: -15px;
-            bottom: -15px;
-            font-size: 5rem;
-            opacity: 0.08;
-            transform: rotate(-15deg);
-            transition: transform 0.3s;
-        }
-
-        .stat-card:hover .stat-icon {
-            transform: rotate(0deg) scale(1.1);
-        }
-
-        .stat-title {
-            font-size: 0.95rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-        }
-
-        .color-blue { color: #60a5fa; }
-        .color-green { color: #34d399; }
-        .color-yellow { color: #fbbf24; }
-        .color-purple { color: #c084fc; }
-
-        /* Recent Activity */
-        .section-title {
-            font-size: 1.25rem;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-        }
-
-        .activity-list {
-            display: flex;
-            flex-direction: column;
+        /* KPI Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
             gap: 12px;
         }
 
-        .activity-item {
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.04);
-            border-radius: 12px;
-            transition: background 0.2s, transform 0.2s;
-            border-right: 4px solid var(--primary); /* RTL border */
-        }
-
-        .activity-item:hover {
-            background: rgba(255, 255, 255, 0.08);
-            transform: translateX(5px);
-        }
-
-        .activity-info {
+        .kpi-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
-        }
-        
-        .activity-title {
-            font-weight: 600;
-            font-size: 1.05rem;
+            gap: 4px;
         }
 
-        .activity-time {
-            font-size: 0.85rem;
+        .kpi-item i {
+            font-size: 1.25rem;
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+
+        .kpi-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
             color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .kpi-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        /* Inputs & Buttons */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: #fff;
+            font-size: 1rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            gap: 5px;
+            justify-content: center;
+            gap: 8px;
         }
 
-        .activity-amount {
-            font-weight: bold;
-            font-size: 1.2rem;
-            color: var(--secondary);
-            background: rgba(16, 185, 129, 0.1);
-            padding: 5px 10px;
-            border-radius: 8px;
-            direction: ltr; /* keep dollar sign correct */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary), #2563eb);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
         }
 
-        /* Notifications & Error */
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+            opacity: 0.9;
+        }
+
+        /* Status Pills */
+        .status-pill {
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-online { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .status-offline { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+        .status-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        th {
+            text-align: right;
+            padding: 12px 16px;
+            color: var(--text-muted);
+            font-weight: 500;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            white-space: nowrap;
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        .amount-positive { color: #34d399; font-weight: 600; }
+
+        .status-online i {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        /* Animation Classes */
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hidden { display: none !important; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+
+        /* Toast */
         #toast {
             position: fixed;
-            top: -100px;
+            bottom: 24px;
             left: 50%;
-            transform: translateX(-50%);
-            padding: 12px 25px;
-            border-radius: 30px;
-            color: white;
-            font-weight: bold;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            z-index: 9999;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 24px;
+            border-radius: 999px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 1000;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
             align-items: center;
             gap: 10px;
+            font-size: 0.9rem;
+            color: #fff;
             white-space: nowrap;
         }
-        .toast-show {
-            opacity: 1 !important;
-            visibility: visible !important;
-            top: 30px !important;
+
+        #toast.show { transform: translateX(-50%) translateY(0); }
+
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 32px;
         }
 
-        /* Animations */
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .spinner {
-            border: 3px solid rgba(255,255,255,0.3);
-            border-top: 3px solid white;
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            animation: spin 1s linear infinite;
+        .auth-logo i {
+            font-size: 4rem;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .dash-loader {
+        .chart-container {
+            height: 240px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .nav-dots {
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
-            padding: 40px 0;
-            color: var(--primary);
+            gap: 6px;
+            margin-top: 20px;
         }
-        .dash-loader i {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            animation: spin 1.5s cubic-bezier(0.55, 0.085, 0.68, 0.53) infinite;
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
         }
-        .dash-loader p {
-            color: var(--text-muted);
-            font-weight: 500;
+
+        .dot.active {
+            background: var(--secondary);
+            width: 20px;
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
 
-    <!-- Language Switcher -->
-    <div class="lang-switcher">
-        <button class="lang-btn" onclick="setLanguage('ar')" id="btn-ar">عربي</button>
-        <button class="lang-btn active" onclick="setLanguage('ku')" id="btn-ku">بادینی</button>
+<div class="container">
+    <!-- Login Screen -->
+    <div id="authCard" class="fade-in">
+        <div class="header" style="justify-content: center; text-align: center; flex-direction: column;">
+            <div class="auth-logo">
+                <i class="fas fa-shield-halved"></i>
+            </div>
+            <h1>لوحة مراقبة المدير</h1>
+            <p style="color: var(--text-muted); margin-top: 8px;">نظام المراقبة اللحظية للأعمال</p>
+        </div>
+
+        <div class="glass-card">
+            <div class="form-group">
+                <h2 style="margin-bottom: 20px;"><i class="fas fa-key"></i> تسجيل الدخول</h2>
+                <div style="margin-bottom: 12px;">
+                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">البريد الإلكتروني</label>
+                    <input id="email" type="email" placeholder="admin@example.com" autocomplete="username" />
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">كلمة المرور</label>
+                    <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+                </div>
+            </div>
+            <button id="loginBtn" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt"></i> دخول النظام
+            </button>
+            <p id="authMsg" style="text-align: center; margin-top: 16px; font-size: 0.85rem;"></p>
+        </div>
     </div>
 
-    <div class="container">
-        <!-- Auth Screen -->
-        <div id="auth-screen">
-            <div class="logo-container">
-                <i class="fas fa-chart-pie logo-icon"></i>
-                <h1 style="font-size: 2rem; font-weight: 800;" data-i18n="title">سیستەما ڕێڤەبەریێ</h1>
-                <p style="color: var(--text-muted); margin-top: 8px; font-size: 1.1rem;" data-i18n="subtitle">هیڤیدارین داخلا حسابا خۆ ببی</p>
+    <!-- Dashboard Screen -->
+    <div id="dashboard" class="hidden">
+        <!-- Top Sticky-like Header -->
+        <div class="header">
+            <div>
+                <h1>Black Bear Monitor</h1>
+                <div style="margin-top: 4px;">
+                    <span id="overallStatus" class="status-pill status-warning">
+                        <i class="fas fa-circle-notch fa-spin"></i> جاري الاتصال...
+                    </span>
+                </div>
             </div>
+            <button id="logoutBtn" class="btn btn-danger" style="width: auto; padding: 10px 16px;">
+                <i class="fas fa-power-off"></i>
+            </button>
+        </div>
 
-            <form id="login-form" class="glass auth-form">
-                <div class="input-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="email" required>
+        <!-- KPI Section -->
+        <div class="kpi-grid fade-in">
+            <div class="kpi-item">
+                <i class="fas fa-cash-register" style="color: #60a5fa;"></i>
+                <span class="kpi-label">مبيعات اليوم</span>
+                <span id="kpiSalesToday" class="kpi-value">0</span>
+            </div>
+            <div class="kpi-item">
+                <i class="fas fa-wallet" style="color: #34d399;"></i>
+                <span class="kpi-label">إجمالي المبالغ</span>
+                <span id="kpiSalesAmountToday" class="kpi-value">0</span>
+            </div>
+            <div class="kpi-item">
+                <i class="fas fa-bolt" style="color: #fbbf24;"></i>
+                <span class="kpi-label">إجمالي العمليات</span>
+                <span id="kpiOpsToday" class="kpi-value">0</span>
+            </div>
+            <div class="kpi-item">
+                <i class="fas fa-wifi" style="color: #f87171;"></i>
+                <span class="kpi-label">الأجهزة المتصلة</span>
+                <span id="kpiOnline" class="kpi-value">0</span>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="glass-card fade-in" style="margin-top: 16px;">
+            <h2><i class="fas fa-chart-line"></i> أداء الساعات (اليوم)</h2>
+            <div class="chart-container">
+                <canvas id="salesByHourChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Live Operations Table -->
+        <div class="glass-card fade-in">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h2 style="margin-bottom:0;"><i class="fas fa-list-ul"></i> العمليات اللحظية</h2>
+                <span style="font-size:0.75rem; color:var(--text-muted);" id="lastRefresh">مزامنة: -</span>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الوقت</th>
+                            <th>العملية</th>
+                            <th>القيمة</th>
+                            <th>المستخدم</th>
+                        </tr>
+                    </thead>
+                    <tbody id="eventTableBody">
+                        <tr><td colspan="4" style="text-align:center; padding:32px; color:var(--text-muted);">بانتظار وصول الحركات...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Settings Info -->
+        <div class="glass-card fade-in">
+            <h2><i class="fas fa-cog"></i> تفاصيل القناة</h2>
+            <div style="background: rgba(0,0,0,0.2); border-radius: 16px; padding: 16px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <span class="small">الحساب:</span>
+                    <span id="settingsActiveEmail" style="font-weight:600; font-size:0.85rem;">-</span>
                 </div>
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="password" required>
+                <div style="display:flex; justify-content:space-between;">
+                    <span class="small">آخر تحديث:</span>
+                    <span id="settingsLastSync" style="font-weight:600; font-size:0.85rem;">-</span>
                 </div>
-                <button type="submit" class="btn" id="login-btn">
-                    <span id="login-text" data-i18n="login_btn">تۆمارکرنا چوونەژوور</span>
-                    <div id="login-spinner" class="spinner" style="display: none;"></div>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:16px;">
+                <button id="copyEmailBtn" class="btn" style="background:rgba(255,255,255,0.05); color:#fff; border:1px solid rgba(255,255,255,0.1);">
+                    <i class="fas fa-copy"></i> نسخ
                 </button>
-            </form>
-        </div>
-
-        <!-- Dashboard Screen -->
-        <div id="dashboard-screen">
-            <div class="header">
-                <div>
-                    <h2 style="font-size: 1.4rem; font-weight: 800; color: #f8fafc;" data-i18n="dashboard_title">داشبۆردی مدیر</h2>
-                    <p style="color: var(--primary); font-size: 0.95rem; font-weight: 500; margin-top: 3px;" id="current-date">...</p>
-                </div>
-                <div>
-                    <button id="logout-btn" class="btn btn-danger">
-                        <i class="fas fa-sign-out-alt"></i> <span data-i18n="logout_btn">دەرکەفتن</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="stats-grid">
-                <div class="glass stat-card">
-                    <i class="fas fa-wallet stat-icon color-blue"></i>
-                    <span class="stat-title" data-i18n="total_sales">پارەیێ فڕۆتنا ئەڤرۆ</span>
-                    <span class="stat-value color-blue" id="stat-sales" style="direction: ltr;">$0.00</span>
-                </div>
-                <div class="glass stat-card">
-                    <i class="fas fa-shopping-cart stat-icon color-green"></i>
-                    <span class="stat-title" data-i18n="total_orders">هژمارا فڕۆتنان</span>
-                    <span class="stat-value color-green" id="stat-orders">0</span>
-                </div>
-                <div class="glass stat-card">
-                    <i class="fas fa-users stat-icon color-yellow"></i>
-                    <span class="stat-title" data-i18n="total_customers">موشتەریێن نوی</span>
-                    <span class="stat-value color-yellow" id="stat-customers">0</span>
-                </div>
-                <div class="glass stat-card">
-                    <i class="fas fa-box-open stat-icon color-purple"></i>
-                    <span class="stat-title" data-i18n="low_stock">کەل و پەلێن کێمبووی</span>
-                    <span class="stat-value color-purple" id="stat-low-stock">0</span>
-                </div>
-            </div>
-
-            <div class="glass" style="padding: 1.5rem; margin-top: 5px;">
-                <h3 class="section-title">
-                    <i class="fas fa-chart-line" style="color: var(--primary);"></i> 
-                    <span data-i18n="recent_activity">جوولە و کارێن دوماهیێ</span>
-                </h3>
-                <div class="activity-list" id="activity-list">
-                    <!-- Loading state handled via JS now -->
-                </div>
+                <button id="syncTestBtn" class="btn" style="background:rgba(255,255,255,0.05); color:#fff; border:1px solid rgba(255,255,255,0.1);">
+                    <i class="fas fa-sync"></i> فحص
+                </button>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Toast Notification Element -->
-    <div id="toast" class="glass">
-        <i class="fas fa-info-circle" id="toast-icon"></i>
-        <span id="toast-text">پەیام</span>
-    </div>
+<div id="toast">
+    <i class="fas fa-bell"></i>
+    <span id="toastMsg">تحديث جديد!</span>
+</div>
 
-    <!-- Firebase SDK Modular (v10) via CDN -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-        import { getFirestore, collection, query, orderBy, limit, onSnapshot, where, getDocs } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+        getAuth,
+        signInWithEmailAndPassword,
+        signOut,
+        onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import {
+        getFirestore,
+        collection,
+        onSnapshot,
+        query,
+        where,
+        orderBy,
+        limit
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-        // Firebase Configuration as provided
-        const firebaseConfig = {
-            apiKey: "AIzaSyBsvR9uOFOTJtR_m1bRyakoBPKc5ckfBRo",
-            authDomain: "laptopduhokpos.firebaseapp.com",
-            projectId: "laptopduhokpos",
-            storageBucket: "laptopduhokpos.firebasestorage.app",
-            messagingSenderId: "189692641233",
-            appId: "1:189692641233:web:b97a404d6fb91ac150aaf0",
-            measurementId: "G-6Y526TMZN9"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyBsvR9uOFOTJtR_m1bRyakoBPKc5ckfBRo",
+        authDomain: "laptopduhokpos.firebaseapp.com",
+        projectId: "laptopduhokpos",
+        storageBucket: "laptopduhokpos.firebasestorage.app",
+        messagingSenderId: "189692641233",
+        appId: "1:189692641233:web:b97a404d6fb91ac150aaf0",
+        measurementId: "G-6Y526TMZN9"
+    };
 
-        // Initialize Firebase
-        let app, auth, db;
-        try {
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-        } catch (e) {
-            console.error("Firebase init error", e);
-        }
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-        // --- LANGUAGE SYSTEM ---
-        const translations = {
-            ku: {
-                title: "سیستەما ڕێڤەبەریێ",
-                subtitle: "هیڤیدارین داخلا حسابا خۆ ببی",
-                email_placeholder: "ئیمەیل (Gmail)",
-                password_placeholder: "پاسۆرد (نهێنی)",
-                login_btn: "چوونە ژوور",
-                dashboard_title: "داشبۆردی مدیر",
-                date_label: "بەروار:",
-                logout_btn: "دەرکەفتن",
-                total_sales: "کۆما فڕۆتنا ئەڤرۆ",
-                total_orders: "جارا فڕۆتنان",
-                total_customers: "موشتەریێن نوی",
-                low_stock: "کەل و پەلێن کێمبووی",
-                recent_activity: "کارێن دوماهیێ (Recent)",
-                loading_data: "داتا ئەڤێ دەمێ دهێتە بارکرن...",
-                login_success: "ب سەرکەفتیانە چوویە ژوور!",
-                login_error: "ئیمەیل یان پاسۆرد خەلەتە!",
-                network_error: "هێلا ئەنترنێتێ نینە!",
-                logout_success: "ب سەرکەفتیانە دەرکەفتی",
-                confirm_logout: "ئەرێ توو پشتڕاستی دێ دەرکەڤی؟",
-                no_data: "هیچ داتایەک نەهاتیە دیتن د فایەربەیس دا",
-                connecting_error: "خەلەتی د گرێدانا فایەربەیس دا هەیە!",
-                sale_word: "فڕۆتن",
-                invoice_word: "وەسڵ یان داواکاری"
+    const authCard = document.getElementById("authCard");
+    const dashboard = document.getElementById("dashboard");
+    const emailEl = document.getElementById("email");
+    const passEl = document.getElementById("password");
+    const authMsg = document.getElementById("authMsg");
+    const overallStatus = document.getElementById("overallStatus");
+    const eventTableBody = document.getElementById("eventTableBody");
+    const toast = document.getElementById("toast");
+    const toastMsg = document.getElementById("toastMsg");
+    const lastRefresh = document.getElementById("lastRefresh");
+    const settingsActiveEmail = document.getElementById("settingsActiveEmail");
+    const settingsLastSync = document.getElementById("settingsLastSync");
+
+    let unsubs = [];
+    let initialEventsLoaded = false;
+    let lastSalesCount = 0;
+    let salesChartInstance = null;
+
+    function setAuthMessage(msg, type = "warn") {
+        authMsg.textContent = msg || "";
+        authMsg.style.color = type === "danger" ? "#fca5a5" : (type === "ok" ? "#34d399" : "#cbd5e1");
+    }
+
+    function setKpi(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = String(value);
+    }
+
+    function showToast(message) {
+        toastMsg.textContent = message;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 3000);
+    }
+
+    function formatMoney(value) {
+        const n = Number(value || 0);
+        return new Intl.NumberFormat("en-US").format(n);
+    }
+
+    function getEventAmount(ev) {
+        return Number(ev?.payload?.amount || 0);
+    }
+
+    function renderEventRow(ev) {
+        const at = ev.createdAt?.toDate ? ev.createdAt.toDate() : null;
+        const timeText = at ? at.toLocaleTimeString("ar-IQ", { hour: '2-digit', minute: '2-digit' }) : "-";
+        const amount = getEventAmount(ev);
+        const tr = document.createElement("tr");
+        tr.className = "fade-in";
+        tr.innerHTML = `
+            <td><span style="font-size:0.75rem; color:var(--text-muted);">${timeText}</span></td>
+            <td><span style="font-weight:500;">${ev.type === 'payment_process' ? 'مبيعات' : (ev.type || 'حدث')}</span></td>
+            <td><span class="${amount > 0 ? 'amount-positive' : ''}">${amount > 0 ? formatMoney(amount) : '-'}</span></td>
+            <td><span style="font-size:0.75rem; color:var(--text-muted);">${ev.user || '-'}</span></td>
+        `;
+        return tr;
+    }
+
+    function initCharts() {
+        if (salesChartInstance) salesChartInstance.destroy();
+        const ctx = document.getElementById('salesByHourChart').getContext('2d');
+        salesChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
+                datasets: [{
+                    label: 'عمليات المبيعات',
+                    data: Array(24).fill(0),
+                    borderColor: '#10b981',
+                    borderWidth: 3,
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 6
+                }]
             },
-            ar: {
-                title: "نظام الإدارة - للمدير",
-                subtitle: "الرجاء تسجيل الدخول لحسابك",
-                email_placeholder: "البريد الإلكتروني (Gmail)",
-                password_placeholder: "كلمة المرور",
-                login_btn: "تسجيل الدخول",
-                dashboard_title: "لوحة تحكم المدير",
-                date_label: "التاريخ:",
-                logout_btn: "تسجيل الخروج",
-                total_sales: "مبيعات اليوم",
-                total_orders: "عدد الطلبات (الفواتير)",
-                total_customers: "الزبائن الجدد",
-                low_stock: "المنتجات قليلة المخزون",
-                recent_activity: "النشاطات الأخيرة",
-                loading_data: "جاري تحميل البيانات...",
-                login_success: "تم تسجيل الدخول بنجاح!",
-                login_error: "البريد الإلكتروني أو كلمة المرور غير صحيحة!",
-                network_error: "لا يوجد اتصال بالإنترنت!",
-                logout_success: "تم تسجيل الخروج بنجاح",
-                confirm_logout: "هل أنت متأكد من تسجيل الخروج؟",
-                no_data: "لم يتم العثور على بيانات في قاعدة البيانات",
-                connecting_error: "خطأ في الاتصال بقاعدة البيانات!",
-                sale_word: "مبيعات",
-                invoice_word: "فاتورة"
-            }
-        };
-
-        let currentLang = localStorage.getItem('appLang') || 'ku';
-
-        window.setLanguage = function(lang) {
-            currentLang = lang;
-            localStorage.setItem('appLang', lang);
-
-            // Update Active Buttons
-            document.getElementById('btn-ku').classList.toggle('active', lang === 'ku');
-            document.getElementById('btn-ar').classList.toggle('active', lang === 'ar');
-
-            // Apply Texts
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (translations[lang][key]) {
-                    el.innerText = translations[lang][key];
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } },
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', stepSize: 1, font: { size: 10 } } }
                 }
-            });
-
-            // Apply Placeholders
-            document.getElementById('email').placeholder = translations[lang].email_placeholder;
-            document.getElementById('password').placeholder = translations[lang].password_placeholder;
-
-            // Re-render recent activity if loader is present
-            if(document.querySelector('.dash-loader')) {
-                document.getElementById('activity-list').innerHTML = `
-                    <div class="dash-loader">
-                        <i class="fas fa-circle-notch"></i>
-                        <p>${translations[lang].loading_data}</p>
-                    </div>
-                `;
             }
-        };
-        // Initialize Default Language
-        setLanguage(currentLang);
-        
-        // UI Elements
-        const authScreen = document.getElementById('auth-screen');
-        const dashboardScreen = document.getElementById('dashboard-screen');
-        const loginForm = document.getElementById('login-form');
-        const logoutBtn = document.getElementById('logout-btn');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const loginBtn = document.getElementById('login-btn');
-        const loginText = document.getElementById('login-text');
-        const loginSpinner = document.getElementById('login-spinner');
-        const activityList = document.getElementById('activity-list');
-        const currentDateElem = document.getElementById('current-date');
+        });
+    }
 
-        // Stats Elements
-        const statSales = document.getElementById('stat-sales');
-        const statOrders = document.getElementById('stat-orders');
-        const statCustomers = document.getElementById('stat-customers');
-        const statLowStock = document.getElementById('stat-low-stock');
+    function updateCharts(hourlyData) {
+        if (!salesChartInstance) return;
+        salesChartInstance.data.datasets[0].data = hourlyData;
+        salesChartInstance.update('none');
+    }
 
-        // Set the current Date
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        currentDateElem.innerText = new Date().toLocaleDateString('ar-IQ', options); // Using ar format to keep consistent with right-to-left numeral aesthetics, otherwise Badini dates format nice in default locale.
+    function mountDashboardListeners(channelId) {
+        while (unsubs.length) unsubs.pop()();
+        initialEventsLoaded = false;
+        lastSalesCount = 0;
+        initCharts();
 
-        // Listen for Authentication State from Firebase
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // User is signed in
-                authScreen.style.display = 'none';
-                dashboardScreen.style.display = 'flex';
-                // Trigger animations for dashboard cards
-                const cards = document.querySelectorAll('.stat-card');
-                cards.forEach((card, index) => {
-                    card.style.animation = `fadeInUp 0.5s ease ${index * 0.1}s forwards`;
-                    card.style.opacity = '0';
-                });
-                loadDashboardData();
+        const evQ = query(collection(db, "pos_events"), where("channelId", "==", channelId), orderBy("createdAt", "desc"), limit(50));
+        unsubs.push(onSnapshot(evQ, (snap) => {
+            const now = new Date();
+            const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+            let opsToday = 0;
+            let salesToday = 0;
+            let salesAmountToday = 0;
+            const hourlySales = Array(24).fill(0);
+            
+            if (snap.empty) {
+                eventTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:32px; color:var(--text-muted);">لا توجد حركات اليوم</td></tr>';
             } else {
-                // User is not signed in
-                authScreen.style.display = 'flex';
-                dashboardScreen.style.display = 'none';
-            }
-        });
-
-        // Handle Login Submission
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
-
-            if(!email || !password) return;
-
-            // Show fetching state
-            loginText.style.display = 'none';
-            loginSpinner.style.display = 'block';
-            loginBtn.disabled = true;
-
-            try {
-                // Log in with Firebase
-                await signInWithEmailAndPassword(auth, email, password);
-                showToast(translations[currentLang].login_success, "success");
-            } catch (error) {
-                console.error("Login Error:", error.code, error.message);
-                let msg = translations[currentLang].login_error;
-                if(error.code === 'auth/network-request-failed') msg = translations[currentLang].network_error;
-                showToast(msg, "error");
-            } finally {
-                // Revert state
-                loginText.style.display = 'block';
-                loginSpinner.style.display = 'none';
-                loginBtn.disabled = false;
-            }
-        });
-
-        // Handle Logout
-        logoutBtn.addEventListener('click', async () => {
-            if (confirm(translations[currentLang].confirm_logout)) {
-                try {
-                    await signOut(auth);
-                    showToast(translations[currentLang].logout_success, "success");
-                } catch (error) {
-                    showToast("Error", "error");
-                }
-            }
-        });
-
-        // Core App Logic - Subscribing to collections in Realtime
-        const listeners = [];
-        function loadDashboardData() {
-            // First cleanup any existing listeners that might have been loaded
-            listeners.forEach(unsub => unsub());
-            listeners.length = 0;
-
-            const todayTimestamp = new Date();
-            todayTimestamp.setHours(0,0,0,0);
-
-            // Default to Loading
-            activityList.innerHTML = `
-                <div class="dash-loader">
-                    <i class="fas fa-circle-notch"></i>
-                    <p>${translations[currentLang].loading_data}</p>
-                </div>
-            `;
-
-            try {
-                const qActivities = query(collection(db, "transactions"), orderBy("timestamp", "desc"), limit(6));
-                const unsubActivities = onSnapshot(qActivities, (snapshot) => {
-                    activityList.innerHTML = ''; // clear loader
-                    if (snapshot.empty) {
-                        displayNoDataFallback();
-                        return;
-                    }
-
-                    snapshot.forEach((doc) => {
-                        const data = doc.data();
-                        const timeRaw = data.timestamp || data.createdAt;
-                        const time = timeRaw ? new Date(timeRaw.toDate()).toLocaleTimeString('ar-IQ', {hour: '2-digit', minute:'2-digit'}) : '--:--';
-                        const amount = data.amount || data.total || data.grand_total || 0;
-                        const type = data.type || translations[currentLang].sale_word;
-                        
-                        const itemHtml = `
-                            <div class="activity-item">
-                                <div class="activity-info">
-                                    <span class="activity-title">${type} - ${translations[currentLang].invoice_word} #${doc.id.substring(0,5).toUpperCase()}</span>
-                                    <span class="activity-time"><i class="far fa-clock"></i> ${time}</span>
-                                </div>
-                                <div class="activity-amount">$${parseFloat(amount).toFixed(2)}</div>
-                            </div>
-                        `;
-                        activityList.insertAdjacentHTML('beforeend', itemHtml);
-                    });
-                }, (error) => {
-                    console.log("Listen error / No 'transactions' col. Fallback applied.");
-                    displayNoDataFallback();
-                });
-                listeners.push(unsubActivities);
-
-                // Sales Aggregation
-                const qSales = query(collection(db, "sales"), where("timestamp", ">=", todayTimestamp));
-                const unsubSales = onSnapshot(qSales, (snapshot) => {
-                    let totalSales = 0;
-                    snapshot.forEach(doc => { 
-                        totalSales += (doc.data().total || doc.data().amount || doc.data().grand_total || 0); 
-                    });
+                eventTableBody.innerHTML = "";
+                snap.forEach((d) => {
+                    const ev = d.data();
+                    const at = ev.createdAt?.toDate ? ev.createdAt.toDate() : null;
+                    const isToday = at ? (at.getTime() >= dayStart) : false;
                     
-                    // Simple animate values change
-                    animateValue(statSales, parseFloat(statSales.innerText.replace('$', '')), totalSales, 1000, true);
-                    animateValue(statOrders, parseInt(statOrders.innerText), snapshot.size, 1000, false);
-                }, (err) => {
-                    console.log("No sales data available natively");
-                    statSales.innerText = "$0.00";
-                    statOrders.innerText = "0";
+                    if (isToday) {
+                        opsToday++;
+                        if (ev.type === "payment_process") {
+                            salesToday++;
+                            salesAmountToday += getEventAmount(ev);
+                            hourlySales[at.getHours()] += 1;
+                        }
+                        eventTableBody.appendChild(renderEventRow(ev));
+                    }
                 });
-                listeners.push(unsubSales);
-
-            } catch (err) {
-                console.error("Firestore Loading Error: ", err);
-                displayNoDataFallback();
             }
-        }
 
-        // If no data exists yet or user lacks collections set up properly
-        function displayNoDataFallback() {
-            setTimeout(() => {
-                const list = document.getElementById('activity-list');
-                if(!list.innerHTML.includes('activity-item')) {
-                    list.innerHTML = `
-                        <div style="text-align:center; padding: 25px 10px; opacity: 0.8;">
-                            <i class="fas fa-database" style="font-size: 2.5rem; color: var(--text-muted); margin-bottom: 12px; display: block;"></i>
-                            <p style="color: var(--text-main); font-weight: 500;">${translations[currentLang].no_data}</p>
-                        </div>
-                    `;
-                }
-            }, 3000); 
-        }
+            setKpi("kpiOpsToday", opsToday);
+            setKpi("kpiSalesToday", salesToday);
+            setKpi("kpiSalesAmountToday", formatMoney(salesAmountToday));
+            const ts = new Date().toLocaleTimeString("ar-IQ", { hour: '2-digit', minute: '2-digit' });
+            lastRefresh.textContent = `مزامنة: ${ts}`;
+            settingsLastSync.textContent = ts;
+            updateCharts(hourlySales);
 
-        // Simple function to animate numbers in stat cards
-        function animateValue(obj, start, end, duration, isCurrency = false) {
-            let startTimestamp = null;
-            if(Number.isNaN(start)) start = 0;
-            const step = (timestamp) => {
-                if (!startTimestamp) startTimestamp = timestamp;
-                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                // easeOut function
-                const easeOut = 1 - Math.pow(1 - progress, 3);
-                const current = start + (end - start) * easeOut;
-                
-                obj.innerHTML = isCurrency ? '$' + current.toFixed(2) : Math.floor(current);
-                if (progress < 1) {
-                    window.requestAnimationFrame(step);
-                }
-            };
-            window.requestAnimationFrame(step);
-        }
-
-        // Toast Notification System
-        function showToast(message, type = 'info') {
-            const toast = document.getElementById('toast');
-            const toastText = document.getElementById('toast-text');
-            const toastIcon = document.getElementById('toast-icon');
-
-            toastText.innerText = message;
-            
-            if(type === 'error') {
-                toast.style.background = '#ef4444';
-                toastIcon.className = 'fas fa-exclamation-circle';
-            } else if (type === 'success') {
-                toast.style.background = '#10b981';
-                toastIcon.className = 'fas fa-check-circle';
+            if (initialEventsLoaded) {
+                snap.docChanges().forEach((ch) => {
+                    if (ch.type === "added") showToast("وصول حركة جديدة...");
+                });
             } else {
-                toast.style.background = '#3b82f6';
-                toastIcon.className = 'fas fa-info-circle';
+                initialEventsLoaded = true;
             }
+            lastSalesCount = salesToday;
+        }));
 
-            toast.classList.add('toast-show');
-            
-            // clear previous timeout if clicking rapidly
-            if(window.toastTimer) clearTimeout(window.toastTimer);
-            window.toastTimer = setTimeout(() => {
-                toast.classList.remove('toast-show');
-            }, 3500);
+        const prQ = query(collection(db, "pos_presence"), where("channelId", "==", channelId));
+        unsubs.push(onSnapshot(prQ, (snap) => {
+            let onlineCount = 0;
+            snap.forEach((d) => { if (d.data()?.online === true) onlineCount++; });
+            setKpi("kpiOnline", onlineCount);
+            if (onlineCount > 0) {
+                overallStatus.className = "status-pill status-online";
+                overallStatus.innerHTML = '<i class="fas fa-check-circle"></i> الكاشير متصل';
+            } else {
+                overallStatus.className = "status-pill status-warning";
+                overallStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> الكاشير غير متصل';
+            }
+        }));
+    }
+
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+        const email = emailEl.value.trim();
+        const password = passEl.value;
+        if (!email || !password) return setAuthMessage("يرجى إدخال البيانات.", "danger");
+        try {
+            setAuthMessage("جاري الدخول...");
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (e) {
+            setAuthMessage("فشل: " + e.message, "danger");
         }
-    </script>
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", () => signOut(auth));
+    document.getElementById("syncTestBtn").addEventListener("click", () => showToast("النظام متصل والقناة نشطة."));
+    document.getElementById("copyEmailBtn").addEventListener("click", () => {
+        navigator.clipboard.writeText(auth.currentUser?.email || "");
+        showToast("تم النسخ!");
+    });
+
+    onAuthStateChanged(auth, (user) => {
+        if (!user) {
+            authCard.classList.remove("hidden");
+            dashboard.classList.add("hidden");
+            return;
+        }
+        authCard.classList.add("hidden");
+        dashboard.classList.remove("hidden");
+        const channel = (user.email || "").toLowerCase();
+        settingsActiveEmail.textContent = channel;
+        mountDashboardListeners(channel);
+    });
+</script>
+
 </body>
 </html>
