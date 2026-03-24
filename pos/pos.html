@@ -726,6 +726,7 @@
         let initialEventsLoaded = false;
         let lastSalesCount = 0;
         let salesChartInstance = null;
+        let fallbackTimer = null;
 
         function setAuthMessage(msg, type = "warn") {
             authMsg.textContent = msg || "";
@@ -844,11 +845,109 @@
             salesChartInstance.update('none');
         }
 
+        function toDayKey(d) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+
+        function normalizeNum(v) {
+            const n = Number(v || 0);
+            return Number.isFinite(n) ? n : 0;
+        }
+
+        function getApiEndpoints(action) {
+            const t = Date.now();
+            return [
+                `../?action=${action}&t=${t}`,
+                `../api/all.php?action=${action}&t=${t}`,
+                `?action=${action}&t=${t}`,
+                `api/all.php?action=${action}&t=${t}`
+            ];
+        }
+
+        async function fetchFromAnyEndpoint(action) {
+            const urls = getApiEndpoints(action);
+            let lastErr = null;
+            for (const url of urls) {
+                try {
+                    const res = await fetch(url, { cache: 'no-store' });
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return await res.json();
+                } catch (err) {
+                    lastErr = err;
+                }
+            }
+            throw lastErr || new Error('No endpoint available');
+        }
+
+        function applyKpiSnapshot(snapshot) {
+            const salesCount = normalizeNum(snapshot.salesCount);
+            const salesAmount = normalizeNum(snapshot.salesAmount);
+            const expensesAmount = normalizeNum(snapshot.expensesAmount);
+            const opsCount = normalizeNum(snapshot.opsCount);
+            setKpi("kpiOpsToday", opsCount);
+            setKpi("kpiSalesToday", salesCount);
+            setKpi("kpiSalesAmountToday", formatMoney(salesAmount));
+            setKpi("kpiExpensesToday", formatMoney(expensesAmount));
+            setKpi("kpiNetToday", formatMoney(salesAmount - expensesAmount));
+            const ts = new Date().toLocaleTimeString("ar-IQ", { hour: '2-digit', minute: '2-digit' });
+            lastRefresh.textContent = `مزامنة: ${ts}`;
+            settingsLastSync.textContent = ts;
+        }
+
+        async function fetchDailySnapshotFromBackend() {
+            try {
+                const data = await fetchFromAnyEndpoint('get_data');
+                if (!data || data.status === 'error') throw new Error((data && data.message) || 'invalid response');
+
+                const now = new Date();
+                const todayKey = toDayKey(now);
+                const salesArr = Array.isArray(data.sales) ? data.sales : [];
+                const expensesArr = Array.isArray(data.expenses) ? data.expenses : [];
+
+                let salesCount = 0;
+                let salesAmount = 0;
+                for (const s of salesArr) {
+                    const created = String((s && (s.created_at || s.date || s.createdAt)) || '');
+                    if (!created.startsWith(todayKey)) continue;
+                    salesCount += 1;
+                    salesAmount += normalizeNum((s && (s.total ?? s.amount)) || 0);
+                }
+
+                let expensesAmount = 0;
+                let expensesCount = 0;
+                for (const e of expensesArr) {
+                    const dt = String((e && (e.date || e.created_at || e.createdAt)) || '');
+                    if (!dt.startsWith(todayKey)) continue;
+                    expensesCount += 1;
+                    expensesAmount += normalizeNum((e && e.amount) || 0);
+                }
+
+                applyKpiSnapshot({
+                    salesCount,
+                    salesAmount,
+                    expensesAmount,
+                    opsCount: salesCount + expensesCount
+                });
+            } catch (err) {
+                console.warn('Backend KPI fallback failed:', err);
+            }
+        }
+
+        function startBackendFallbackPolling() {
+            if (fallbackTimer) clearInterval(fallbackTimer);
+            fetchDailySnapshotFromBackend();
+            fallbackTimer = setInterval(fetchDailySnapshotFromBackend, 30000);
+        }
+
         function mountDashboardListeners(channelId) {
             while (unsubs.length) unsubs.pop()();
             initialEventsLoaded = false;
             lastSalesCount = 0;
             initCharts();
+            startBackendFallbackPolling();
 
             const evQ = query(collection(db, "pos_events"), where("channelId", "==", channelId), orderBy("createdAt", "desc"), limit(50));
             unsubs.push(onSnapshot(evQ, (snap) => {
@@ -912,6 +1011,12 @@
                     initialEventsLoaded = true;
                 }
                 lastSalesCount = salesToday;
+            }, (err) => {
+                console.warn('pos_events listener error:', err);
+                // Keep dashboard alive even when Firestore rules/index block this query.
+                fetchDailySnapshotFromBackend();
+                overallStatus.className = "status-pill status-warning";
+                overallStatus.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${curLang === 'ar' ? 'محدودية في بيانات Firebase - تم تفعيل نسخة السيرفر' : 'Firebase محدود - fallback server فعال'}`;
             }));
 
             const prQ = query(collection(db, "pos_presence"), where("channelId", "==", channelId));
@@ -934,6 +1039,9 @@
                     overallStatus.className = "status-pill status-warning";
                     overallStatus.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${curLang === 'ar' ? 'الكاشير غير متصل' : t('status_offline')}`;
                 }
+            }, (err) => {
+                console.warn('pos_presence listener error:', err);
+                setKpi("kpiOnline", 0);
             }));
         }
 
