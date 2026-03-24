@@ -440,22 +440,32 @@
             <div class="kpi-grid fade-in">
                 <div class="kpi-item">
                     <i class="fas fa-cash-register" style="color: #60a5fa;"></i>
-                    <span class="kpi-label">مبيعات اليوم</span>
+                    <span class="kpi-label" id="labelSalesCount">مبيعات اليوم</span>
                     <span id="kpiSalesToday" class="kpi-value">0</span>
                 </div>
                 <div class="kpi-item">
                     <i class="fas fa-wallet" style="color: #34d399;"></i>
-                    <span class="kpi-label">إجمالي المبالغ</span>
+                    <span class="kpi-label" id="labelSalesAmount">إجمالي المبالغ</span>
                     <span id="kpiSalesAmountToday" class="kpi-value">0</span>
                 </div>
                 <div class="kpi-item">
+                    <i class="fas fa-hand-holding-usd" style="color: #f87171;"></i>
+                    <span class="kpi-label" id="labelExpensesToday">المصاريف</span>
+                    <span id="kpiExpensesToday" class="kpi-value text-danger">0</span>
+                </div>
+                <div class="kpi-item">
+                    <i class="fas fa-chart-pie" style="color: #8b5cf6;"></i>
+                    <span class="kpi-label" id="labelNetToday">صافي اليوم</span>
+                    <span id="kpiNetToday" class="kpi-value">0</span>
+                </div>
+                <div class="kpi-item">
                     <i class="fas fa-bolt" style="color: #fbbf24;"></i>
-                    <span class="kpi-label">إجمالي العمليات</span>
+                    <span class="kpi-label" id="labelOpsToday">إجمالي العمليات</span>
                     <span id="kpiOpsToday" class="kpi-value">0</span>
                 </div>
                 <div class="kpi-item">
-                    <i class="fas fa-wifi" style="color: #f87171;"></i>
-                    <span class="kpi-label">الأجهزة المتصلة</span>
+                    <i class="fas fa-wifi" style="color: #38bdf8;"></i>
+                    <span class="kpi-label" id="labelOnline">الأجهزة المتصلة</span>
                     <span id="kpiOnline" class="kpi-value">0</span>
                 </div>
             </div>
@@ -589,6 +599,8 @@
                 kpi_sales_amount: 'إجمالي المبالغ',
                 kpi_ops_count: 'إجمالي العمليات',
                 kpi_online_devices: 'الأجهزة المتصلة',
+                kpi_expenses: 'المصاريف',
+                kpi_net: 'صافي اليوم',
                 chart_title: 'أداء الساعات (اليوم)',
                 ops_title: 'العمليات اللحظية',
                 sync_label: 'مزامنة',
@@ -621,6 +633,8 @@
                 kpi_sales_amount: 'کۆمێ پارێ ئەڤرۆ',
                 kpi_ops_count: 'کۆمێ لڤینان',
                 kpi_online_devices: 'ئامیرێن لسەر هێڵ',
+                kpi_expenses: 'مەزاختنێن ئەڤرۆ',
+                kpi_net: 'صافیێ ئەڤرۆ',
                 chart_title: 'ئاستێ کارکرنێ (دەمژمێر)',
                 ops_title: 'لڤینێن نوکە',
                 sync_label: 'نویکرن',
@@ -675,20 +689,23 @@
             };
             
             // Manual fixes for specific elements
-            document.querySelector('#authCard h1').textContent = t('title');
-            document.querySelector('#authCard p').textContent = t('subtitle');
-            document.querySelector('#authCard h2').innerHTML = '<i class="fas fa-key"></i> ' + t('login_title');
-            document.querySelector('#loginBtn').innerHTML = '<i class="fas fa-sign-in-alt"></i> ' + t('btn_login');
+            if (document.querySelector('#authCard h1')) document.querySelector('#authCard h1').textContent = t('title');
+            if (document.querySelector('#authCard p')) document.querySelector('#authCard p').textContent = t('subtitle');
+            if (document.querySelector('#authCard h2')) document.querySelector('#authCard h2').innerHTML = '<i class="fas fa-key"></i> ' + t('login_title');
+            if (document.querySelector('#loginBtn')) document.querySelector('#loginBtn').innerHTML = '<i class="fas fa-sign-in-alt"></i> ' + t('btn_login');
             
-            document.querySelector('#dashboard h1').textContent = 'Black Bear Monitor'; // Keep brand
-            document.querySelector('#kpiSalesToday').previousElementSibling.nextElementSibling.textContent = t('kpi_sales_count');
-            document.querySelectorAll('.kpi-label')[0].textContent = t('kpi_sales_count');
-            document.querySelectorAll('.kpi-label')[1].textContent = t('kpi_sales_amount');
-            document.querySelectorAll('.kpi-label')[2].textContent = t('kpi_ops_count');
-            document.querySelectorAll('.kpi-label')[3].textContent = t('kpi_online_devices');
+            if (document.getElementById('labelSalesCount')) document.getElementById('labelSalesCount').textContent = t('kpi_sales_count');
+            if (document.getElementById('labelSalesAmount')) document.getElementById('labelSalesAmount').textContent = t('kpi_sales_amount');
+            if (document.getElementById('labelExpensesToday')) document.getElementById('labelExpensesToday').textContent = t('kpi_expenses');
+            if (document.getElementById('labelNetToday')) document.getElementById('labelNetToday').textContent = t('kpi_net');
+            if (document.getElementById('labelOpsToday')) document.getElementById('labelOpsToday').textContent = t('kpi_ops_count');
+            if (document.getElementById('labelOnline')) document.getElementById('labelOnline').textContent = t('kpi_online_devices');
             
-            document.querySelector('#dashboard h2 i.fa-chart-line').parentElement.innerHTML = '<i class="fas fa-chart-line"></i> ' + t('chart_title');
-            document.querySelector('#dashboard h2 i.fa-list-ul').parentElement.innerHTML = '<i class="fas fa-list-ul"></i> ' + t('ops_title');
+            const chartTitle = document.querySelector('.chart-container').previousElementSibling;
+            if (chartTitle) chartTitle.innerHTML = '<i class="fas fa-chart-line"></i> ' + t('chart_title');
+            
+            const opsTitle = document.querySelector('.events-table-card h2');
+            if (opsTitle) opsTitle.innerHTML = '<i class="fas fa-list-ul"></i> ' + t('ops_title');
             
             const ths = document.querySelectorAll('thead th');
             if (ths.length >= 4) {
@@ -698,9 +715,11 @@
                 ths[3].textContent = t('col_user');
             }
             
-            document.querySelector('#dashboard h2 i.fa-cog').parentElement.innerHTML = '<i class="fas fa-cog"></i> ' + t('channel_info');
-            document.querySelector('#copyEmailBtn').innerHTML = '<i class="fas fa-copy"></i> ' + t('btn_copy');
-            document.querySelector('#syncTestBtn').innerHTML = '<i class="fas fa-sync"></i> ' + t('btn_test');
+            const channelHeader = document.querySelector('.settings-section h2');
+            if (channelHeader) channelHeader.innerHTML = '<i class="fas fa-cog"></i> ' + t('channel_info');
+            
+            if (document.getElementById('copyEmailBtn')) document.getElementById('copyEmailBtn').innerHTML = '<i class="fas fa-copy"></i> ' + t('btn_copy');
+            if (document.getElementById('syncTestBtn')) document.getElementById('syncTestBtn').innerHTML = '<i class="fas fa-sync"></i> ' + t('btn_test');
         }
 
         let unsubs = [];
@@ -730,12 +749,25 @@
         }
 
         function getEventAmount(ev) {
-            if (ev.type === "payment_process") return Number(ev?.payload?.amount || 0);
+            if (ev.type === "payment_process" || ev.type === "payment_advance_confirm") {
+                return Number(ev?.payload?.amount || 0);
+            }
             if (ev.type === "api_call") {
                 const action = ev.payload?.action;
-                if (action === "save_ledger" || action === "save_expense" || action === "save_return") {
-                    return Number(ev.payload?.body?.amount || ev.payload?.amount || 0);
+                // Prefer payload.amount if we set it in firebase_cashier_sync.js NEW VERSION
+                if (ev.payload?.amount !== undefined && ev.payload?.amount !== null) {
+                    return Number(ev.payload.amount);
                 }
+                const body = ev.payload?.body || {};
+                if (action === "process_payment" || action === "save_ledger" || action === "save_expense" || action === "save_return" || action === "pay_debt") {
+                    return Number(body.amount || body.total || body.total_amount || body.grand_total || body.totalCost || 0);
+                }
+            }
+            if (ev.type === "expense_save") {
+                return Number(ev.payload?.amount || 0);
+            }
+            if (ev.type === "return_process") {
+                return Number(ev.payload?.amount || 0);
             }
             return 0;
         }
@@ -825,6 +857,7 @@
                 let opsToday = 0;
                 let salesToday = 0;
                 let salesAmountToday = 0;
+                let expensesAmountToday = 0;
                 const hourlySales = Array(24).fill(0);
 
                 if (snap.empty) {
@@ -839,10 +872,22 @@
                         if (isToday) {
                             opsToday++;
                             const amt = getEventAmount(ev);
-                            if (ev.type === "payment_process" || (ev.type === "api_call" && ev.payload?.action === "save_ledger")) {
+                            const action = ev.payload?.action;
+                            
+                            // Check for Sales: include process_payment, payment_process, save_ledger (income), pay_debt (income)
+                            const isSale = (ev.type === "payment_process" || ev.type === "payment_advance_confirm" || 
+                                           (ev.type === "api_call" && (action === "process_payment" || action === "save_ledger" || action === "pay_debt")));
+                            
+                            // Check for Expenses
+                            const isExpense = (ev.type === "expense_save" || (ev.type === "api_call" && action === "save_expense"));
+
+                            if (isSale) {
                                 salesToday++;
                                 salesAmountToday += amt;
                                 if (at) hourlySales[at.getHours()] += 1;
+                            }
+                            if (isExpense) {
+                                expensesAmountToday += amt;
                             }
                             eventTableBody.appendChild(renderEventRow(ev));
                         }
@@ -852,6 +897,8 @@
                 setKpi("kpiOpsToday", opsToday);
                 setKpi("kpiSalesToday", salesToday);
                 setKpi("kpiSalesAmountToday", formatMoney(salesAmountToday));
+                setKpi("kpiExpensesToday", formatMoney(expensesAmountToday));
+                setKpi("kpiNetToday", formatMoney(salesAmountToday - expensesAmountToday));
                 const ts = new Date().toLocaleTimeString("ar-IQ", { hour: '2-digit', minute: '2-digit' });
                 lastRefresh.textContent = `مزامنة: ${ts}`;
                 settingsLastSync.textContent = ts;
