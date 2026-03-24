@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,7 +8,9 @@
     <!-- Google Fonts: Inter & Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;700&display=swap"
+        rel="stylesheet">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Chart.js -->
@@ -199,9 +202,20 @@
             gap: 6px;
         }
 
-        .status-online { background: rgba(16, 185, 129, 0.15); color: #34d399; }
-        .status-offline { background: rgba(239, 68, 68, 0.15); color: #f87171; }
-        .status-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+        .status-online {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+        }
+
+        .status-offline {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+        }
+
+        .status-warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+        }
 
         /* Tables */
         .table-container {
@@ -231,33 +245,67 @@
             white-space: nowrap;
         }
 
-        tr:last-child td { border-bottom: none; }
+        tr:last-child td {
+            border-bottom: none;
+        }
 
-        .amount-positive { color: #34d399; font-weight: 600; }
+        .amount-positive {
+            color: #34d399;
+            font-weight: 600;
+        }
 
         .status-online i {
             animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.4; }
-            100% { opacity: 1; }
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+
+            100% {
+                opacity: 1;
+            }
         }
 
         /* Animation Classes */
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .fade-in {
+            animation: fadeIn 0.4s ease-out;
         }
 
-        .hidden { display: none !important; }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
 
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
 
         /* Toast */
         #toast {
@@ -269,7 +317,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             padding: 12px 24px;
             border-radius: 999px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             z-index: 1000;
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
@@ -280,7 +328,9 @@
             white-space: nowrap;
         }
 
-        #toast.show { transform: translateX(-50%) translateY(0); }
+        #toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
 
         .auth-logo {
             text-align: center;
@@ -312,7 +362,7 @@
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .dot.active {
@@ -322,392 +372,558 @@
         }
     </style>
 </head>
-<body>
 
-<div class="container">
-    <!-- Login Screen -->
-    <div id="authCard" class="fade-in">
-        <div class="header" style="justify-content: center; text-align: center; flex-direction: column;">
-            <div class="auth-logo">
-                <i class="fas fa-shield-halved"></i>
+<body id="manager-body">
+    <script>
+    (function(){ try {
+        var L = typeof localStorage !== 'undefined' && localStorage.getItem('pos_language');
+        if (L === 'ar' || L === 'badini') {
+            document.documentElement.setAttribute('lang', L === 'ar' ? 'ar' : 'ku');
+            document.documentElement.setAttribute('dir', 'rtl');
+        }
+        var Z = typeof localStorage !== 'undefined' && parseInt(localStorage.getItem('pos_zoom'), 10);
+        if (Z && Z >= 70 && Z <= 150) document.body.style.zoom = Z + '%';
+    } catch(e) {} })();
+    </script>
+    <div class="container">
+        <!-- Login Screen -->
+        <div id="authCard" class="fade-in">
+            <div class="header" style="justify-content: center; text-align: center; flex-direction: column;">
+                <div class="auth-logo">
+                    <i class="fas fa-shield-halved"></i>
+                </div>
+                <h1>لوحة مراقبة المدير</h1>
+                <p style="color: var(--text-muted); margin-top: 8px;">نظام المراقبة اللحظية للأعمال</p>
             </div>
-            <h1>لوحة مراقبة المدير</h1>
-            <p style="color: var(--text-muted); margin-top: 8px;">نظام المراقبة اللحظية للأعمال</p>
+
+            <div class="glass-card">
+                <div class="form-group">
+                    <h2 style="margin-bottom: 20px;"><i class="fas fa-key"></i> تسجيل الدخول</h2>
+                    <div style="margin-bottom: 12px;">
+                        <label
+                            style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">البريد
+                            الإلكتروني</label>
+                        <input id="email" type="email" placeholder="admin@example.com" autocomplete="username" />
+                    </div>
+                    <div>
+                        <label
+                            style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">كلمة
+                            المرور</label>
+                        <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+                    </div>
+                </div>
+                <button id="loginBtn" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> دخول النظام
+                </button>
+                <p id="authMsg" style="text-align: center; margin-top: 16px; font-size: 0.85rem;"></p>
+            </div>
         </div>
 
-        <div class="glass-card">
-            <div class="form-group">
-                <h2 style="margin-bottom: 20px;"><i class="fas fa-key"></i> تسجيل الدخول</h2>
-                <div style="margin-bottom: 12px;">
-                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">البريد الإلكتروني</label>
-                    <input id="email" type="email" placeholder="admin@example.com" autocomplete="username" />
-                </div>
+        <!-- Dashboard Screen -->
+        <div id="dashboard" class="hidden">
+            <!-- Top Sticky-like Header -->
+            <div class="header">
                 <div>
-                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">كلمة المرور</label>
-                    <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+                    <h1>Black Bear Monitor</h1>
+                    <div style="margin-top: 4px;">
+                        <span id="overallStatus" class="status-pill status-warning">
+                            <i class="fas fa-circle-notch fa-spin"></i> جاري الاتصال...
+                        </span>
+                    </div>
+                </div>
+                <button id="logoutBtn" class="btn btn-danger" style="width: auto; padding: 10px 16px;">
+                    <i class="fas fa-power-off"></i>
+                </button>
+            </div>
+
+            <!-- KPI Section -->
+            <div class="kpi-grid fade-in">
+                <div class="kpi-item">
+                    <i class="fas fa-cash-register" style="color: #60a5fa;"></i>
+                    <span class="kpi-label">مبيعات اليوم</span>
+                    <span id="kpiSalesToday" class="kpi-value">0</span>
+                </div>
+                <div class="kpi-item">
+                    <i class="fas fa-wallet" style="color: #34d399;"></i>
+                    <span class="kpi-label">إجمالي المبالغ</span>
+                    <span id="kpiSalesAmountToday" class="kpi-value">0</span>
+                </div>
+                <div class="kpi-item">
+                    <i class="fas fa-bolt" style="color: #fbbf24;"></i>
+                    <span class="kpi-label">إجمالي العمليات</span>
+                    <span id="kpiOpsToday" class="kpi-value">0</span>
+                </div>
+                <div class="kpi-item">
+                    <i class="fas fa-wifi" style="color: #f87171;"></i>
+                    <span class="kpi-label">الأجهزة المتصلة</span>
+                    <span id="kpiOnline" class="kpi-value">0</span>
                 </div>
             </div>
-            <button id="loginBtn" class="btn btn-primary">
-                <i class="fas fa-sign-in-alt"></i> دخول النظام
-            </button>
-            <p id="authMsg" style="text-align: center; margin-top: 16px; font-size: 0.85rem;"></p>
+
+            <!-- Charts Section -->
+            <div class="glass-card fade-in" style="margin-top: 16px;">
+                <h2><i class="fas fa-chart-line"></i> أداء الساعات (اليوم)</h2>
+                <div class="chart-container">
+                    <canvas id="salesByHourChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Live Operations Table -->
+            <div class="glass-card fade-in">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <h2 style="margin-bottom:0;"><i class="fas fa-list-ul"></i> العمليات اللحظية</h2>
+                    <span style="font-size:0.75rem; color:var(--text-muted);" id="lastRefresh">مزامنة: -</span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>الوقت</th>
+                                <th>العملية</th>
+                                <th>القيمة</th>
+                                <th>المستخدم</th>
+                            </tr>
+                        </thead>
+                        <tbody id="eventTableBody">
+                            <tr>
+                                <td colspan="4" style="text-align:center; padding:32px; color:var(--text-muted);">
+                                    بانتظار وصول الحركات...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Settings Info -->
+            <div class="glass-card fade-in">
+                <h2><i class="fas fa-cog"></i> تفاصيل القناة</h2>
+                <div style="background: rgba(0,0,0,0.2); border-radius: 16px; padding: 16px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                        <span class="small">الحساب:</span>
+                        <span id="settingsActiveEmail" style="font-weight:600; font-size:0.85rem;">-</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span class="small">آخر تحديث:</span>
+                        <span id="settingsLastSync" style="font-weight:600; font-size:0.85rem;">-</span>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:16px;">
+                    <button id="copyEmailBtn" class="btn"
+                        style="background:rgba(255,255,255,0.05); color:#fff; border:1px solid rgba(255,255,255,0.1);">
+                        <i class="fas fa-copy"></i> نسخ
+                    </button>
+                    <button id="syncTestBtn" class="btn"
+                        style="background:rgba(255,255,255,0.05); color:#fff; border:1px solid rgba(255,255,255,0.1);">
+                        <i class="fas fa-sync"></i> فحص
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Dashboard Screen -->
-    <div id="dashboard" class="hidden">
-        <!-- Top Sticky-like Header -->
-        <div class="header">
-            <div>
-                <h1>Black Bear Monitor</h1>
-                <div style="margin-top: 4px;">
-                    <span id="overallStatus" class="status-pill status-warning">
-                        <i class="fas fa-circle-notch fa-spin"></i> جاري الاتصال...
-                    </span>
-                </div>
-            </div>
-            <button id="logoutBtn" class="btn btn-danger" style="width: auto; padding: 10px 16px;">
-                <i class="fas fa-power-off"></i>
-            </button>
-        </div>
-
-        <!-- KPI Section -->
-        <div class="kpi-grid fade-in">
-            <div class="kpi-item">
-                <i class="fas fa-cash-register" style="color: #60a5fa;"></i>
-                <span class="kpi-label">مبيعات اليوم</span>
-                <span id="kpiSalesToday" class="kpi-value">0</span>
-            </div>
-            <div class="kpi-item">
-                <i class="fas fa-wallet" style="color: #34d399;"></i>
-                <span class="kpi-label">إجمالي المبالغ</span>
-                <span id="kpiSalesAmountToday" class="kpi-value">0</span>
-            </div>
-            <div class="kpi-item">
-                <i class="fas fa-bolt" style="color: #fbbf24;"></i>
-                <span class="kpi-label">إجمالي العمليات</span>
-                <span id="kpiOpsToday" class="kpi-value">0</span>
-            </div>
-            <div class="kpi-item">
-                <i class="fas fa-wifi" style="color: #f87171;"></i>
-                <span class="kpi-label">الأجهزة المتصلة</span>
-                <span id="kpiOnline" class="kpi-value">0</span>
-            </div>
-        </div>
-
-        <!-- Charts Section -->
-        <div class="glass-card fade-in" style="margin-top: 16px;">
-            <h2><i class="fas fa-chart-line"></i> أداء الساعات (اليوم)</h2>
-            <div class="chart-container">
-                <canvas id="salesByHourChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Live Operations Table -->
-        <div class="glass-card fade-in">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                <h2 style="margin-bottom:0;"><i class="fas fa-list-ul"></i> العمليات اللحظية</h2>
-                <span style="font-size:0.75rem; color:var(--text-muted);" id="lastRefresh">مزامنة: -</span>
-            </div>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>الوقت</th>
-                            <th>العملية</th>
-                            <th>القيمة</th>
-                            <th>المستخدم</th>
-                        </tr>
-                    </thead>
-                    <tbody id="eventTableBody">
-                        <tr><td colspan="4" style="text-align:center; padding:32px; color:var(--text-muted);">بانتظار وصول الحركات...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Settings Info -->
-        <div class="glass-card fade-in">
-            <h2><i class="fas fa-cog"></i> تفاصيل القناة</h2>
-            <div style="background: rgba(0,0,0,0.2); border-radius: 16px; padding: 16px;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                    <span class="small">الحساب:</span>
-                    <span id="settingsActiveEmail" style="font-weight:600; font-size:0.85rem;">-</span>
-                </div>
-                <div style="display:flex; justify-content:space-between;">
-                    <span class="small">آخر تحديث:</span>
-                    <span id="settingsLastSync" style="font-weight:600; font-size:0.85rem;">-</span>
-                </div>
-            </div>
-            <div style="display:flex; gap:10px; margin-top:16px;">
-                <button id="copyEmailBtn" class="btn" style="background:rgba(255,255,255,0.05); color:#fff; border:1px solid rgba(255,255,255,0.1);">
-                    <i class="fas fa-copy"></i> نسخ
-                </button>
-                <button id="syncTestBtn" class="btn" style="background:rgba(255,255,255,0.05); color:#fff; border:1px solid rgba(255,255,255,0.1);">
-                    <i class="fas fa-sync"></i> فحص
-                </button>
-            </div>
-        </div>
+    <div id="toast">
+        <i class="fas fa-bell"></i>
+        <span id="toastMsg">تحديث جديد!</span>
     </div>
-</div>
 
-<div id="toast">
-    <i class="fas fa-bell"></i>
-    <span id="toastMsg">تحديث جديد!</span>
-</div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+        import {
+            getAuth,
+            signInWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import {
+            getFirestore,
+            collection,
+            onSnapshot,
+            query,
+            where,
+            orderBy,
+            limit
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import {
-        getAuth,
-        signInWithEmailAndPassword,
-        signOut,
-        onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-    import {
-        getFirestore,
-        collection,
-        onSnapshot,
-        query,
-        where,
-        orderBy,
-        limit
-    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+        const firebaseConfig = {
+            apiKey: "AIzaSyBsvR9uOFOTJtR_m1bRyakoBPKc5ckfBRo",
+            authDomain: "laptopduhokpos.firebaseapp.com",
+            projectId: "laptopduhokpos",
+            storageBucket: "laptopduhokpos.firebasestorage.app",
+            messagingSenderId: "189692641233",
+            appId: "1:189692641233:web:b97a404d6fb91ac150aaf0",
+            measurementId: "G-6Y526TMZN9"
+        };
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyBsvR9uOFOTJtR_m1bRyakoBPKc5ckfBRo",
-        authDomain: "laptopduhokpos.firebaseapp.com",
-        projectId: "laptopduhokpos",
-        storageBucket: "laptopduhokpos.firebasestorage.app",
-        messagingSenderId: "189692641233",
-        appId: "1:189692641233:web:b97a404d6fb91ac150aaf0",
-        measurementId: "G-6Y526TMZN9"
-    };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+        const authCard = document.getElementById("authCard");
+        const dashboard = document.getElementById("dashboard");
+        const emailEl = document.getElementById("email");
+        const passEl = document.getElementById("password");
+        const authMsg = document.getElementById("authMsg");
+        const overallStatus = document.getElementById("overallStatus");
+        const eventTableBody = document.getElementById("eventTableBody");
+        const toast = document.getElementById("toast");
+        const toastMsg = document.getElementById("toastMsg");
+        const lastRefresh = document.getElementById("lastRefresh");
+        const settingsActiveEmail = document.getElementById("settingsActiveEmail");
+        const settingsLastSync = document.getElementById("settingsLastSync");
 
-    const authCard = document.getElementById("authCard");
-    const dashboard = document.getElementById("dashboard");
-    const emailEl = document.getElementById("email");
-    const passEl = document.getElementById("password");
-    const authMsg = document.getElementById("authMsg");
-    const overallStatus = document.getElementById("overallStatus");
-    const eventTableBody = document.getElementById("eventTableBody");
-    const toast = document.getElementById("toast");
-    const toastMsg = document.getElementById("toastMsg");
-    const lastRefresh = document.getElementById("lastRefresh");
-    const settingsActiveEmail = document.getElementById("settingsActiveEmail");
-    const settingsLastSync = document.getElementById("settingsLastSync");
+        const curLang = localStorage.getItem('pos_language') === 'ar' ? 'ar' : 'badini';
+        document.documentElement.setAttribute('lang', curLang === 'ar' ? 'ar' : 'ku');
 
-    let unsubs = [];
-    let initialEventsLoaded = false;
-    let lastSalesCount = 0;
-    let salesChartInstance = null;
-
-    function setAuthMessage(msg, type = "warn") {
-        authMsg.textContent = msg || "";
-        authMsg.style.color = type === "danger" ? "#fca5a5" : (type === "ok" ? "#34d399" : "#cbd5e1");
-    }
-
-    function setKpi(id, value) {
-        const el = document.getElementById(id);
-        if (el) el.textContent = String(value);
-    }
-
-    function showToast(message) {
-        toastMsg.textContent = message;
-        toast.classList.add("show");
-        setTimeout(() => toast.classList.remove("show"), 3000);
-    }
-
-    function formatMoney(value) {
-        const n = Number(value || 0);
-        return new Intl.NumberFormat("en-US").format(n);
-    }
-
-    function getEventAmount(ev) {
-        if (ev.type === "payment_process") return Number(ev?.payload?.amount || 0);
-        if (ev.type === "api_call") {
-            const action = ev.payload?.action;
-            if (action === "save_ledger" || action === "save_expense" || action === "save_return") {
-                return Number(ev.payload?.body?.amount || ev.payload?.amount || 0);
+        const TRANSLATIONS = {
+            badini: {
+                title: 'لوحة مراقبة المدير',
+                subtitle: 'نظام المراقبة اللحظية للأعمال',
+                login_title: 'تسجيل الدخول',
+                email_label: 'البريد الإلكتروني',
+                pass_label: 'كلمة المرور',
+                btn_login: 'دخول النظام',
+                status_connecting: 'جاري الاتصال...',
+                status_online: 'الكاشير متصل',
+                status_offline: 'الكاشير غير متصل',
+                kpi_sales_count: 'مبيعات اليوم',
+                kpi_sales_amount: 'إجمالي المبالغ',
+                kpi_ops_count: 'إجمالي العمليات',
+                kpi_online_devices: 'الأجهزة المتصلة',
+                chart_title: 'أداء الساعات (اليوم)',
+                ops_title: 'العمليات اللحظية',
+                sync_label: 'مزامنة',
+                col_time: 'الوقت',
+                col_op: 'العملية',
+                col_val: 'القيمة',
+                col_user: 'المستخدم',
+                channel_info: 'تفاصيل القناة',
+                account_label: 'الحساب',
+                last_sync_label: 'آخر تحديث',
+                btn_copy: 'نسخ',
+                btn_test: 'فحص',
+                type_sales: 'مبيعات',
+                type_ledger: 'قید حساب',
+                type_expense: 'مصروفات',
+                type_return: 'زڤڕاندن',
+                type_op: 'عملية'
+            },
+            badini_ext: { // Mixed Kurdish/Arabic as requested by context
+                title: 'شاشا چاڤدێرییا مدیر',
+                subtitle: 'سیستەمێ چاڤدێرییا کار ل هەر جهەکی',
+                login_title: 'چوونە ژوور (Login)',
+                email_label: 'ئیمێل (Email)',
+                pass_label: 'کۆد (Password)',
+                btn_login: 'چوونە ژوور',
+                status_connecting: 'لێگەڕیانا پەیوەندیێ...',
+                status_online: 'کاشێر یێ ڤەکریە',
+                status_offline: 'کاشێر یێ گرتیە',
+                kpi_sales_count: 'فرۆتنا ئەڤرۆ',
+                kpi_sales_amount: 'کۆمێ پارێ ئەڤرۆ',
+                kpi_ops_count: 'کۆمێ لڤینان',
+                kpi_online_devices: 'ئامیرێن لسەر هێڵ',
+                chart_title: 'ئاستێ کارکرنێ (دەمژمێر)',
+                ops_title: 'لڤینێن نوکە',
+                sync_label: 'نویکرن',
+                col_time: 'دەم',
+                col_op: 'کار',
+                col_val: 'بها',
+                col_user: 'کارمەند',
+                channel_info: 'پێزانینێن چەناڵی',
+                account_label: 'هەژمار',
+                last_sync_label: 'دوماهیک نویکرن',
+                btn_copy: 'کۆپی',
+                btn_test: 'پشکنین',
+                type_sales: 'فرۆتن',
+                type_ledger: 'پێداچوون',
+                type_expense: 'مەزاختن',
+                type_return: 'زڤڕاندن',
+                type_op: 'لڤین'
             }
-        }
-        return 0;
-    }
+        };
 
-    function renderEventRow(ev) {
-        const at = ev.createdAt?.toDate ? ev.createdAt.toDate() : (ev.updatedAt?.toDate ? ev.updatedAt.toDate() : null);
-        const timeText = at ? at.toLocaleTimeString("ar-IQ", { hour: '2-digit', minute: '2-digit' }) : "-";
-        const amount = getEventAmount(ev);
-        let typeText = ev.type === 'payment_process' ? 'مبيعات' : (ev.type || 'حدث');
-        if (ev.type === "api_call") {
-            const action = ev.payload?.action;
-            if (action === "save_ledger") typeText = "قيد حساب";
-            else if (action === "save_expense") typeText = "مصروفات";
-            else if (action === "save_return") typeText = "زڤڕاندن";
-            else typeText = "عملية";
+        const t = (key) => {
+            const lang = localStorage.getItem('pos_language') === 'ar' ? 'ar' : 'badini';
+            if (lang === 'ar') return null; // Use hardcoded Arabic or fallback
+            return TRANSLATIONS.badini_ext[key] || TRANSLATIONS.badini[key] || key;
+        };
+
+        function applyI18n() {
+            if (curLang === 'ar') return;
+            const map = {
+                '#authCard h1': 'title',
+                '#authCard p': 'subtitle',
+                '#authCard h2': 'login_title',
+                'label[for="email"]': 'email_label',
+                'label[for="password"]': 'pass_label',
+                '#loginBtn': 'btn_login',
+                '#dashboard h1': 'title',
+                '#kpiSalesToday ~ .kpi-label': 'kpi_sales_count',
+                '#kpiSalesAmountToday ~ .kpi-label': 'kpi_sales_amount',
+                '#kpiOpsToday ~ .kpi-label': 'kpi_ops_count',
+                '#kpiOnline ~ .kpi-label': 'kpi_online_devices',
+                '#dashboard .glass-card h2 i.fa-chart-line + span': 'chart_title',
+                '#dashboard .glass-card h2 i.fa-list-ul + span': 'ops_title',
+                '#lastRefresh': 'sync_label',
+                'thead th:nth-child(1)': 'col_time',
+                'thead th:nth-child(2)': 'col_op',
+                'thead th:nth-child(3)': 'col_val',
+                'thead th:nth-child(4)': 'col_user',
+                '#dashboard h2 i.fa-cog + span': 'channel_info',
+                '#dashboard .small': 'account_label', // This might be ambiguous
+                '#copyEmailBtn': 'btn_copy',
+                '#syncTestBtn': 'btn_test'
+            };
+            
+            // Manual fixes for specific elements
+            document.querySelector('#authCard h1').textContent = t('title');
+            document.querySelector('#authCard p').textContent = t('subtitle');
+            document.querySelector('#authCard h2').innerHTML = '<i class="fas fa-key"></i> ' + t('login_title');
+            document.querySelector('#loginBtn').innerHTML = '<i class="fas fa-sign-in-alt"></i> ' + t('btn_login');
+            
+            document.querySelector('#dashboard h1').textContent = 'Black Bear Monitor'; // Keep brand
+            document.querySelector('#kpiSalesToday').previousElementSibling.nextElementSibling.textContent = t('kpi_sales_count');
+            document.querySelectorAll('.kpi-label')[0].textContent = t('kpi_sales_count');
+            document.querySelectorAll('.kpi-label')[1].textContent = t('kpi_sales_amount');
+            document.querySelectorAll('.kpi-label')[2].textContent = t('kpi_ops_count');
+            document.querySelectorAll('.kpi-label')[3].textContent = t('kpi_online_devices');
+            
+            document.querySelector('#dashboard h2 i.fa-chart-line').parentElement.innerHTML = '<i class="fas fa-chart-line"></i> ' + t('chart_title');
+            document.querySelector('#dashboard h2 i.fa-list-ul').parentElement.innerHTML = '<i class="fas fa-list-ul"></i> ' + t('ops_title');
+            
+            const ths = document.querySelectorAll('thead th');
+            if (ths.length >= 4) {
+                ths[0].textContent = t('col_time');
+                ths[1].textContent = t('col_op');
+                ths[2].textContent = t('col_val');
+                ths[3].textContent = t('col_user');
+            }
+            
+            document.querySelector('#dashboard h2 i.fa-cog').parentElement.innerHTML = '<i class="fas fa-cog"></i> ' + t('channel_info');
+            document.querySelector('#copyEmailBtn').innerHTML = '<i class="fas fa-copy"></i> ' + t('btn_copy');
+            document.querySelector('#syncTestBtn').innerHTML = '<i class="fas fa-sync"></i> ' + t('btn_test');
         }
-        const tr = document.createElement("tr");
-        tr.className = "fade-in";
-        tr.innerHTML = `
+
+        let unsubs = [];
+        let initialEventsLoaded = false;
+        let lastSalesCount = 0;
+        let salesChartInstance = null;
+
+        function setAuthMessage(msg, type = "warn") {
+            authMsg.textContent = msg || "";
+            authMsg.style.color = type === "danger" ? "#fca5a5" : (type === "ok" ? "#34d399" : "#cbd5e1");
+        }
+
+        function setKpi(id, value) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = String(value);
+        }
+
+        function showToast(message) {
+            toastMsg.textContent = message;
+            toast.classList.add("show");
+            setTimeout(() => toast.classList.remove("show"), 3000);
+        }
+
+        function formatMoney(value) {
+            const n = Number(value || 0);
+            return new Intl.NumberFormat("en-US").format(n);
+        }
+
+        function getEventAmount(ev) {
+            if (ev.type === "payment_process") return Number(ev?.payload?.amount || 0);
+            if (ev.type === "api_call") {
+                const action = ev.payload?.action;
+                if (action === "save_ledger" || action === "save_expense" || action === "save_return") {
+                    return Number(ev.payload?.body?.amount || ev.payload?.amount || 0);
+                }
+            }
+            return 0;
+        }
+
+        function renderEventRow(ev) {
+            const at = ev.createdAt?.toDate ? ev.createdAt.toDate() : (ev.updatedAt?.toDate ? ev.updatedAt.toDate() : null);
+            const locale = curLang === 'ar' ? 'ar-IQ' : 'en-US';
+            const timeText = at ? at.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) : "-";
+            const amount = getEventAmount(ev);
+            
+            let typeText = ev.type === 'payment_process' ? t('type_sales') : (ev.type || t('type_op'));
+            if (ev.type === "api_call") {
+                const action = ev.payload?.action;
+                if (action === "save_ledger") typeText = t('type_ledger');
+                else if (action === "save_expense") typeText = t('type_expense');
+                else if (action === "save_return") typeText = t('type_return');
+                else typeText = t('type_op');
+            }
+            if (curLang === 'ar') {
+                if (ev.type === 'payment_process') typeText = 'مبيعات';
+                else if (ev.type === "api_call") {
+                     const action = ev.payload?.action;
+                     if (action === "save_ledger") typeText = "قيد حساب";
+                     else if (action === "save_expense") typeText = "مصروفات";
+                     else if (action === "save_return") typeText = "زڤڕاندن";
+                }
+            }
+
+            const tr = document.createElement("tr");
+            tr.className = "fade-in";
+            tr.innerHTML = `
             <td><span style="font-size:0.75rem; color:var(--text-muted);">${timeText}</span></td>
             <td><span style="font-weight:500;">${typeText}</span></td>
             <td><span class="${amount > 0 ? 'amount-positive' : ''}">${amount > 0 ? formatMoney(amount) : '-'}</span></td>
             <td><span style="font-size:0.75rem; color:var(--text-muted);">${ev.user || '-'}</span></td>
         `;
-        return tr;
-    }
+            return tr;
+        }
 
-    function initCharts() {
-        if (salesChartInstance) salesChartInstance.destroy();
-        const ctx = document.getElementById('salesByHourChart').getContext('2d');
-        salesChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
-                datasets: [{
-                    label: 'عمليات النظام',
-                    data: Array(24).fill(0),
-                    borderColor: '#10b981',
-                    borderWidth: 3,
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 0,
-                    pointHoverRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
-                scales: {
-                    x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } },
-                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', stepSize: 1, font: { size: 10 } } }
-                }
-            }
-        });
-    }
-
-    function updateCharts(hourlyData) {
-        if (!salesChartInstance) return;
-        salesChartInstance.data.datasets[0].data = hourlyData;
-        salesChartInstance.update('none');
-    }
-
-    function mountDashboardListeners(channelId) {
-        while (unsubs.length) unsubs.pop()();
-        initialEventsLoaded = false;
-        lastSalesCount = 0;
-        initCharts();
-
-        const evQ = query(collection(db, "pos_events"), where("channelId", "==", channelId), orderBy("createdAt", "desc"), limit(50));
-        unsubs.push(onSnapshot(evQ, (snap) => {
-            const now = new Date();
-            const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-            let opsToday = 0;
-            let salesToday = 0;
-            let salesAmountToday = 0;
-            const hourlySales = Array(24).fill(0);
-            
-            if (snap.empty) {
-                eventTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:32px; color:var(--text-muted);">بانتظار وصول الحركات...</td></tr>';
-            } else {
-                eventTableBody.innerHTML = "";
-                snap.forEach((d) => {
-                    const ev = d.data();
-                    const at = ev.createdAt?.toDate ? ev.createdAt.toDate() : null;
-                    const isToday = at ? (at.getTime() >= dayStart) : false;
-                    
-                    if (isToday) {
-                        opsToday++;
-                        const amt = getEventAmount(ev);
-                        if (ev.type === "payment_process" || (ev.type === "api_call" && ev.payload?.action === "save_ledger")) {
-                            salesToday++;
-                            salesAmountToday += amt;
-                            if (at) hourlySales[at.getHours()] += 1;
-                        }
-                        eventTableBody.appendChild(renderEventRow(ev));
+        function initCharts() {
+            if (salesChartInstance) salesChartInstance.destroy();
+            const ctx = document.getElementById('salesByHourChart').getContext('2d');
+            salesChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
+                    datasets: [{
+                        label: 'عمليات النظام',
+                        data: Array(24).fill(0),
+                        borderColor: '#10b981',
+                        borderWidth: 3,
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } },
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', stepSize: 1, font: { size: 10 } } }
                     }
-                });
-            }
-
-            setKpi("kpiOpsToday", opsToday);
-            setKpi("kpiSalesToday", salesToday);
-            setKpi("kpiSalesAmountToday", formatMoney(salesAmountToday));
-            const ts = new Date().toLocaleTimeString("ar-IQ", { hour: '2-digit', minute: '2-digit' });
-            lastRefresh.textContent = `مزامنة: ${ts}`;
-            settingsLastSync.textContent = ts;
-            updateCharts(hourlySales);
-
-            if (initialEventsLoaded) {
-                snap.docChanges().forEach((ch) => {
-                    if (ch.type === "added") showToast("وصول حركة جديدة...");
-                });
-            } else {
-                initialEventsLoaded = true;
-            }
-            lastSalesCount = salesToday;
-        }));
-
-        const prQ = query(collection(db, "pos_presence"), where("channelId", "==", channelId));
-        unsubs.push(onSnapshot(prQ, (snap) => {
-            let onlineCount = 0;
-            const now = Date.now();
-            snap.forEach((d) => { 
-                const data = d.data();
-                const lastPing = data.updatedAt?.toDate ? data.updatedAt.toDate().getTime() : 0;
-                // If marked online OR has pinged in last 45 seconds
-                if (data.online === true || (now - lastPing < 45000)) {
-                    onlineCount++; 
                 }
             });
-            setKpi("kpiOnline", onlineCount);
-            if (onlineCount > 0) {
-                overallStatus.className = "status-pill status-online";
-                overallStatus.innerHTML = '<i class="fas fa-check-circle"></i> الكاشير متصل';
-            } else {
-                overallStatus.className = "status-pill status-warning";
-                overallStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> الكاشير غير متصل';
+        }
+
+        function updateCharts(hourlyData) {
+            if (!salesChartInstance) return;
+            salesChartInstance.data.datasets[0].data = hourlyData;
+            salesChartInstance.update('none');
+        }
+
+        function mountDashboardListeners(channelId) {
+            while (unsubs.length) unsubs.pop()();
+            initialEventsLoaded = false;
+            lastSalesCount = 0;
+            initCharts();
+
+            const evQ = query(collection(db, "pos_events"), where("channelId", "==", channelId), orderBy("createdAt", "desc"), limit(50));
+            unsubs.push(onSnapshot(evQ, (snap) => {
+                const now = new Date();
+                const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+                let opsToday = 0;
+                let salesToday = 0;
+                let salesAmountToday = 0;
+                const hourlySales = Array(24).fill(0);
+
+                if (snap.empty) {
+                    eventTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:32px; color:var(--text-muted);">بانتظار وصول الحركات...</td></tr>';
+                } else {
+                    eventTableBody.innerHTML = "";
+                    snap.forEach((d) => {
+                        const ev = d.data();
+                        const at = ev.createdAt?.toDate ? ev.createdAt.toDate() : null;
+                        const isToday = at ? (at.getTime() >= dayStart) : false;
+
+                        if (isToday) {
+                            opsToday++;
+                            const amt = getEventAmount(ev);
+                            if (ev.type === "payment_process" || (ev.type === "api_call" && ev.payload?.action === "save_ledger")) {
+                                salesToday++;
+                                salesAmountToday += amt;
+                                if (at) hourlySales[at.getHours()] += 1;
+                            }
+                            eventTableBody.appendChild(renderEventRow(ev));
+                        }
+                    });
+                }
+
+                setKpi("kpiOpsToday", opsToday);
+                setKpi("kpiSalesToday", salesToday);
+                setKpi("kpiSalesAmountToday", formatMoney(salesAmountToday));
+                const ts = new Date().toLocaleTimeString("ar-IQ", { hour: '2-digit', minute: '2-digit' });
+                lastRefresh.textContent = `مزامنة: ${ts}`;
+                settingsLastSync.textContent = ts;
+                updateCharts(hourlySales);
+
+                if (initialEventsLoaded) {
+                    snap.docChanges().forEach((ch) => {
+                        if (ch.type === "added") showToast("وصول حركة جديدة...");
+                    });
+                } else {
+                    initialEventsLoaded = true;
+                }
+                lastSalesCount = salesToday;
+            }));
+
+            const prQ = query(collection(db, "pos_presence"), where("channelId", "==", channelId));
+            unsubs.push(onSnapshot(prQ, (snap) => {
+                let onlineCount = 0;
+                const now = Date.now();
+                snap.forEach((d) => {
+                    const data = d.data();
+                    const lastPing = data.updatedAt?.toDate ? data.updatedAt.toDate().getTime() : 0;
+                    // If marked online OR has pinged in last 45 seconds
+                    if (data.online === true || (now - lastPing < 45000)) {
+                        onlineCount++;
+                    }
+                });
+                setKpi("kpiOnline", onlineCount);
+                if (onlineCount > 0) {
+                    overallStatus.className = "status-pill status-online";
+                    overallStatus.innerHTML = `<i class="fas fa-check-circle"></i> ${curLang === 'ar' ? 'الكاشير متصل' : t('status_online')}`;
+                } else {
+                    overallStatus.className = "status-pill status-warning";
+                    overallStatus.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${curLang === 'ar' ? 'الكاشير غير متصل' : t('status_offline')}`;
+                }
+            }));
+        }
+
+        document.getElementById("loginBtn").addEventListener("click", async () => {
+            const email = emailEl.value.trim();
+            const password = passEl.value;
+            if (!email || !password) return setAuthMessage("يرجى إدخال البيانات.", "danger");
+            try {
+                setAuthMessage("جاري الدخول...");
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (e) {
+                setAuthMessage("فشل: " + e.message, "danger");
             }
-        }));
-    }
+        });
 
-    document.getElementById("loginBtn").addEventListener("click", async () => {
-        const email = emailEl.value.trim();
-        const password = passEl.value;
-        if (!email || !password) return setAuthMessage("يرجى إدخال البيانات.", "danger");
-        try {
-            setAuthMessage("جاري الدخول...");
-            await signInWithEmailAndPassword(auth, email, password);
-        } catch (e) {
-            setAuthMessage("فشل: " + e.message, "danger");
-        }
-    });
+        document.getElementById("logoutBtn").addEventListener("click", () => signOut(auth));
+        document.getElementById("syncTestBtn").addEventListener("click", () => showToast("النظام متصل والقناة نشطة."));
+        document.getElementById("copyEmailBtn").addEventListener("click", () => {
+            navigator.clipboard.writeText(auth.currentUser?.email || "");
+            showToast("تم النسخ!");
+        });
 
-    document.getElementById("logoutBtn").addEventListener("click", () => signOut(auth));
-    document.getElementById("syncTestBtn").addEventListener("click", () => showToast("النظام متصل والقناة نشطة."));
-    document.getElementById("copyEmailBtn").addEventListener("click", () => {
-        navigator.clipboard.writeText(auth.currentUser?.email || "");
-        showToast("تم النسخ!");
-    });
-
-    onAuthStateChanged(auth, (user) => {
-        if (!user) {
-            authCard.classList.remove("hidden");
-            dashboard.classList.add("hidden");
-            return;
-        }
-        authCard.classList.add("hidden");
-        dashboard.classList.remove("hidden");
-        const channel = (user.email || "").toLowerCase();
-        settingsActiveEmail.textContent = channel;
-        mountDashboardListeners(channel);
-    });
-</script>
+        onAuthStateChanged(auth, (user) => {
+            applyI18n();
+            if (!user) {
+                authCard.classList.remove("hidden");
+                dashboard.classList.add("hidden");
+                return;
+            }
+            authCard.classList.add("hidden");
+            dashboard.classList.remove("hidden");
+            const channel = (user.email || "").toLowerCase();
+            settingsActiveEmail.textContent = channel;
+            mountDashboardListeners(channel);
+        });
+    </script>
 
 </body>
+
 </html>
