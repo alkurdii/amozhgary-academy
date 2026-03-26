@@ -427,6 +427,24 @@
             color: #93c5fd;
             border: 1px solid rgba(59, 130, 246, 0.35);
         }
+
+        .period-filter-wrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .period-filter-wrap select,
+        .period-filter-wrap input[type="date"] {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            color: #fff;
+            padding: 10px 12px;
+            font-size: 0.85rem;
+        }
     </style>
 </head>
 
@@ -492,6 +510,18 @@
                     <i class="fas fa-power-off"></i>
                 </button>
             </div>
+            <div class="period-filter-wrap">
+                <select id="periodSelect">
+                    <option value="today">اليوم</option>
+                    <option value="yesterday">البارحة</option>
+                    <option value="last7">آخر 7 أيام</option>
+                    <option value="month">هذا الشهر</option>
+                    <option value="all">الكل</option>
+                    <option value="custom">مخصص</option>
+                </select>
+                <input id="periodDateFrom" type="date" />
+                <input id="periodDateTo" type="date" />
+            </div>
 
             <!-- KPI Section -->
             <div class="kpi-grid fade-in">
@@ -502,23 +532,23 @@
                 </div>
                 <div class="kpi-item">
                     <i class="fas fa-wallet" style="color: #34d399;"></i>
-                    <span class="kpi-label" id="labelSalesAmount">إجمالي المبالغ</span>
+                    <span class="kpi-label" id="labelSalesAmount">إجمالي المبيعات</span>
                     <span id="kpiSalesAmountToday" class="kpi-value">0</span>
                 </div>
                 <div class="kpi-item">
-                    <i class="fas fa-hand-holding-usd" style="color: #f87171;"></i>
-                    <span class="kpi-label" id="labelExpensesToday">المصاريف</span>
-                    <span id="kpiExpensesToday" class="kpi-value text-danger">0</span>
+                    <i class="fas fa-shopping-basket" style="color: #f59e0b;"></i>
+                    <span class="kpi-label" id="labelPurchasesToday">إجمالي المشتريات</span>
+                    <span id="kpiPurchasesToday" class="kpi-value">0</span>
                 </div>
                 <div class="kpi-item">
                     <i class="fas fa-chart-pie" style="color: #8b5cf6;"></i>
-                    <span class="kpi-label" id="labelNetToday">صافي اليوم</span>
+                    <span class="kpi-label" id="labelNetToday">صافي الربح</span>
                     <span id="kpiNetToday" class="kpi-value">0</span>
                 </div>
                 <div class="kpi-item">
-                    <i class="fas fa-bolt" style="color: #fbbf24;"></i>
-                    <span class="kpi-label" id="labelOpsToday">إجمالي العمليات</span>
-                    <span id="kpiOpsToday" class="kpi-value">0</span>
+                    <i class="fas fa-cash-register" style="color: #22d3ee;"></i>
+                    <span class="kpi-label" id="labelCashBalance">رصيد القاصة</span>
+                    <span id="kpiCashBalance" class="kpi-value">0</span>
                 </div>
                 <div class="kpi-item">
                     <i class="fas fa-wifi" style="color: #38bdf8;"></i>
@@ -718,6 +748,9 @@
         const salesDetailsMeta = document.getElementById("salesDetailsMeta");
         const purchaseDetailsMeta = document.getElementById("purchaseDetailsMeta");
         const activityFilterChips = document.getElementById("activityFilterChips");
+        const periodSelect = document.getElementById("periodSelect");
+        const periodDateFrom = document.getElementById("periodDateFrom");
+        const periodDateTo = document.getElementById("periodDateTo");
 
         const curLang = localStorage.getItem('pos_language') === 'ar' ? 'ar' : 'badini';
         document.documentElement.setAttribute('lang', curLang === 'ar' ? 'ar' : 'ku');
@@ -811,7 +844,6 @@
                 '#dashboard h1': 'title',
                 '#kpiSalesToday ~ .kpi-label': 'kpi_sales_count',
                 '#kpiSalesAmountToday ~ .kpi-label': 'kpi_sales_amount',
-                '#kpiOpsToday ~ .kpi-label': 'kpi_ops_count',
                 '#kpiOnline ~ .kpi-label': 'kpi_online_devices',
                 '#dashboard .glass-card h2 i.fa-chart-line + span': 'chart_title',
                 '#dashboard .glass-card h2 i.fa-list-ul + span': 'ops_title',
@@ -834,9 +866,9 @@
             
             if (document.getElementById('labelSalesCount')) document.getElementById('labelSalesCount').textContent = t('kpi_sales_count');
             if (document.getElementById('labelSalesAmount')) document.getElementById('labelSalesAmount').textContent = t('kpi_sales_amount');
-            if (document.getElementById('labelExpensesToday')) document.getElementById('labelExpensesToday').textContent = t('kpi_expenses');
-            if (document.getElementById('labelNetToday')) document.getElementById('labelNetToday').textContent = t('kpi_net');
-            if (document.getElementById('labelOpsToday')) document.getElementById('labelOpsToday').textContent = t('kpi_ops_count');
+            if (document.getElementById('labelPurchasesToday')) document.getElementById('labelPurchasesToday').textContent = curLang === 'ar' ? 'إجمالي المشتريات' : 'کۆمێ کڕینێن ئەڤرۆ';
+            if (document.getElementById('labelNetToday')) document.getElementById('labelNetToday').textContent = curLang === 'ar' ? 'صافي الربح' : 'صافی قازانج';
+            if (document.getElementById('labelCashBalance')) document.getElementById('labelCashBalance').textContent = curLang === 'ar' ? 'رصيد القاصة' : 'بالانسا سندوقێ';
             if (document.getElementById('labelOnline')) document.getElementById('labelOnline').textContent = t('kpi_online_devices');
             
             const chartTitle = document.querySelector('.chart-container').previousElementSibling;
@@ -868,7 +900,10 @@
         let latestServerSnapshot = null;
         let latestBackendData = null;
         let latestMegaStats = null;
+        let latestTodayRealtimeEvents = [];
         let selectedActivityFilter = 'all';
+        let selectedPeriod = 'today';
+        let latestRealtimeKpi = { salesCount: 0, salesAmount: 0, expensesAmount: 0, opsCount: 0 };
 
         function setAuthMessage(msg, type = "warn") {
             authMsg.textContent = msg || "";
@@ -923,6 +958,74 @@
             return 'staff';
         }
 
+        function getOperationType(ev) {
+            if (!ev) return 'other';
+            const op = String(ev?.payload?.operationType || '').toLowerCase();
+            if (op) return op;
+            const action = String(ev?.payload?.action || '').toLowerCase();
+            const entity = String(ev?.payload?.entity || '').toLowerCase();
+            if (entity === 'sale' || action === 'process_payment' || ev.type === 'payment_process' || ev.type === 'payment_advance_confirm') return 'sale';
+            if (entity === 'purchase' || entity === 'purchase_return' || entity === 'supply' || action === 'save_purchase_invoice' || action === 'save_supply' || action === 'save_purchase_return') return 'purchase';
+            if (entity === 'expense' || action === 'save_expense' || ev.type === 'expense_save') return 'expense';
+            return 'other';
+        }
+
+        function isBusinessLiveEvent(ev) {
+            if (!ev) return false;
+            const type = String(ev.type || '').toLowerCase();
+            const action = String(ev?.payload?.action || '').toLowerCase();
+
+            // Hide technical/noise events from operations table.
+            if (type === 'financial_summary' || type === 'sale_profit_summary' || type === 'dashboard_summary' || type === 'cashier_sync_ready') return false;
+            if (type === 'api_call' && (action === 'get_sync_data' || action === 'get_data' || action === 'get_login_data')) return false;
+
+            // Show only real business/staff actions.
+            if (type === 'payment_process' || type === 'payment_advance_confirm' || type === 'expense_save' || type === 'return_process') return true;
+            if (type === 'cashier_login_attempt' || type === 'api_error') return true;
+            if (type === 'api_call') {
+                return [
+                    'process_payment',
+                    'save_ledger',
+                    'save_expense',
+                    'save_return',
+                    'pay_debt',
+                    'save_purchase_invoice',
+                    'save_purchase_return',
+                    'save_supply',
+                    'login',
+                    'logout'
+                ].indexOf(action) !== -1;
+            }
+            return false;
+        }
+
+        function applyDashboardSummaryFromEvents(events) {
+            if (selectedPeriod !== 'today') return false;
+            if (!Array.isArray(events) || !events.length) return false;
+            const summaries = events.filter((ev) => String(ev?.type || '').toLowerCase() === 'dashboard_summary');
+            if (!summaries.length) return false;
+            const latest = summaries[0];
+            const p = latest.payload || {};
+            const sales = normalizeNum(p.sales_total || p.amount);
+            const invoices = normalizeNum(p.invoice_count);
+            const purchases = normalizeNum(p.purchases_total);
+            const expenses = normalizeNum(p.expenses_total);
+            const returns = normalizeNum(p.returns_total);
+            const net = normalizeNum(p.net_profit) || (sales - purchases - expenses - returns);
+            const cash = normalizeNum(p.cash_balance) || (sales - purchases - expenses);
+            applyKpiSnapshot({
+                salesCount: invoices,
+                salesAmount: sales,
+                purchasesAmount: purchases,
+                expensesAmount: expenses,
+                returnsAmount: returns,
+                profitAmount: net,
+                cashBalance: cash,
+                opsCount: invoices
+            });
+            return true;
+        }
+
         function readableEventLabel(ev) {
             if (!ev) return '-';
             if (ev.payload?.actionLabel) return String(ev.payload.actionLabel);
@@ -961,10 +1064,26 @@
             return raw.startsWith(todayKey);
         }
 
-        function renderSalesDetails(data) {
-            const todayKey = toDayKey(new Date());
+        function renderSalesDetails(data, events) {
+            const range = getPeriodDateRange(selectedPeriod);
+            const useRealtime = selectedPeriod === 'today';
+            const saleEvents = useRealtime && Array.isArray(events) ? events.filter((ev) => getOperationType(ev) === 'sale') : [];
+            if (saleEvents.length) {
+                salesDetailsMeta.textContent = `عدد: ${saleEvents.length}`;
+                salesDetailsBody.innerHTML = saleEvents.slice(0, 25).map((ev) => {
+                    const at = ev.createdAt?.toDate ? ev.createdAt.toDate() : null;
+                    const amount = getEventAmount(ev);
+                    return `<tr>
+                        <td>${formatEventTime(at)}</td>
+                        <td>${escapeHtml(ev?.user || '-')}</td>
+                        <td><span class="badge-soft">${escapeHtml(readableEventLabel(ev))}</span></td>
+                        <td class="${amount > 0 ? 'amount-positive' : ''}">${amount > 0 ? formatMoney(amount) : '-'}</td>
+                    </tr>`;
+                }).join('');
+                return;
+            }
             const salesArr = Array.isArray(data?.sales) ? data.sales : [];
-            const todaySales = salesArr.filter((s) => isSameDayText(s?.created_at || s?.date || s?.createdAt, todayKey) && normalizeNum(s?.is_returned) !== 1);
+            const todaySales = salesArr.filter((s) => isDateWithinRange(s?.created_at || s?.date || s?.createdAt, range) && normalizeNum(s?.is_returned) !== 1);
             const picked = todaySales.slice(0, 25);
             salesDetailsMeta.textContent = `عدد: ${todaySales.length}`;
             if (!picked.length) {
@@ -984,10 +1103,27 @@
             }).join('');
         }
 
-        function renderPurchaseDetails(data) {
-            const todayKey = toDayKey(new Date());
+        function renderPurchaseDetails(data, events) {
+            const range = getPeriodDateRange(selectedPeriod);
+            const useRealtime = selectedPeriod === 'today';
+            const purchaseEvents = useRealtime && Array.isArray(events) ? events.filter((ev) => getOperationType(ev) === 'purchase') : [];
+            if (purchaseEvents.length) {
+                purchaseDetailsMeta.textContent = `عدد: ${purchaseEvents.length}`;
+                purchaseDetailsBody.innerHTML = purchaseEvents.slice(0, 25).map((ev) => {
+                    const at = ev.createdAt?.toDate ? ev.createdAt.toDate() : null;
+                    const amount = getEventAmount(ev);
+                    const ref = ev?.payload?.entityRef ? `#${escapeHtml(ev.payload.entityRef)}` : '-';
+                    return `<tr>
+                        <td>${formatEventTime(at)}</td>
+                        <td>${escapeHtml(ev?.payload?.entity || 'purchase')}</td>
+                        <td>${ref}</td>
+                        <td class="${amount > 0 ? 'amount-positive' : ''}">${amount > 0 ? formatMoney(amount) : '-'}</td>
+                    </tr>`;
+                }).join('');
+                return;
+            }
             const supplies = Array.isArray(data?.supplies) ? data.supplies : [];
-            const purchases = supplies.filter((r) => isSameDayText(r?.date || r?.created_at || r?.createdAt, todayKey));
+            const purchases = supplies.filter((r) => isDateWithinRange(r?.date || r?.created_at || r?.createdAt, range));
             const picked = purchases.slice(0, 25);
             purchaseDetailsMeta.textContent = `عدد: ${purchases.length}`;
             if (!picked.length) {
@@ -1036,27 +1172,65 @@
         }
 
         function getEventAmount(ev) {
+            const payload = ev?.payload || {};
+            if (payload.amount !== undefined && payload.amount !== null && payload.amount !== '') {
+                return normalizeNum(payload.amount);
+            }
+            if (payload.price_total !== undefined && payload.price_total !== null && payload.price_total !== '') {
+                return normalizeNum(payload.price_total);
+            }
             if (ev.type === "payment_process" || ev.type === "payment_advance_confirm") {
-                return Number(ev?.payload?.amount || 0);
+                return normalizeNum(ev?.payload?.amount || 0);
             }
             if (ev.type === "api_call") {
                 const action = ev.payload?.action;
                 // Prefer payload.amount if we set it in firebase_cashier_sync.js NEW VERSION
                 if (ev.payload?.amount !== undefined && ev.payload?.amount !== null) {
-                    return Number(ev.payload.amount);
+                    return normalizeNum(ev.payload.amount);
                 }
                 const body = ev.payload?.body || {};
                 if (action === "process_payment" || action === "save_ledger" || action === "save_expense" || action === "save_return" || action === "pay_debt") {
-                    return Number(body.amount || body.total || body.total_amount || body.grand_total || body.totalCost || 0);
+                    return normalizeNum(body.amount || body.total || body.total_amount || body.grand_total || body.totalCost || 0);
                 }
             }
             if (ev.type === "expense_save") {
-                return Number(ev.payload?.amount || 0);
+                return normalizeNum(ev.payload?.amount || 0);
             }
             if (ev.type === "return_process") {
-                return Number(ev.payload?.amount || 0);
+                return normalizeNum(ev.payload?.amount || 0);
             }
             return 0;
+        }
+
+        function getEventTotals(ev) {
+            const payload = ev?.payload || {};
+            return {
+                amount: normalizeNum(payload.amount),
+                priceTotal: normalizeNum(payload.price_total || payload.sellTotal || 0),
+                costTotal: normalizeNum(payload.cost_total || payload.costTotal || 0),
+                profitTotal: normalizeNum(payload.profit_total || payload.profit || 0)
+            };
+        }
+
+        function matrixValue(matrix, rowName, key) {
+            if (!Array.isArray(matrix)) return 0;
+            const row = matrix.find((r) => r && r.row === rowName);
+            return normalizeNum(row && row[key]);
+        }
+
+        function snapshotFromMegaStats(ms) {
+            if (!ms || typeof ms !== 'object') return null;
+            const matrix = Array.isArray(ms.financial_matrix) ? ms.financial_matrix : [];
+            if (!matrix.length) return null;
+            const salesAmount = matrixValue(matrix, 'sales', 'total_value');
+            const salesCount = matrixValue(matrix, 'sales', 'total_invoices');
+            const expensesAmount = matrixValue(matrix, 'expenses', 'total_value');
+            const purchasesAmount = matrixValue(matrix, 'purchases', 'total_value');
+            const returnsAmount = matrixValue(matrix, 'sales_returns', 'total_value');
+            const opsCount = salesCount + matrixValue(matrix, 'sales_returns', 'total_invoices') + matrixValue(matrix, 'purchases', 'total_invoices');
+            const profitAmount = normalizeNum(ms?.profit?.net_profit);
+            const cashBalance = normalizeNum(ms?.sanduq?.balance);
+            return { salesCount, salesAmount, purchasesAmount, expensesAmount, returnsAmount, profitAmount, cashBalance, opsCount };
         }
 
         function renderEventRow(ev) {
@@ -1138,6 +1312,37 @@
             return `${y}-${m}-${day}`;
         }
 
+        function getPeriodDateRange(period) {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            let from = new Date(today);
+            let to = new Date(today);
+            if (period === 'yesterday') {
+                from.setDate(from.getDate() - 1);
+                to = new Date(from);
+            } else if (period === 'last7') {
+                from.setDate(from.getDate() - 6);
+            } else if (period === 'month') {
+                from = new Date(now.getFullYear(), now.getMonth(), 1);
+            } else if (period === 'all') {
+                from = new Date(2020, 0, 1);
+            } else if (period === 'custom') {
+                const fallback = toDayKey(today);
+                return {
+                    from: (periodDateFrom && periodDateFrom.value) ? periodDateFrom.value : fallback,
+                    to: (periodDateTo && periodDateTo.value) ? periodDateTo.value : fallback
+                };
+            }
+            return { from: toDayKey(from), to: toDayKey(to) };
+        }
+
+        function isDateWithinRange(v, range) {
+            const raw = String(v || '');
+            if (!raw) return false;
+            const day = raw.slice(0, 10);
+            return day >= range.from && day <= range.to;
+        }
+
         function normalizeNum(v) {
             if (v === null || typeof v === 'undefined' || v === '') return 0;
             if (typeof v === 'number') return Number.isFinite(v) ? v : 0;
@@ -1188,38 +1393,38 @@
         function applyKpiSnapshot(snapshot) {
             const salesCount = normalizeNum(snapshot.salesCount);
             const salesAmount = normalizeNum(snapshot.salesAmount);
+            const purchasesAmount = normalizeNum(snapshot.purchasesAmount);
             const expensesAmount = normalizeNum(snapshot.expensesAmount);
             const opsCount = normalizeNum(snapshot.opsCount);
             const returnsAmount = normalizeNum(snapshot.returnsAmount);
             const profitAmount = normalizeNum(snapshot.profitAmount);
-            const netCandidate = profitAmount !== 0 ? profitAmount : (salesAmount - expensesAmount - returnsAmount);
+            const netCandidate = profitAmount !== 0 ? profitAmount : (salesAmount - expensesAmount - purchasesAmount - returnsAmount);
+            const cashBalance = normalizeNum(snapshot.cashBalance);
+            const cashCandidate = cashBalance !== 0 ? cashBalance : (salesAmount - expensesAmount - purchasesAmount);
             latestServerSnapshot = {
                 salesCount,
                 salesAmount,
+                purchasesAmount,
                 expensesAmount,
                 opsCount,
                 returnsAmount,
-                profitAmount: netCandidate
+                profitAmount: netCandidate,
+                cashBalance: cashCandidate
             };
-            setKpi("kpiOpsToday", opsCount);
             setKpi("kpiSalesToday", salesCount);
             setKpi("kpiSalesAmountToday", formatMoney(salesAmount));
-            setKpi("kpiExpensesToday", formatMoney(expensesAmount));
+            setKpi("kpiPurchasesToday", formatMoney(purchasesAmount));
             setKpi("kpiNetToday", formatMoney(netCandidate));
+            setKpi("kpiCashBalance", formatMoney(cashCandidate));
             const ts = new Date().toLocaleTimeString("ar-IQ", { hour: '2-digit', minute: '2-digit' });
             lastRefresh.textContent = `مزامنة: ${ts}`;
             settingsLastSync.textContent = ts;
         }
 
-        function matrixValue(matrix, rowName, key) {
-            if (!Array.isArray(matrix)) return 0;
-            const row = matrix.find((r) => r && r.row === rowName);
-            return normalizeNum(row && row[key]);
-        }
-
-        async function fetchMegaStatsToday() {
+        async function fetchMegaStatsForPeriod() {
             try {
-                const data = await fetchFromAnyEndpoint('get_mega_stats&period=today');
+                const range = getPeriodDateRange(selectedPeriod);
+                const data = await fetchFromAnyEndpoint(`get_mega_stats&date_from=${encodeURIComponent(range.from)}&date_to=${encodeURIComponent(range.to)}`);
                 if (!data || data.status === 'error') return;
                 latestMegaStats = data;
             } catch (e) {
@@ -1232,46 +1437,72 @@
                 const data = await fetchFromAnyEndpoint('get_data');
                 if (!data || data.status === 'error') throw new Error((data && data.message) || 'invalid response');
                 latestBackendData = data;
-                renderSalesDetails(data);
-                renderPurchaseDetails(data);
+                renderSalesDetails(data, latestTodayRealtimeEvents);
+                renderPurchaseDetails(data, latestTodayRealtimeEvents);
 
-                // Preferred source: backend-calculated today_stats (already normalized server-side).
-                if (data.today_stats && typeof data.today_stats === 'object') {
+                // For non-today periods, trust mega stats directly when available.
+                if (selectedPeriod !== 'today') {
+                    const msSnap = snapshotFromMegaStats(latestMegaStats);
+                    if (msSnap) {
+                        applyKpiSnapshot(msSnap);
+                        return;
+                    }
+                }
+
+                // Preferred source for today's KPI is backend-calculated today_stats.
+                if (selectedPeriod === 'today' && data.today_stats && typeof data.today_stats === 'object') {
                     const ts = data.today_stats;
                     const salesCountTs = normalizeNum(ts.count);
                     const salesAmountTs = normalizeNum(ts.sales);
                     const expensesAmountTs = normalizeNum(ts.expenses);
                     const returnsAmountTs = normalizeNum(ts.returns);
                     let profitAmountTs = 0;
+                    let purchasesAmountTs = 0;
+                    let cashBalanceTs = 0;
                     if (latestMegaStats && latestMegaStats.profit) {
                         profitAmountTs = normalizeNum(latestMegaStats.profit.net_profit);
+                        purchasesAmountTs = matrixValue(latestMegaStats.financial_matrix, 'purchases', 'total_value');
+                        cashBalanceTs = normalizeNum(latestMegaStats?.sanduq?.balance);
                     } else if (latestMegaStats && Array.isArray(latestMegaStats.financial_matrix)) {
                         const salesV = matrixValue(latestMegaStats.financial_matrix, 'sales', 'total_value');
                         const expV = matrixValue(latestMegaStats.financial_matrix, 'expenses', 'total_value');
+                        const purV = matrixValue(latestMegaStats.financial_matrix, 'purchases', 'total_value');
                         const retV = matrixValue(latestMegaStats.financial_matrix, 'sales_returns', 'total_value');
-                        profitAmountTs = salesV - expV - retV;
+                        profitAmountTs = salesV - expV - purV - retV;
+                        purchasesAmountTs = purV;
                     }
                     applyKpiSnapshot({
                         salesCount: salesCountTs,
                         salesAmount: salesAmountTs,
+                        purchasesAmount: purchasesAmountTs,
                         expensesAmount: expensesAmountTs,
                         returnsAmount: returnsAmountTs,
                         profitAmount: profitAmountTs,
+                        cashBalance: cashBalanceTs,
                         opsCount: salesCountTs + returnsAmountTs
                     });
+                    // If server today stats are zero but live events already have amounts, use live fallback.
+                    if (salesAmountTs === 0 && latestRealtimeKpi.salesAmount > 0) {
+                        setKpi("kpiSalesToday", latestRealtimeKpi.salesCount);
+                        setKpi("kpiSalesAmountToday", formatMoney(latestRealtimeKpi.salesAmount));
+                        setKpi("kpiPurchasesToday", formatMoney(latestRealtimeKpi.purchasesAmount || 0));
+                        setKpi("kpiNetToday", formatMoney(latestRealtimeKpi.profitAmount || (latestRealtimeKpi.salesAmount - latestRealtimeKpi.expensesAmount - (latestRealtimeKpi.purchasesAmount || 0))));
+                        setKpi("kpiCashBalance", formatMoney(latestRealtimeKpi.cashBalance || (latestRealtimeKpi.salesAmount - latestRealtimeKpi.expensesAmount - (latestRealtimeKpi.purchasesAmount || 0))));
+                    }
                     return;
                 }
 
-                const now = new Date();
-                const todayKey = toDayKey(now);
+                const range = getPeriodDateRange(selectedPeriod);
                 const salesArr = Array.isArray(data.sales) ? data.sales : [];
                 const expensesArr = Array.isArray(data.expenses) ? data.expenses : [];
+                const suppliesArr = Array.isArray(data.supplies) ? data.supplies : [];
 
                 let salesCount = 0;
                 let salesAmount = 0;
+                let purchasesAmount = 0;
                 for (const s of salesArr) {
                     const created = String((s && (s.created_at || s.date || s.createdAt)) || '');
-                    if (!created.startsWith(todayKey)) continue;
+                    if (!isDateWithinRange(created, range)) continue;
                     salesCount += 1;
                     salesAmount += firstNumber(s, [
                         'final_total', 'grand_total', 'total_amount', 'net_total',
@@ -1283,16 +1514,23 @@
                 let expensesCount = 0;
                 for (const e of expensesArr) {
                     const dt = String((e && (e.date || e.created_at || e.createdAt)) || '');
-                    if (!dt.startsWith(todayKey)) continue;
+                    if (!isDateWithinRange(dt, range)) continue;
                     expensesCount += 1;
                     expensesAmount += firstNumber(e, ['amount', 'total', 'value', 'cost']);
+                }
+                for (const p of suppliesArr) {
+                    const dt = String((p && (p.date || p.created_at || p.createdAt)) || '');
+                    if (!isDateWithinRange(dt, range)) continue;
+                    purchasesAmount += firstNumber(p, ['totalCost', 'total', 'amount', 'cost']);
                 }
 
                 applyKpiSnapshot({
                     salesCount,
                     salesAmount,
+                    purchasesAmount,
                     expensesAmount,
                     returnsAmount: 0,
+                    cashBalance: salesAmount - expensesAmount - purchasesAmount,
                     opsCount: salesCount + expensesCount
                 });
             } catch (err) {
@@ -1302,9 +1540,9 @@
 
         function startBackendFallbackPolling() {
             if (fallbackTimer) clearInterval(fallbackTimer);
-            Promise.all([fetchMegaStatsToday(), fetchDailySnapshotFromBackend()]);
+            Promise.all([fetchMegaStatsForPeriod(), fetchDailySnapshotFromBackend()]);
             fallbackTimer = setInterval(function () {
-                Promise.all([fetchMegaStatsToday(), fetchDailySnapshotFromBackend()]);
+                Promise.all([fetchMegaStatsForPeriod(), fetchDailySnapshotFromBackend()]);
             }, 30000);
         }
 
@@ -1323,17 +1561,24 @@
                 let salesToday = 0;
                 let salesAmountToday = 0;
                 let expensesAmountToday = 0;
+                let purchasesAmountToday = 0;
+                let profitToday = 0;
                 const hourlySales = Array(24).fill(0);
 
                 if (snap.empty) {
                     eventTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:32px; color:var(--text-muted);">بانتظار وصول الحركات...</td></tr>';
                     renderStaffActivity([]);
+                    latestTodayRealtimeEvents = [];
+                    renderSalesDetails(latestBackendData, latestTodayRealtimeEvents);
+                    renderPurchaseDetails(latestBackendData, latestTodayRealtimeEvents);
                 } else {
                     eventTableBody.innerHTML = "";
                     const filteredEvents = [];
                     const todayEvents = [];
+                    const allEvents = [];
                     snap.forEach((d) => {
                         const ev = d.data();
+                        allEvents.push(ev);
                         const at = ev.createdAt?.toDate ? ev.createdAt.toDate() : null;
                         const isToday = at ? (at.getTime() >= dayStart) : false;
 
@@ -1342,6 +1587,7 @@
                             opsToday++;
                             const amt = getEventAmount(ev);
                             const action = ev.payload?.action;
+                            const totals = getEventTotals(ev);
                             
                             // Check for Sales: include process_payment, payment_process, save_ledger (income), pay_debt (income)
                             const isSale = (ev.type === "payment_process" || ev.type === "payment_advance_confirm" || 
@@ -1352,13 +1598,21 @@
 
                             if (isSale) {
                                 salesToday++;
-                                salesAmountToday += amt;
+                                salesAmountToday += (totals.amount > 0 ? totals.amount : amt);
+                                if (totals.profitTotal > 0) profitToday += totals.profitTotal;
+                                else if (totals.priceTotal > 0 || totals.costTotal > 0) profitToday += (totals.priceTotal - totals.costTotal);
                                 if (at) hourlySales[at.getHours()] += 1;
                             }
                             if (isExpense) {
-                                expensesAmountToday += amt;
+                                expensesAmountToday += (totals.amount > 0 ? totals.amount : amt);
                             }
-                            if (selectedActivityFilter === 'all' || classifyEvent(ev) === selectedActivityFilter) {
+                            if (getOperationType(ev) === 'purchase') {
+                                purchasesAmountToday += (totals.amount > 0 ? totals.amount : amt);
+                            }
+                            if (ev.type === 'sale_profit_summary') {
+                                profitToday += normalizeNum(ev.payload?.profit_total || ev.payload?.profit || 0);
+                            }
+                            if (isBusinessLiveEvent(ev) && (selectedActivityFilter === 'all' || classifyEvent(ev) === selectedActivityFilter)) {
                                 filteredEvents.push(ev);
                             }
                         }
@@ -1369,29 +1623,22 @@
                         filteredEvents.forEach((ev) => eventTableBody.appendChild(renderEventRow(ev)));
                     }
                     renderStaffActivity(todayEvents);
+                    latestTodayRealtimeEvents = todayEvents.slice();
+                    renderSalesDetails(latestBackendData, latestTodayRealtimeEvents);
+                    renderPurchaseDetails(latestBackendData, latestTodayRealtimeEvents);
+                    latestRealtimeKpi = {
+                        salesCount: salesToday,
+                        salesAmount: salesAmountToday,
+                        expensesAmount: expensesAmountToday,
+                        purchasesAmount: purchasesAmountToday,
+                        profitAmount: profitToday !== 0 ? profitToday : (salesAmountToday - expensesAmountToday - purchasesAmountToday),
+                        cashBalance: salesAmountToday - expensesAmountToday - purchasesAmountToday,
+                        opsCount: opsToday
+                    };
+                    applyDashboardSummaryFromEvents(allEvents);
                 }
 
-                // Keep financial KPIs aligned with backend source-of-truth.
-                // Firebase events remain for live activity feed + operation pace.
-                if (latestServerSnapshot) {
-                    const resolvedSalesCount = latestServerSnapshot.salesCount > 0 ? latestServerSnapshot.salesCount : salesToday;
-                    const resolvedSalesAmount = latestServerSnapshot.salesAmount > 0 ? latestServerSnapshot.salesAmount : salesAmountToday;
-                    const resolvedExpensesAmount = latestServerSnapshot.expensesAmount > 0 ? latestServerSnapshot.expensesAmount : expensesAmountToday;
-                    const resolvedProfit = (latestServerSnapshot.salesAmount > 0 || latestServerSnapshot.expensesAmount > 0 || latestServerSnapshot.profitAmount !== 0)
-                        ? latestServerSnapshot.profitAmount
-                        : (resolvedSalesAmount - resolvedExpensesAmount);
-                    setKpi("kpiSalesToday", resolvedSalesCount);
-                    setKpi("kpiSalesAmountToday", formatMoney(resolvedSalesAmount));
-                    setKpi("kpiExpensesToday", formatMoney(resolvedExpensesAmount));
-                    setKpi("kpiNetToday", formatMoney(resolvedProfit));
-                    setKpi("kpiOpsToday", Math.max(opsToday, latestServerSnapshot.opsCount));
-                } else {
-                    setKpi("kpiOpsToday", opsToday);
-                    setKpi("kpiSalesToday", salesToday);
-                    setKpi("kpiSalesAmountToday", formatMoney(salesAmountToday));
-                    setKpi("kpiExpensesToday", formatMoney(expensesAmountToday));
-                    setKpi("kpiNetToday", formatMoney(salesAmountToday - expensesAmountToday));
-                }
+                // KPIs are backend-driven per selected period; Firebase is live feed only.
                 const ts = new Date().toLocaleTimeString("ar-IQ", { hour: '2-digit', minute: '2-digit' });
                 lastRefresh.textContent = `مزامنة: ${ts}`;
                 settingsLastSync.textContent = ts;
@@ -1466,6 +1713,31 @@
                 btn.classList.add("active");
                 const channel = (auth.currentUser?.email || "").toLowerCase();
                 if (channel) mountDashboardListeners(channel);
+            });
+        }
+        if (periodSelect) {
+            const syncPeriodInputs = () => {
+                const isCustom = (periodSelect.value || '') === 'custom';
+                if (periodDateFrom) periodDateFrom.style.display = isCustom ? 'block' : 'none';
+                if (periodDateTo) periodDateTo.style.display = isCustom ? 'block' : 'none';
+            };
+            syncPeriodInputs();
+            periodSelect.addEventListener("change", () => {
+                selectedPeriod = periodSelect.value || 'today';
+                syncPeriodInputs();
+                startBackendFallbackPolling();
+                renderSalesDetails(latestBackendData, latestTodayRealtimeEvents);
+                renderPurchaseDetails(latestBackendData, latestTodayRealtimeEvents);
+            });
+            [periodDateFrom, periodDateTo].forEach((el) => {
+                if (!el) return;
+                el.addEventListener("change", () => {
+                    if ((periodSelect.value || '') !== 'custom') return;
+                    selectedPeriod = 'custom';
+                    startBackendFallbackPolling();
+                    renderSalesDetails(latestBackendData, latestTodayRealtimeEvents);
+                    renderPurchaseDetails(latestBackendData, latestTodayRealtimeEvents);
+                });
             });
         }
 
