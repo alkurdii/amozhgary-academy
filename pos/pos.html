@@ -370,6 +370,63 @@
             width: 20px;
             border-radius: 4px;
         }
+
+        .section-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .mini-note {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .chip-group {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+            margin-bottom: 12px;
+        }
+
+        .chip-btn {
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.04);
+            color: #dbeafe;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .chip-btn.active {
+            background: rgba(16, 185, 129, 0.22);
+            border-color: rgba(16, 185, 129, 0.55);
+            color: #bbf7d0;
+        }
+
+        .compact-table td, .compact-table th {
+            padding: 10px 10px;
+            font-size: 0.8rem;
+        }
+
+        .badge-soft {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            border-radius: 999px;
+            padding: 3px 8px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            background: rgba(59, 130, 246, 0.15);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.35);
+        }
     </style>
 </head>
 
@@ -484,8 +541,14 @@
                     <h2 style="margin-bottom:0;"><i class="fas fa-list-ul"></i> العمليات اللحظية</h2>
                     <span style="font-size:0.75rem; color:var(--text-muted);" id="lastRefresh">مزامنة: -</span>
                 </div>
+                <div class="chip-group" id="activityFilterChips">
+                    <button class="chip-btn active" data-filter="all">الكل</button>
+                    <button class="chip-btn" data-filter="financial">مالي</button>
+                    <button class="chip-btn" data-filter="inventory">مخزون</button>
+                    <button class="chip-btn" data-filter="staff">موظفين</button>
+                </div>
                 <div class="table-container">
-                    <table>
+                    <table class="compact-table">
                         <thead>
                             <tr>
                                 <th>الوقت</th>
@@ -499,6 +562,75 @@
                                 <td colspan="4" style="text-align:center; padding:32px; color:var(--text-muted);">
                                     بانتظار وصول الحركات...</td>
                             </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Staff Live Activity -->
+            <div class="glass-card fade-in">
+                <div class="section-title-row">
+                    <h2 style="margin-bottom:0;"><i class="fas fa-user-clock"></i> نشاط الموظفين الآن</h2>
+                    <span class="mini-note">آخر إجراء لكل مستخدم</span>
+                </div>
+                <div class="table-container">
+                    <table class="compact-table">
+                        <thead>
+                            <tr>
+                                <th>الموظف</th>
+                                <th>النشاط</th>
+                                <th>القيمة</th>
+                                <th>الوقت</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staffActivityBody">
+                            <tr><td colspan="4" style="text-align:center; color:var(--text-muted);">بانتظار النشاط...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sales Details -->
+            <div class="glass-card fade-in">
+                <div class="section-title-row">
+                    <h2 style="margin-bottom:0;"><i class="fas fa-receipt"></i> تفاصيل المبيعات (اليوم)</h2>
+                    <span class="mini-note" id="salesDetailsMeta">-</span>
+                </div>
+                <div class="table-container">
+                    <table class="compact-table">
+                        <thead>
+                            <tr>
+                                <th>الوقت</th>
+                                <th>الكاشير</th>
+                                <th>العناصر</th>
+                                <th>المبلغ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="salesDetailsBody">
+                            <tr><td colspan="4" style="text-align:center; color:var(--text-muted);">لا توجد مبيعات بعد.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Purchases Details -->
+            <div class="glass-card fade-in">
+                <div class="section-title-row">
+                    <h2 style="margin-bottom:0;"><i class="fas fa-cart-plus"></i> تفاصيل المشتريات (اليوم)</h2>
+                    <span class="mini-note" id="purchaseDetailsMeta">-</span>
+                </div>
+                <div class="table-container">
+                    <table class="compact-table">
+                        <thead>
+                            <tr>
+                                <th>الوقت</th>
+                                <th>النوع</th>
+                                <th>البيان</th>
+                                <th>المبلغ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="purchaseDetailsBody">
+                            <tr><td colspan="4" style="text-align:center; color:var(--text-muted);">لا توجد مشتريات بعد.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -580,6 +712,12 @@
         const lastRefresh = document.getElementById("lastRefresh");
         const settingsActiveEmail = document.getElementById("settingsActiveEmail");
         const settingsLastSync = document.getElementById("settingsLastSync");
+        const staffActivityBody = document.getElementById("staffActivityBody");
+        const salesDetailsBody = document.getElementById("salesDetailsBody");
+        const purchaseDetailsBody = document.getElementById("purchaseDetailsBody");
+        const salesDetailsMeta = document.getElementById("salesDetailsMeta");
+        const purchaseDetailsMeta = document.getElementById("purchaseDetailsMeta");
+        const activityFilterChips = document.getElementById("activityFilterChips");
 
         const curLang = localStorage.getItem('pos_language') === 'ar' ? 'ar' : 'badini';
         document.documentElement.setAttribute('lang', curLang === 'ar' ? 'ar' : 'ku');
@@ -727,6 +865,10 @@
         let lastSalesCount = 0;
         let salesChartInstance = null;
         let fallbackTimer = null;
+        let latestServerSnapshot = null;
+        let latestBackendData = null;
+        let latestMegaStats = null;
+        let selectedActivityFilter = 'all';
 
         function setAuthMessage(msg, type = "warn") {
             authMsg.textContent = msg || "";
@@ -747,6 +889,150 @@
         function formatMoney(value) {
             const n = Number(value || 0);
             return new Intl.NumberFormat("en-US").format(n);
+        }
+
+        function formatEventTime(d) {
+            if (!d) return "-";
+            const locale = curLang === 'ar' ? 'ar-IQ' : 'en-US';
+            return d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function escapeHtml(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function classifyAction(action) {
+            const a = String(action || '').toLowerCase();
+            if (a.includes('payment') || a.includes('ledger') || a.includes('debt') || a.includes('expense') || a.includes('return')) return 'financial';
+            if (a.includes('purchase') || a.includes('supply') || a.includes('product') || a.includes('stock') || a.includes('warehouse')) return 'inventory';
+            if (a.includes('login') || a.includes('open') || a.includes('table') || a.includes('user') || a.includes('customer') || a.includes('company')) return 'staff';
+            return 'staff';
+        }
+
+        function classifyEvent(ev) {
+            if (!ev) return 'staff';
+            if (ev.payload?.category) return String(ev.payload.category);
+            if (ev.type === 'api_call') return classifyAction(ev.payload?.action);
+            if (ev.type === 'payment_process' || ev.type === 'payment_advance_confirm' || ev.type === 'expense_save' || ev.type === 'return_process') return 'financial';
+            if (ev.type === 'purchase_invoice_save' || ev.type === 'supply_save' || ev.type === 'product_save') return 'inventory';
+            return 'staff';
+        }
+
+        function readableEventLabel(ev) {
+            if (!ev) return '-';
+            if (ev.payload?.actionLabel) return String(ev.payload.actionLabel);
+            if (ev.type === 'api_call') {
+                const action = String(ev.payload?.action || '');
+                const dict = {
+                    process_payment: 'بيع',
+                    save_ledger: 'قيد/تحصيل',
+                    save_expense: 'مصروف',
+                    save_return: 'مرتجع بيع',
+                    save_purchase_invoice: 'شراء',
+                    save_purchase_return: 'مرتجع شراء',
+                    save_supply: 'إدخال مخزون',
+                    pay_debt: 'دفع دين'
+                };
+                return dict[action] || action || 'عملية';
+            }
+            const map = {
+                payment_process: 'دفع فاتورة',
+                payment_advance_confirm: 'تأكيد دفعة',
+                expense_save: 'إضافة مصروف',
+                return_process: 'إرجاع',
+                table_open: 'فتح طاولة',
+                cashier_login_attempt: 'محاولة دخول',
+                purchase_invoice_save: 'حفظ فاتورة شراء',
+                supply_save: 'إدخال مخزون',
+                product_save: 'تعديل منتج',
+                company_save: 'تعديل شركة',
+                customer_save: 'تعديل عميل'
+            };
+            return map[ev.type] || ev.type || 'عملية';
+        }
+
+        function isSameDayText(v, todayKey) {
+            const raw = String(v || '');
+            return raw.startsWith(todayKey);
+        }
+
+        function renderSalesDetails(data) {
+            const todayKey = toDayKey(new Date());
+            const salesArr = Array.isArray(data?.sales) ? data.sales : [];
+            const todaySales = salesArr.filter((s) => isSameDayText(s?.created_at || s?.date || s?.createdAt, todayKey) && normalizeNum(s?.is_returned) !== 1);
+            const picked = todaySales.slice(0, 25);
+            salesDetailsMeta.textContent = `عدد: ${todaySales.length}`;
+            if (!picked.length) {
+                salesDetailsBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">لا توجد مبيعات بعد.</td></tr>';
+                return;
+            }
+            salesDetailsBody.innerHTML = picked.map((s) => {
+                const dt = new Date((s?.created_at || s?.date || s?.createdAt || '').replace(' ', 'T'));
+                const amount = firstNumber(s, ['total', 'final_total', 'grand_total', 'amount']);
+                const itemsCount = Array.isArray(s?.items) ? s.items.length : 0;
+                return `<tr>
+                    <td>${formatEventTime(isNaN(dt) ? null : dt)}</td>
+                    <td>${escapeHtml(s?.cashier || '-')}</td>
+                    <td><span class="badge-soft">${itemsCount} items</span></td>
+                    <td class="${amount > 0 ? 'amount-positive' : ''}">${amount > 0 ? formatMoney(amount) : '-'}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function renderPurchaseDetails(data) {
+            const todayKey = toDayKey(new Date());
+            const supplies = Array.isArray(data?.supplies) ? data.supplies : [];
+            const purchases = supplies.filter((r) => isSameDayText(r?.date || r?.created_at || r?.createdAt, todayKey));
+            const picked = purchases.slice(0, 25);
+            purchaseDetailsMeta.textContent = `عدد: ${purchases.length}`;
+            if (!picked.length) {
+                purchaseDetailsBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">لا توجد مشتريات بعد.</td></tr>';
+                return;
+            }
+            purchaseDetailsBody.innerHTML = picked.map((r) => {
+                const dt = new Date(String(r?.date || r?.created_at || r?.createdAt || '').replace(' ', 'T'));
+                const amount = firstNumber(r, ['totalCost', 'total', 'amount', 'cost']);
+                const note = r?.note || r?.supplier || r?.type || '-';
+                return `<tr>
+                    <td>${formatEventTime(isNaN(dt) ? null : dt)}</td>
+                    <td>${escapeHtml(r?.type || 'purchase')}</td>
+                    <td>${escapeHtml(String(note).slice(0, 28))}</td>
+                    <td class="${amount > 0 ? 'amount-positive' : ''}">${amount > 0 ? formatMoney(amount) : '-'}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function renderStaffActivity(events) {
+            const byUser = {};
+            (events || []).forEach((ev) => {
+                const user = String(ev?.user || 'unknown');
+                const at = ev.createdAt?.toDate ? ev.createdAt.toDate() : null;
+                if (!at) return;
+                const ts = at.getTime();
+                if (!byUser[user] || ts > byUser[user].ts) {
+                    byUser[user] = {
+                        ts,
+                        at,
+                        label: readableEventLabel(ev),
+                        amount: getEventAmount(ev)
+                    };
+                }
+            });
+            const rows = Object.keys(byUser).sort().map((user) => {
+                const item = byUser[user];
+                return `<tr>
+                    <td>${escapeHtml(user)}</td>
+                    <td>${escapeHtml(item.label)}</td>
+                    <td class="${item.amount > 0 ? 'amount-positive' : ''}">${item.amount > 0 ? formatMoney(item.amount) : '-'}</td>
+                    <td>${formatEventTime(item.at)}</td>
+                </tr>`;
+            });
+            staffActivityBody.innerHTML = rows.length ? rows.join('') : '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">بانتظار النشاط...</td></tr>';
         }
 
         function getEventAmount(ev) {
@@ -853,8 +1139,25 @@
         }
 
         function normalizeNum(v) {
-            const n = Number(v || 0);
+            if (v === null || typeof v === 'undefined' || v === '') return 0;
+            if (typeof v === 'number') return Number.isFinite(v) ? v : 0;
+            const raw = String(v).trim();
+            if (!raw) return 0;
+            const cleaned = raw.replace(/[^0-9.\-]/g, '');
+            if (!cleaned) return 0;
+            const n = Number(cleaned);
             return Number.isFinite(n) ? n : 0;
+        }
+
+        function firstNumber(obj, keys) {
+            if (!obj || typeof obj !== 'object') return 0;
+            for (const k of keys) {
+                if (Object.prototype.hasOwnProperty.call(obj, k) && obj[k] !== null && obj[k] !== '') {
+                    const val = normalizeNum(obj[k]);
+                    if (val !== 0) return val;
+                }
+            }
+            return 0;
         }
 
         function getApiEndpoints(action) {
@@ -887,20 +1190,77 @@
             const salesAmount = normalizeNum(snapshot.salesAmount);
             const expensesAmount = normalizeNum(snapshot.expensesAmount);
             const opsCount = normalizeNum(snapshot.opsCount);
+            const returnsAmount = normalizeNum(snapshot.returnsAmount);
+            const profitAmount = normalizeNum(snapshot.profitAmount);
+            const netCandidate = profitAmount !== 0 ? profitAmount : (salesAmount - expensesAmount - returnsAmount);
+            latestServerSnapshot = {
+                salesCount,
+                salesAmount,
+                expensesAmount,
+                opsCount,
+                returnsAmount,
+                profitAmount: netCandidate
+            };
             setKpi("kpiOpsToday", opsCount);
             setKpi("kpiSalesToday", salesCount);
             setKpi("kpiSalesAmountToday", formatMoney(salesAmount));
             setKpi("kpiExpensesToday", formatMoney(expensesAmount));
-            setKpi("kpiNetToday", formatMoney(salesAmount - expensesAmount));
+            setKpi("kpiNetToday", formatMoney(netCandidate));
             const ts = new Date().toLocaleTimeString("ar-IQ", { hour: '2-digit', minute: '2-digit' });
             lastRefresh.textContent = `مزامنة: ${ts}`;
             settingsLastSync.textContent = ts;
+        }
+
+        function matrixValue(matrix, rowName, key) {
+            if (!Array.isArray(matrix)) return 0;
+            const row = matrix.find((r) => r && r.row === rowName);
+            return normalizeNum(row && row[key]);
+        }
+
+        async function fetchMegaStatsToday() {
+            try {
+                const data = await fetchFromAnyEndpoint('get_mega_stats&period=today');
+                if (!data || data.status === 'error') return;
+                latestMegaStats = data;
+            } catch (e) {
+                // Keep optional and silent to avoid noisy UI.
+            }
         }
 
         async function fetchDailySnapshotFromBackend() {
             try {
                 const data = await fetchFromAnyEndpoint('get_data');
                 if (!data || data.status === 'error') throw new Error((data && data.message) || 'invalid response');
+                latestBackendData = data;
+                renderSalesDetails(data);
+                renderPurchaseDetails(data);
+
+                // Preferred source: backend-calculated today_stats (already normalized server-side).
+                if (data.today_stats && typeof data.today_stats === 'object') {
+                    const ts = data.today_stats;
+                    const salesCountTs = normalizeNum(ts.count);
+                    const salesAmountTs = normalizeNum(ts.sales);
+                    const expensesAmountTs = normalizeNum(ts.expenses);
+                    const returnsAmountTs = normalizeNum(ts.returns);
+                    let profitAmountTs = 0;
+                    if (latestMegaStats && latestMegaStats.profit) {
+                        profitAmountTs = normalizeNum(latestMegaStats.profit.net_profit);
+                    } else if (latestMegaStats && Array.isArray(latestMegaStats.financial_matrix)) {
+                        const salesV = matrixValue(latestMegaStats.financial_matrix, 'sales', 'total_value');
+                        const expV = matrixValue(latestMegaStats.financial_matrix, 'expenses', 'total_value');
+                        const retV = matrixValue(latestMegaStats.financial_matrix, 'sales_returns', 'total_value');
+                        profitAmountTs = salesV - expV - retV;
+                    }
+                    applyKpiSnapshot({
+                        salesCount: salesCountTs,
+                        salesAmount: salesAmountTs,
+                        expensesAmount: expensesAmountTs,
+                        returnsAmount: returnsAmountTs,
+                        profitAmount: profitAmountTs,
+                        opsCount: salesCountTs + returnsAmountTs
+                    });
+                    return;
+                }
 
                 const now = new Date();
                 const todayKey = toDayKey(now);
@@ -913,7 +1273,10 @@
                     const created = String((s && (s.created_at || s.date || s.createdAt)) || '');
                     if (!created.startsWith(todayKey)) continue;
                     salesCount += 1;
-                    salesAmount += normalizeNum((s && (s.total ?? s.amount)) || 0);
+                    salesAmount += firstNumber(s, [
+                        'final_total', 'grand_total', 'total_amount', 'net_total',
+                        'total', 'amount', 'paid_amount', 'paid', 'subtotal'
+                    ]);
                 }
 
                 let expensesAmount = 0;
@@ -922,13 +1285,14 @@
                     const dt = String((e && (e.date || e.created_at || e.createdAt)) || '');
                     if (!dt.startsWith(todayKey)) continue;
                     expensesCount += 1;
-                    expensesAmount += normalizeNum((e && e.amount) || 0);
+                    expensesAmount += firstNumber(e, ['amount', 'total', 'value', 'cost']);
                 }
 
                 applyKpiSnapshot({
                     salesCount,
                     salesAmount,
                     expensesAmount,
+                    returnsAmount: 0,
                     opsCount: salesCount + expensesCount
                 });
             } catch (err) {
@@ -938,8 +1302,10 @@
 
         function startBackendFallbackPolling() {
             if (fallbackTimer) clearInterval(fallbackTimer);
-            fetchDailySnapshotFromBackend();
-            fallbackTimer = setInterval(fetchDailySnapshotFromBackend, 30000);
+            Promise.all([fetchMegaStatsToday(), fetchDailySnapshotFromBackend()]);
+            fallbackTimer = setInterval(function () {
+                Promise.all([fetchMegaStatsToday(), fetchDailySnapshotFromBackend()]);
+            }, 30000);
         }
 
         function mountDashboardListeners(channelId) {
@@ -961,14 +1327,18 @@
 
                 if (snap.empty) {
                     eventTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:32px; color:var(--text-muted);">بانتظار وصول الحركات...</td></tr>';
+                    renderStaffActivity([]);
                 } else {
                     eventTableBody.innerHTML = "";
+                    const filteredEvents = [];
+                    const todayEvents = [];
                     snap.forEach((d) => {
                         const ev = d.data();
                         const at = ev.createdAt?.toDate ? ev.createdAt.toDate() : null;
                         const isToday = at ? (at.getTime() >= dayStart) : false;
 
                         if (isToday) {
+                            todayEvents.push(ev);
                             opsToday++;
                             const amt = getEventAmount(ev);
                             const action = ev.payload?.action;
@@ -988,16 +1358,40 @@
                             if (isExpense) {
                                 expensesAmountToday += amt;
                             }
-                            eventTableBody.appendChild(renderEventRow(ev));
+                            if (selectedActivityFilter === 'all' || classifyEvent(ev) === selectedActivityFilter) {
+                                filteredEvents.push(ev);
+                            }
                         }
                     });
+                    if (!filteredEvents.length) {
+                        eventTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:24px; color:var(--text-muted);">لا توجد نتائج للفِلتر الحالي.</td></tr>';
+                    } else {
+                        filteredEvents.forEach((ev) => eventTableBody.appendChild(renderEventRow(ev)));
+                    }
+                    renderStaffActivity(todayEvents);
                 }
 
-                setKpi("kpiOpsToday", opsToday);
-                setKpi("kpiSalesToday", salesToday);
-                setKpi("kpiSalesAmountToday", formatMoney(salesAmountToday));
-                setKpi("kpiExpensesToday", formatMoney(expensesAmountToday));
-                setKpi("kpiNetToday", formatMoney(salesAmountToday - expensesAmountToday));
+                // Keep financial KPIs aligned with backend source-of-truth.
+                // Firebase events remain for live activity feed + operation pace.
+                if (latestServerSnapshot) {
+                    const resolvedSalesCount = latestServerSnapshot.salesCount > 0 ? latestServerSnapshot.salesCount : salesToday;
+                    const resolvedSalesAmount = latestServerSnapshot.salesAmount > 0 ? latestServerSnapshot.salesAmount : salesAmountToday;
+                    const resolvedExpensesAmount = latestServerSnapshot.expensesAmount > 0 ? latestServerSnapshot.expensesAmount : expensesAmountToday;
+                    const resolvedProfit = (latestServerSnapshot.salesAmount > 0 || latestServerSnapshot.expensesAmount > 0 || latestServerSnapshot.profitAmount !== 0)
+                        ? latestServerSnapshot.profitAmount
+                        : (resolvedSalesAmount - resolvedExpensesAmount);
+                    setKpi("kpiSalesToday", resolvedSalesCount);
+                    setKpi("kpiSalesAmountToday", formatMoney(resolvedSalesAmount));
+                    setKpi("kpiExpensesToday", formatMoney(resolvedExpensesAmount));
+                    setKpi("kpiNetToday", formatMoney(resolvedProfit));
+                    setKpi("kpiOpsToday", Math.max(opsToday, latestServerSnapshot.opsCount));
+                } else {
+                    setKpi("kpiOpsToday", opsToday);
+                    setKpi("kpiSalesToday", salesToday);
+                    setKpi("kpiSalesAmountToday", formatMoney(salesAmountToday));
+                    setKpi("kpiExpensesToday", formatMoney(expensesAmountToday));
+                    setKpi("kpiNetToday", formatMoney(salesAmountToday - expensesAmountToday));
+                }
                 const ts = new Date().toLocaleTimeString("ar-IQ", { hour: '2-digit', minute: '2-digit' });
                 lastRefresh.textContent = `مزامنة: ${ts}`;
                 settingsLastSync.textContent = ts;
@@ -1063,6 +1457,17 @@
             navigator.clipboard.writeText(auth.currentUser?.email || "");
             showToast("تم النسخ!");
         });
+        if (activityFilterChips) {
+            activityFilterChips.addEventListener("click", (e) => {
+                const btn = e.target.closest(".chip-btn");
+                if (!btn) return;
+                selectedActivityFilter = btn.getAttribute("data-filter") || "all";
+                activityFilterChips.querySelectorAll(".chip-btn").forEach((b) => b.classList.remove("active"));
+                btn.classList.add("active");
+                const channel = (auth.currentUser?.email || "").toLowerCase();
+                if (channel) mountDashboardListeners(channel);
+            });
+        }
 
         onAuthStateChanged(auth, (user) => {
             applyI18n();
